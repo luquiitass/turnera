@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.angular/
+www/
+.env
+*.log
+.prisma/
+coverage/
+.DS_Store

@@ -1,0 +1,482 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==================== ENUMS ====================
+
+enum Role {
+  ADMIN_GENERAL
+  ADMIN_BARBERSHOP
+  SUB_ADMIN
+  USUARIO
+}
+
+enum BookingStatus {
+  PENDIENTE
+  CONFIRMADA
+  CANCELADA
+  COMPLETADA
+  NO_SHOW
+}
+
+enum PaymentType {
+  SENA
+  SALDO
+}
+
+enum PaymentMethodType {
+  MERCADOPAGO
+  EFECTIVO
+  TRANSFERENCIA
+  TARJETA_LOCAL
+}
+
+enum PaymentStatus {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  REEMBOLSADO
+}
+
+enum BusinessModel {
+  COMISION
+  SUSCRIPCION
+  GRATUITO
+}
+
+enum DayOfWeek {
+  LUNES
+  MARTES
+  MIERCOLES
+  JUEVES
+  VIERNES
+  SABADO
+  DOMINGO
+}
+
+enum DiscountType {
+  PORCENTAJE
+  MONTO_FIJO
+}
+
+// ==================== USERS ====================
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String?
+  firstName String
+  lastName  String
+  phone     String?
+  address   String?
+  avatarUrl String?
+  googleId  String?  @unique
+  roles     Role[]   @default([USUARIO])
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  barbershopAdmins BarbershopAdmin[]
+  barberProfiles   Barber[]
+  bookings         Booking[]
+  reviews          Review[]
+  payments         Payment[]         @relation("RegisteredBy")
+  notifications    Notification[]
+  refreshToken     String?
+
+  @@map("users")
+}
+
+// ==================== BARBERSHOPS ====================
+
+model Barbershop {
+  id                String        @id @default(uuid())
+  name              String        @unique
+  slug              String        @unique @default("")
+  description       String?
+  address           String
+  latitude          Float?
+  longitude         Float?
+  phone             String?
+  coverImage        String?
+  logoImage         String?
+  depositAmount     Float         @default(0)
+  cancellationHours Int           @default(12)
+  minAdvanceHours   Int           @default(1)
+  maxAdvanceDays    Int           @default(30)
+  businessModel     BusinessModel @default(GRATUITO)
+  maxBarbers        Int           @default(10)
+  isActive          Boolean       @default(true)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  admins         BarbershopAdmin[]
+  barbers        Barber[]
+  services       BarbershopService[]
+  amenities      BarbershopAmenity[]
+  paymentMethods BarbershopPaymentMethod[]
+  reviews        Review[]
+  offers         Offer[]
+  subscription   BarbershopSubscription?
+
+  @@map("barbershops")
+}
+
+model BarbershopAdmin {
+  id           String @id @default(uuid())
+  userId       String
+  barbershopId String
+  role         Role   @default(SUB_ADMIN)
+
+  user       User       @relation(fields: [userId], references: [id])
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, barbershopId])
+  @@map("barbershop_admins")
+}
+
+// ==================== BARBERS ====================
+
+model Barber {
+  id           String  @id @default(uuid())
+  barbershopId String
+  userId       String?
+  firstName    String
+  lastName     String
+  bio          String?
+  avatarUrl    String?
+  phone        String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  barbershop   Barbershop     @relation(fields: [barbershopId], references: [id])
+  user         User?          @relation(fields: [userId], references: [id])
+  services     BarberService[]
+  schedules    Schedule[]
+  blockedSlots BlockedSlot[]
+  bookings     Booking[]
+  images       BarberImage[]
+  reviews      Review[]
+
+  @@map("barbers")
+}
+
+model BarberImage {
+  id        String  @id @default(uuid())
+  barberId  String
+  imageUrl  String
+  caption   String?
+  sortOrder Int     @default(0)
+
+  barber Barber @relation(fields: [barberId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("barber_images")
+}
+
+// ==================== SERVICES (GLOBAL CATALOG) ====================
+
+model Service {
+  id             String  @id @default(uuid())
+  name           String
+  nameNormalized String  @unique
+  description    String?
+  category       String?
+  imageUrl       String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  barbershops BarbershopService[]
+  barbers     BarberService[]
+  bookings    Booking[]
+
+  @@map("services")
+}
+
+model BarbershopService {
+  id           String @id @default(uuid())
+  barbershopId String
+  serviceId    String
+  price        Float
+  durationMin  Int
+  isActive     Boolean @default(true)
+
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
+  service    Service    @relation(fields: [serviceId], references: [id])
+
+  @@unique([barbershopId, serviceId])
+  @@map("barbershop_services")
+}
+
+model BarberService {
+  id        String @id @default(uuid())
+  barberId  String
+  serviceId String
+  price     Float?
+
+  barber  Barber  @relation(fields: [barberId], references: [id])
+  service Service @relation(fields: [serviceId], references: [id])
+
+  @@unique([barberId, serviceId])
+  @@map("barber_services")
+}
+
+// ==================== AMENITIES ====================
+
+model Amenity {
+  id        String  @id @default(uuid())
+  name      String  @unique
+  icon      String?
+  category  String?
+  isDefault Boolean @default(false)
+
+  barbershops BarbershopAmenity[]
+
+  @@map("amenities")
+}
+
+model BarbershopAmenity {
+  id           String @id @default(uuid())
+  barbershopId String
+  amenityId    String
+
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
+  amenity    Amenity    @relation(fields: [amenityId], references: [id])
+
+  @@unique([barbershopId, amenityId])
+  @@map("barbershop_amenities")
+}
+
+// ==================== SCHEDULES ====================
+
+model Schedule {
+  id                  String    @id @default(uuid())
+  barberId            String
+  dayOfWeek           DayOfWeek
+  openTime            String
+  closeTime           String
+  slotDurationMinutes Int       @default(30)
+
+  barber Barber @relation(fields: [barberId], references: [id])
+
+  @@unique([barberId, dayOfWeek])
+  @@map("schedules")
+}
+
+model BlockedSlot {
+  id        String   @id @default(uuid())
+  barberId  String
+  date      DateTime
+  startTime String
+  endTime   String
+  reason    String?
+
+  barber Barber @relation(fields: [barberId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("blocked_slots")
+}
+
+// ==================== BOOKINGS ====================
+
+model Booking {
+  id           String        @id @default(uuid())
+  userId       String
+  barberId     String
+  serviceId    String
+  date         DateTime
+  startTime    String
+  endTime      String
+  totalPrice   Float
+  depositPrice Float         @default(0)
+  status       BookingStatus @default(PENDIENTE)
+  notes        String?
+
+  recurringBookingId String?
+
+  user             User              @relation(fields: [userId], references: [id])
+  barber           Barber            @relation(fields: [barberId], references: [id])
+  service          Service           @relation(fields: [serviceId], references: [id])
+  recurringBooking RecurringBooking? @relation(fields: [recurringBookingId], references: [id])
+  payments         Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("bookings")
+}
+
+model RecurringBooking {
+  id        String    @id @default(uuid())
+  userId    String
+  barberId  String
+  serviceId String
+  dayOfWeek DayOfWeek
+  startTime String
+  endTime   String
+  isActive  Boolean   @default(true)
+
+  bookings   Booking[]
+  exceptions BookingException[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("recurring_bookings")
+}
+
+model BookingException {
+  id                 String   @id @default(uuid())
+  recurringBookingId String
+  excludedDate       DateTime
+
+  recurringBooking RecurringBooking @relation(fields: [recurringBookingId], references: [id])
+
+  @@unique([recurringBookingId, excludedDate])
+  @@map("booking_exceptions")
+}
+
+// ==================== PAYMENTS ====================
+
+model Payment {
+  id           String            @id @default(uuid())
+  bookingId    String
+  amount       Float
+  method       PaymentMethodType
+  type         PaymentType
+  status       PaymentStatus     @default(PENDIENTE)
+  registeredBy String?
+
+  booking  Booking @relation(fields: [bookingId], references: [id])
+  register User?   @relation("RegisteredBy", fields: [registeredBy], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("payments")
+}
+
+model BarbershopPaymentMethod {
+  id           String            @id @default(uuid())
+  barbershopId String
+  method       PaymentMethodType
+  isActive     Boolean           @default(true)
+
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
+
+  @@unique([barbershopId, method])
+  @@map("barbershop_payment_methods")
+}
+
+// ==================== OFFERS ====================
+
+model Offer {
+  id            String       @id @default(uuid())
+  barbershopId  String
+  name          String
+  description   String?
+  discountType  DiscountType
+  discountValue Float
+  validFrom     DateTime
+  validUntil    DateTime
+  startTime     String?
+  endTime       String?
+  serviceIds    String[]     @default([])
+  barberIds     String[]     @default([])
+  appliesToAll  Boolean      @default(true)
+  isActive      Boolean      @default(true)
+
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("offers")
+}
+
+// ==================== REVIEWS ====================
+
+model Review {
+  id           String  @id @default(uuid())
+  userId       String
+  barbershopId String
+  barberId     String?
+  rating       Int
+  comment      String?
+
+  user       User       @relation(fields: [userId], references: [id])
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
+  barber     Barber?    @relation(fields: [barberId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, barbershopId])
+  @@map("reviews")
+}
+
+// ==================== NOTIFICATIONS ====================
+
+model Notification {
+  id     String  @id @default(uuid())
+  userId String
+  title  String
+  body   String
+  isRead Boolean @default(false)
+  type   String?
+  data   Json?
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+// ==================== PLATFORM ====================
+
+model PlatformConfig {
+  id    String @id @default(uuid())
+  key   String @unique
+  value String
+
+  @@map("platform_config")
+}
+
+model BarbershopSubscription {
+  id           String   @id @default(uuid())
+  barbershopId String   @unique
+  plan         String
+  startDate    DateTime
+  endDate      DateTime
+  isActive     Boolean  @default(true)
+
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("barbershop_subscriptions")
+}
+
+model RegistrationOrder {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  usedBy    String?
+  usedAt    DateTime?
+  expiresAt DateTime
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("registration_orders")
+}
