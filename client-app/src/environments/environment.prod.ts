@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.barberiaalem.com/api',
+  apiUrl: 'https://turnera-api-production.up.railway.app/api',
   baseDomains: ['barberiaalem.com'],
   fallbackSlug: '',
   barbershopId: '',
