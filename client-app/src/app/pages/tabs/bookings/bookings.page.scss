@@ -1,0 +1,162 @@
+// Client bookings
+.booking-detail {
+  padding: 0 16px 8px;
+  background: var(--ion-color-light);
+  border-bottom: 1px solid var(--ion-color-light-shade);
+}
+
+ion-item h2 { font-weight: 600; }
+
+// Barber agenda
+.agenda-date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  gap: 4px;
+
+  .agenda-date-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: var(--ion-color-light);
+  }
+}
+
+.agenda-info {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 8px;
+  flex-wrap: wrap;
+}
+
+.agenda-timeline {
+  padding: 0 16px 16px;
+}
+
+.agenda-slot {
+  display: flex;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+
+  &:last-child { border-bottom: none; }
+
+  .slot-time {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 55px;
+    flex-shrink: 0;
+
+    .time-start {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .time-separator {
+      font-size: 10px;
+      color: var(--ion-color-light-shade);
+      line-height: 1;
+    }
+
+    .time-end {
+      font-size: 12px;
+      color: var(--ion-color-medium);
+    }
+
+    .time-duration {
+      font-size: 10px;
+      color: var(--ion-color-medium);
+      margin-top: 2px;
+    }
+  }
+
+  .slot-content {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 10px;
+
+    .slot-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+
+      strong { font-size: 14px; }
+      ion-icon { font-size: 16px; }
+    }
+
+    .slot-service {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      margin: 2px 0;
+      color: var(--ion-color-dark-tint);
+
+      ion-icon { font-size: 14px; }
+    }
+
+    .slot-detail {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--ion-color-medium);
+      margin: 2px 0;
+
+      ion-icon { font-size: 13px; }
+    }
+
+    &.free-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+
+      ion-icon { font-size: 18px; }
+
+      span {
+        font-size: 13px;
+        color: var(--ion-color-medium);
+        font-style: italic;
+        flex: 1;
+      }
+
+      .add-icon {
+        font-size: 22px;
+      }
+    }
+  }
+
+  &.booked .slot-content {
+    background: rgba(var(--ion-color-primary-rgb), 0.08);
+    border-left: 3px solid var(--ion-color-primary);
+  }
+
+  &.blocked .slot-content {
+    background: rgba(var(--ion-color-danger-rgb), 0.06);
+    border-left: 3px solid var(--ion-color-danger);
+  }
+
+  &.free .slot-content {
+    background: rgba(var(--ion-color-success-rgb), 0.05);
+    border-left: 3px solid var(--ion-color-success-tint);
+  }
+
+  .block-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    ion-icon { font-size: 20px; flex-shrink: 0; }
+    strong { font-size: 14px; }
+    p { font-size: 12px; color: var(--ion-color-medium); margin: 2px 0 0; }
+  }
+}

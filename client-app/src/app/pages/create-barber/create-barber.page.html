@@ -1,0 +1,78 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Registrar Barberia</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Loading code validation -->
+  <div *ngIf="isLoading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Validando codigo...</p>
+  </div>
+
+  <!-- Code error -->
+  <div *ngIf="!isLoading && codeError" class="ion-text-center ion-padding">
+    <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+    <h3>Codigo invalido</h3>
+    <p>{{ codeError }}</p>
+  </div>
+
+  <!-- No code -->
+  <div *ngIf="!isLoading && !code" class="ion-text-center ion-padding">
+    <ion-icon name="ticket-outline" size="large" color="medium"></ion-icon>
+    <h3>Se requiere un codigo de registro</h3>
+    <p>Solicita un codigo al administrador de la plataforma.</p>
+  </div>
+
+  <!-- Form -->
+  <div *ngIf="!isLoading && codeValid">
+
+    <div class="form-header">
+      <ion-icon name="storefront-outline" color="primary" style="font-size: 48px;"></ion-icon>
+      <h2>Registra tu barberia</h2>
+      <p>Cuenta: <strong>{{ userEmail }}</strong></p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <ion-item>
+        <ion-label position="floating">Nombre de la barberia *</ion-label>
+        <ion-input formControlName="name" placeholder="Ej: Mi Barberia"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="form.get('name')?.invalid && form.get('name')?.touched">
+        <p class="error-text">El nombre es obligatorio (min 3 caracteres).</p>
+      </ion-text>
+
+      <ion-item>
+        <ion-label position="floating">Direccion *</ion-label>
+        <ion-input formControlName="address" placeholder="Calle y numero, ciudad"></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="form.get('address')?.invalid && form.get('address')?.touched">
+        <p class="error-text">La direccion es obligatoria.</p>
+      </ion-text>
+
+      <ion-item>
+        <ion-label position="floating">Telefono</ion-label>
+        <ion-input formControlName="phone" type="tel" placeholder="+54 11 1234-5678"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">Descripcion</ion-label>
+        <ion-textarea formControlName="description" rows="3" placeholder="Conta sobre tu barberia..."></ion-textarea>
+      </ion-item>
+
+      <ion-text color="danger" *ngIf="submitError">
+        <p class="error-text">{{ submitError }}</p>
+      </ion-text>
+
+      <ion-button expand="block" type="submit" color="primary" class="ion-margin-top" [disabled]="isSubmitting || form.invalid">
+        <ion-spinner *ngIf="isSubmitting" name="crescent" style="margin-right: 8px;"></ion-spinner>
+        {{ isSubmitting ? 'Registrando...' : 'Registrar barberia' }}
+      </ion-button>
+
+    </form>
+  </div>
+
+</ion-content>

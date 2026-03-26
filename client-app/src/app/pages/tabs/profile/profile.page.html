@@ -1,0 +1,76 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content pullingText="Soltar para actualizar" refreshingSpinner="crescent" refreshingText="Actualizando..."></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="profile-container" *ngIf="user">
+
+    <!-- Avatar e iniciales -->
+    <div class="avatar-section">
+      <div class="avatar-circle">
+        <img *ngIf="user.avatarUrl" [src]="user.avatarUrl" [alt]="user.firstName" class="avatar-img" />
+        <span *ngIf="!user.avatarUrl" class="initials">{{ getInitials() }}</span>
+      </div>
+      <h2 class="user-name">{{ user.firstName }} {{ user.lastName }}</h2>
+    </div>
+
+    <!-- Datos del usuario -->
+    <div class="section">
+      <h3 class="section-title">Informacion personal</h3>
+      <ion-list lines="inset" class="info-list">
+
+        <ion-item>
+          <ion-icon name="mail-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <p class="field-label">Correo electronico</p>
+            <h3>{{ user.email }}</h3>
+          </ion-label>
+        </ion-item>
+
+        <ion-item *ngIf="user.phone">
+          <ion-icon name="call-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <p class="field-label">Telefono</p>
+            <h3>{{ user.phone }}</h3>
+          </ion-label>
+        </ion-item>
+
+        <ion-item *ngIf="user.role">
+          <ion-icon name="shield-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <p class="field-label">Rol</p>
+            <h3>{{ user.role }}</h3>
+          </ion-label>
+        </ion-item>
+
+      </ion-list>
+    </div>
+
+    <!-- Accion cerrar sesion -->
+    <div class="logout-section">
+      <ion-button
+        expand="block"
+        color="danger"
+        fill="outline"
+        (click)="confirmLogout()"
+      >
+        <ion-icon name="log-out-outline" slot="start"></ion-icon>
+        Cerrar sesion
+      </ion-button>
+    </div>
+
+  </div>
+
+  <!-- Sin usuario -->
+  <div *ngIf="!user" class="loading-container">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+</ion-content>

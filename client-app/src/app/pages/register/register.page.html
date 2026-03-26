@@ -1,0 +1,121 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/auth/login" text="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Crear Cuenta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding register-content">
+  <div class="register-container">
+    <div class="register-header">
+      <h2>Registrate</h2>
+      <p>Completá tus datos para crear una cuenta</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <!-- Nombre -->
+      <ion-item lines="full" class="form-item">
+        <ion-label position="floating">Nombre</ion-label>
+        <ion-input
+          formControlName="firstName"
+          type="text"
+          autocomplete="given-name"
+          placeholder="Tu nombre"
+        ></ion-input>
+      </ion-item>
+      <ion-text color="danger" class="error-text"
+        *ngIf="form.get('firstName')?.invalid && form.get('firstName')?.touched">
+        <small *ngIf="form.get('firstName')?.errors?.['required']">El nombre es obligatorio.</small>
+        <small *ngIf="form.get('firstName')?.errors?.['minlength']">Mínimo 2 caracteres.</small>
+      </ion-text>
+
+      <!-- Apellido -->
+      <ion-item lines="full" class="form-item">
+        <ion-label position="floating">Apellido</ion-label>
+        <ion-input
+          formControlName="lastName"
+          type="text"
+          autocomplete="family-name"
+          placeholder="Tu apellido"
+        ></ion-input>
+      </ion-item>
+      <ion-text color="danger" class="error-text"
+        *ngIf="form.get('lastName')?.invalid && form.get('lastName')?.touched">
+        <small *ngIf="form.get('lastName')?.errors?.['required']">El apellido es obligatorio.</small>
+        <small *ngIf="form.get('lastName')?.errors?.['minlength']">Mínimo 2 caracteres.</small>
+      </ion-text>
+
+      <!-- Email -->
+      <ion-item lines="full" class="form-item">
+        <ion-label position="floating">Correo electrónico</ion-label>
+        <ion-input
+          formControlName="email"
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          placeholder="ejemplo@correo.com"
+        ></ion-input>
+      </ion-item>
+      <ion-text color="danger" class="error-text"
+        *ngIf="form.get('email')?.invalid && form.get('email')?.touched">
+        <small *ngIf="form.get('email')?.errors?.['required']">El correo es obligatorio.</small>
+        <small *ngIf="form.get('email')?.errors?.['email']">Ingresá un correo válido.</small>
+      </ion-text>
+
+      <!-- Contraseña -->
+      <ion-item lines="full" class="form-item">
+        <ion-label position="floating">Contraseña</ion-label>
+        <ion-input
+          formControlName="password"
+          type="password"
+          autocomplete="new-password"
+          placeholder="Mínimo 6 caracteres"
+        ></ion-input>
+      </ion-item>
+      <ion-text color="danger" class="error-text"
+        *ngIf="form.get('password')?.invalid && form.get('password')?.touched">
+        <small *ngIf="form.get('password')?.errors?.['required']">La contraseña es obligatoria.</small>
+        <small *ngIf="form.get('password')?.errors?.['minlength']">Mínimo 6 caracteres.</small>
+      </ion-text>
+
+      <!-- Teléfono -->
+      <ion-item lines="full" class="form-item">
+        <ion-label position="floating">Teléfono</ion-label>
+        <ion-input
+          formControlName="phone"
+          type="tel"
+          inputmode="tel"
+          autocomplete="tel"
+          placeholder="+54 9 11 1234-5678"
+        ></ion-input>
+      </ion-item>
+      <ion-text color="danger" class="error-text"
+        *ngIf="form.get('phone')?.invalid && form.get('phone')?.touched">
+        <small *ngIf="form.get('phone')?.errors?.['required']">El teléfono es obligatorio.</small>
+        <small *ngIf="form.get('phone')?.errors?.['pattern']">Ingresá un teléfono válido.</small>
+      </ion-text>
+
+      <!-- Error global -->
+      <ion-text color="danger" class="error-text" *ngIf="errorMessage">
+        <p>{{ errorMessage }}</p>
+      </ion-text>
+
+      <!-- Submit -->
+      <ion-button
+        expand="block"
+        type="submit"
+        class="submit-btn"
+        [disabled]="isLoading"
+      >
+        <ion-spinner name="crescent" *ngIf="isLoading"></ion-spinner>
+        <span *ngIf="!isLoading">Crear cuenta</span>
+      </ion-button>
+    </form>
+
+    <div class="login-link">
+      <p>¿Ya tenés cuenta? <a routerLink="/auth/login">Iniciá sesión</a></p>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,13 @@
+.form-header {
+  text-align: center;
+  padding: 16px 0 24px;
+
+  h2 { font-size: 22px; font-weight: 700; margin: 12px 0 4px; }
+  p { color: var(--ion-color-medium); margin: 0; }
+  strong { color: var(--ion-color-dark); }
+}
+
+.error-text {
+  font-size: 12px;
+  padding: 4px 16px;
+}

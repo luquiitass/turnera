@@ -1,0 +1,110 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/auth/login" text="Atras"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Crear Cuenta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="register-container">
+    <div class="register-header">
+      <h2>Crea tu cuenta</h2>
+      <p>Completa tus datos para registrarte</p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
+      <ion-item lines="full" [class.ion-invalid]="firstName?.invalid && firstName?.touched">
+        <ion-label position="floating">Nombre</ion-label>
+        <ion-input
+          type="text"
+          formControlName="firstName"
+          autocomplete="given-name"
+        ></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="firstName?.invalid && firstName?.touched">
+        <p class="error-text" *ngIf="firstName?.errors?.['required']">El nombre es obligatorio.</p>
+        <p class="error-text" *ngIf="firstName?.errors?.['minlength']">Minimo 2 caracteres.</p>
+      </ion-text>
+
+      <ion-item lines="full" [class.ion-invalid]="lastName?.invalid && lastName?.touched">
+        <ion-label position="floating">Apellido</ion-label>
+        <ion-input
+          type="text"
+          formControlName="lastName"
+          autocomplete="family-name"
+        ></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="lastName?.invalid && lastName?.touched">
+        <p class="error-text" *ngIf="lastName?.errors?.['required']">El apellido es obligatorio.</p>
+        <p class="error-text" *ngIf="lastName?.errors?.['minlength']">Minimo 2 caracteres.</p>
+      </ion-text>
+
+      <ion-item lines="full" [class.ion-invalid]="email?.invalid && email?.touched">
+        <ion-label position="floating">Correo electronico</ion-label>
+        <ion-input
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          inputmode="email"
+        ></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="email?.invalid && email?.touched">
+        <p class="error-text" *ngIf="email?.errors?.['required']">El correo es obligatorio.</p>
+        <p class="error-text" *ngIf="email?.errors?.['email']">Ingresa un correo valido.</p>
+      </ion-text>
+
+      <ion-item lines="full" [class.ion-invalid]="password?.invalid && password?.touched">
+        <ion-label position="floating">Contrasena</ion-label>
+        <ion-input
+          type="password"
+          formControlName="password"
+          autocomplete="new-password"
+        ></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="password?.invalid && password?.touched">
+        <p class="error-text" *ngIf="password?.errors?.['required']">La contrasena es obligatoria.</p>
+        <p class="error-text" *ngIf="password?.errors?.['minlength']">Minimo 6 caracteres.</p>
+      </ion-text>
+
+      <ion-item lines="full" [class.ion-invalid]="phone?.invalid && phone?.touched">
+        <ion-label position="floating">Telefono (opcional)</ion-label>
+        <ion-input
+          type="tel"
+          formControlName="phone"
+          autocomplete="tel"
+          inputmode="tel"
+        ></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="phone?.invalid && phone?.touched">
+        <p class="error-text" *ngIf="phone?.errors?.['pattern']">Ingresa un numero de telefono valido.</p>
+      </ion-text>
+
+      <ion-text color="danger" *ngIf="errorMessage">
+        <p class="error-text general-error">{{ errorMessage }}</p>
+      </ion-text>
+
+      <ion-button
+        expand="block"
+        type="submit"
+        color="primary"
+        class="ion-margin-top"
+        [disabled]="registerForm.invalid"
+      >
+        Crear Cuenta
+      </ion-button>
+
+    </form>
+
+    <div class="login-link ion-text-center ion-margin-top">
+      <ion-text>
+        <p>
+          Ya tienes cuenta?
+          <a routerLink="/auth/login">Inicia sesion aqui</a>
+        </p>
+      </ion-text>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,73 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Iniciar Sesion</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="login-container">
+    <div class="login-header">
+      <h2>Bienvenido</h2>
+      <p>Ingresa tus datos para continuar</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+      <ion-item lines="full" [class.ion-invalid]="email?.invalid && email?.touched">
+        <ion-label position="floating">Correo electronico</ion-label>
+        <ion-input
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          inputmode="email"
+        ></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="email?.invalid && email?.touched">
+        <p class="error-text" *ngIf="email?.errors?.['required']">El correo es obligatorio.</p>
+        <p class="error-text" *ngIf="email?.errors?.['email']">Ingresa un correo valido.</p>
+      </ion-text>
+
+      <ion-item lines="full" [class.ion-invalid]="password?.invalid && password?.touched">
+        <ion-label position="floating">Contrasena</ion-label>
+        <ion-input
+          type="password"
+          formControlName="password"
+          autocomplete="current-password"
+        ></ion-input>
+      </ion-item>
+      <ion-text color="danger" *ngIf="password?.invalid && password?.touched">
+        <p class="error-text" *ngIf="password?.errors?.['required']">La contrasena es obligatoria.</p>
+        <p class="error-text" *ngIf="password?.errors?.['minlength']">Minimo 6 caracteres.</p>
+      </ion-text>
+
+      <ion-item lines="none" class="remember-item">
+        <ion-checkbox [(ngModel)]="rememberMe" [ngModelOptions]="{standalone: true}" slot="start"></ion-checkbox>
+        <ion-label>Recordar mis datos</ion-label>
+      </ion-item>
+
+      <ion-text color="danger" *ngIf="errorMessage">
+        <p class="error-text general-error">{{ errorMessage }}</p>
+      </ion-text>
+
+      <ion-button
+        expand="block"
+        type="submit"
+        color="primary"
+        class="ion-margin-top"
+        [disabled]="loginForm.invalid"
+      >
+        Iniciar Sesion
+      </ion-button>
+
+    </form>
+
+    <div class="register-link ion-text-center ion-margin-top">
+      <ion-text>
+        <p>
+          No tienes cuenta?
+          <a routerLink="/auth/register">Registrate aqui</a>
+        </p>
+      </ion-text>
+    </div>
+  </div>
+</ion-content>

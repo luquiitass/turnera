@@ -1,0 +1,32 @@
+<ion-tabs>
+
+  <ion-tab-bar slot="bottom">
+
+    <ion-tab-button tab="home">
+      <ion-icon name="home-outline"></ion-icon>
+      <ion-label>Inicio</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="search" *ngIf="isUsuario">
+      <ion-icon name="search-outline"></ion-icon>
+      <ion-label>Buscar</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="bookings" *ngIf="isUsuario">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <ion-label>Reservas</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button tab="profile">
+      <ion-icon name="person-outline"></ion-icon>
+      <ion-label>Perfil</ion-label>
+    </ion-tab-button>
+
+    <ion-tab-button *ngIf="hasMultipleRoles" (click)="openRoleSwitcher()">
+      <ion-icon name="swap-horizontal-outline"></ion-icon>
+      <ion-label>Rol</ion-label>
+    </ion-tab-button>
+
+  </ion-tab-bar>
+
+</ion-tabs>

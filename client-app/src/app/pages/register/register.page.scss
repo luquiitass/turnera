@@ -1,0 +1,62 @@
+.register-content {
+  --background: var(--ion-color-light);
+}
+
+.register-container {
+  max-width: 480px;
+  margin: 0 auto;
+  padding-top: 24px;
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 24px;
+
+  h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 0.95rem;
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}
+
+.form-item {
+  margin-bottom: 4px;
+  --border-radius: 8px;
+}
+
+.error-text {
+  display: block;
+  padding: 2px 16px 6px;
+  font-size: 0.8rem;
+}
+
+.submit-btn {
+  margin-top: 24px;
+  --border-radius: 8px;
+  height: 48px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.login-link {
+  text-align: center;
+  margin-top: 20px;
+
+  p {
+    font-size: 0.9rem;
+    color: var(--ion-color-medium);
+  }
+
+  a {
+    color: var(--ion-color-primary);
+    font-weight: 600;
+    text-decoration: none;
+  }
+}

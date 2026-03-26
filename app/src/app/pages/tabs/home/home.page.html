@@ -1,0 +1,165 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Reserva Barber</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <div *ngIf="isLoading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <!-- ==================== USUARIO ==================== -->
+  <ng-container *ngIf="isUsuario && !isLoading">
+
+    <div class="greeting-section">
+      <h2>{{ greeting }}, {{ currentUser?.firstName }}!</h2>
+      <p>Gestiona tus reservas y descubre nuevas barberias.</p>
+    </div>
+
+    <div class="ion-padding-horizontal">
+      <ion-button expand="block" fill="outline" color="primary" (click)="goToSearch()">
+        <ion-icon name="search-outline" slot="start"></ion-icon>
+        Buscar barberia
+      </ion-button>
+    </div>
+
+    <ion-list-header><ion-label>Proximas reservas</ion-label></ion-list-header>
+
+    <ng-container *ngIf="upcomingBookings.length > 0; else noBookings">
+      <ion-card *ngFor="let booking of upcomingBookings" class="booking-card">
+        <ion-card-header>
+          <ion-chip [color]="getStatusColor(booking.status)" outline>
+            <ion-label>{{ getStatusLabel(booking.status) }}</ion-label>
+          </ion-chip>
+          <ion-card-title>{{ booking.service?.name }}</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <ion-item lines="none">
+            <ion-icon name="calendar-outline" slot="start" color="primary"></ion-icon>
+            <ion-label>{{ formatDate(booking.date) }} | {{ booking.startTime }}</ion-label>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-icon name="person-outline" slot="start" color="primary"></ion-icon>
+            <ion-label>{{ booking.barber?.firstName }} {{ booking.barber?.lastName }}</ion-label>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
+    </ng-container>
+
+    <ng-template #noBookings>
+      <div class="empty-state">
+        <ion-icon name="calendar-outline" color="medium" style="font-size: 64px;"></ion-icon>
+        <p>No tienes reservas proximas.</p>
+        <ion-button fill="outline" (click)="goToNewBooking()">Hacer una reserva</ion-button>
+      </div>
+    </ng-template>
+
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+      <ion-fab-button color="primary" (click)="goToNewBooking()">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+
+  </ng-container>
+
+  <!-- ==================== ADMIN GENERAL - DASHBOARD INLINE ==================== -->
+  <ng-container *ngIf="isAdminGeneral && !isLoading">
+
+    <div class="greeting-section">
+      <h2>Panel de Plataforma</h2>
+      <p>Bienvenido, {{ currentUser?.firstName }}. Resumen general del sistema.</p>
+    </div>
+
+    <ng-container *ngIf="platformDashboard">
+      <div class="stats-grid">
+        <ion-card class="stat-card">
+          <ion-card-content class="ion-text-center">
+            <ion-icon name="storefront-outline" color="primary" style="font-size: 28px;"></ion-icon>
+            <h2>{{ platformDashboard.totalBarbershops }}</h2>
+            <p>Barberias</p>
+          </ion-card-content>
+        </ion-card>
+        <ion-card class="stat-card">
+          <ion-card-content class="ion-text-center">
+            <ion-icon name="checkmark-circle-outline" color="success" style="font-size: 28px;"></ion-icon>
+            <h2>{{ platformDashboard.activeBarbershops }}</h2>
+            <p>Activas</p>
+          </ion-card-content>
+        </ion-card>
+        <ion-card class="stat-card">
+          <ion-card-content class="ion-text-center">
+            <ion-icon name="people-outline" color="secondary" style="font-size: 28px;"></ion-icon>
+            <h2>{{ platformDashboard.totalUsers }}</h2>
+            <p>Usuarios</p>
+          </ion-card-content>
+        </ion-card>
+        <ion-card class="stat-card">
+          <ion-card-content class="ion-text-center">
+            <ion-icon name="calendar-outline" color="tertiary" style="font-size: 28px;"></ion-icon>
+            <h2>{{ platformDashboard.totalBookings }}</h2>
+            <p>Reservas</p>
+          </ion-card-content>
+        </ion-card>
+        <ion-card class="stat-card wide">
+          <ion-card-content class="ion-text-center">
+            <ion-icon name="cash-outline" color="warning" style="font-size: 28px;"></ion-icon>
+            <h2>${{ platformDashboard.totalRevenue | number:'1.0-0' }}</h2>
+            <p>Ingresos totales</p>
+          </ion-card-content>
+        </ion-card>
+      </div>
+
+      <ion-list-header><ion-label>Acciones rapidas</ion-label></ion-list-header>
+      <ion-list>
+        <ion-item button detail routerLink="/admin/manage-barbershops">
+          <ion-icon name="storefront-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>Gestionar barberias</ion-label>
+        </ion-item>
+        <ion-item button detail routerLink="/admin/manage-users">
+          <ion-icon name="people-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>Gestionar usuarios</ion-label>
+        </ion-item>
+        <ion-item button detail (click)="generateRegistrationOrder()">
+          <ion-icon name="ticket-outline" slot="start" color="tertiary"></ion-icon>
+          <ion-label>Generar orden de registro</ion-label>
+        </ion-item>
+        <ion-item button detail>
+          <ion-icon name="settings-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>Configuracion global</ion-label>
+        </ion-item>
+      </ion-list>
+    </ng-container>
+
+  </ng-container>
+
+  <!-- ==================== ADMIN BARBERSHOP - DASHBOARD INLINE ==================== -->
+  <ng-container *ngIf="isAdminBarbershop && !isLoading">
+
+    <div class="greeting-section">
+      <h2>Panel de Barberia</h2>
+      <p>Bienvenido, {{ currentUser?.firstName }}. Gestiona tus barberias.</p>
+    </div>
+
+    <div *ngIf="myBarbershops.length === 0" class="empty-state">
+      <ion-icon name="storefront-outline" color="medium" style="font-size: 64px;"></ion-icon>
+      <p>No tienes barberias asignadas.</p>
+    </div>
+
+    <ion-list *ngIf="myBarbershops.length > 0">
+      <ion-item *ngFor="let bs of myBarbershops" button detail [routerLink]="'/barbershop/' + bs.id">
+        <ion-icon name="storefront-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <h2>{{ bs.name }}</h2>
+          <p>{{ bs.address }}</p>
+        </ion-label>
+        <ion-chip slot="end" color="medium" outline>
+          <ion-label>{{ bs._count?.barbers || 0 }} barberos</ion-label>
+        </ion-chip>
+      </ion-item>
+    </ion-list>
+
+  </ng-container>
+
+</ion-content>

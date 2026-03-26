@@ -1,0 +1,293 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>{{ appName }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content pullingText="Soltar para actualizar" refreshingSpinner="crescent" refreshingText="Actualizando..."></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando...</p>
+  </div>
+
+  <div *ngIf="error && !loading" class="ion-text-center ion-padding">
+    <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+    <p>No se pudo cargar la informacion.</p>
+    <ion-button fill="outline" (click)="loadData()">Reintentar</ion-button>
+  </div>
+
+  <div *ngIf="!loading && !error && barbershop">
+
+    <!-- ADMIN PANEL TOGGLE -->
+    <div *ngIf="isAdmin" class="admin-toggle" (click)="toggleAdminPanel()">
+      <ion-icon [name]="showAdminPanel ? 'chevron-up-outline' : 'settings-outline'" color="primary"></ion-icon>
+      <span>{{ showAdminPanel ? 'Ocultar panel admin' : 'Panel de administracion' }}</span>
+      <ion-icon name="chevron-forward-outline" color="medium" *ngIf="!showAdminPanel"></ion-icon>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div *ngIf="isAdmin && showAdminPanel" class="admin-panel">
+      <div class="admin-grid">
+        <div class="admin-item" (click)="addBarber()">
+          <ion-icon name="person-add-outline" color="primary"></ion-icon>
+          <span>Agregar Barbero</span>
+        </div>
+        <div class="admin-item" (click)="addService()">
+          <ion-icon name="cut-outline" color="primary"></ion-icon>
+          <span>Agregar Servicio</span>
+        </div>
+        <div class="admin-item" (click)="manageSchedules()">
+          <ion-icon name="time-outline" color="primary"></ion-icon>
+          <span>Horarios</span>
+        </div>
+        <div class="admin-item" (click)="manageOffers()">
+          <ion-icon name="pricetag-outline" color="primary"></ion-icon>
+          <span>Nueva Oferta</span>
+        </div>
+        <div class="admin-item" (click)="manageAmenities()">
+          <ion-icon name="leaf-outline" color="primary"></ion-icon>
+          <span>Caracteristicas</span>
+        </div>
+        <div class="admin-item" (click)="editBarbershopInfo('coverImage')">
+          <ion-icon name="image-outline" color="primary"></ion-icon>
+          <span>Foto Portada</span>
+        </div>
+        <div class="admin-item" (click)="editBarbershopInfo('logoImage')">
+          <ion-icon name="happy-outline" color="primary"></ion-icon>
+          <span>Icono / Logo</span>
+        </div>
+        <div class="admin-item" (click)="editBarbershopInfo('description')">
+          <ion-icon name="document-text-outline" color="primary"></ion-icon>
+          <span>Descripcion</span>
+        </div>
+        <div class="admin-item" (click)="editBarbershopInfo('phone')">
+          <ion-icon name="call-outline" color="primary"></ion-icon>
+          <span>Telefono</span>
+        </div>
+        <div class="admin-item" (click)="editBarbershopInfo('depositAmount')">
+          <ion-icon name="cash-outline" color="primary"></ion-icon>
+          <span>Monto Sena</span>
+        </div>
+        <div class="admin-item" (click)="editBarbershopInfo('cancellationHours')">
+          <ion-icon name="timer-outline" color="primary"></ion-icon>
+          <span>Hs Cancelacion</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HERO -->
+    <div class="hero">
+      <h1>{{ barbershop.name }}</h1>
+      <p class="hero-address">
+        <ion-icon name="location-outline"></ion-icon>
+        {{ barbershop.address }}
+      </p>
+      <div class="hero-rating" *ngIf="reviews.length > 0">
+        <ion-icon *ngFor="let filled of getStarArray(avgRating)"
+                  [name]="filled ? 'star' : 'star-outline'" color="warning"></ion-icon>
+        <span>{{ avgRating }}</span>
+        <span class="review-count">({{ reviews.length }} resenas)</span>
+      </div>
+      <p *ngIf="barbershop.description" class="hero-desc">{{ barbershop.description }}</p>
+    </div>
+
+    <!-- CARACTERISTICAS -->
+    <div class="section" *ngIf="amenities.length > 0">
+      <h2>Caracteristicas</h2>
+      <div class="amenities-grid">
+        <div class="amenity-item" *ngFor="let a of amenities">
+          <ion-icon [name]="$any(a).amenity?.icon || 'checkmark-circle-outline'" color="primary"></ion-icon>
+          <span>{{ $any(a).amenity?.name || a.name }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFO -->
+    <div class="section">
+      <h2>Informacion</h2>
+      <ion-list lines="none">
+        <ion-item *ngIf="barbershop.phone">
+          <ion-icon name="call-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>{{ barbershop.phone }}</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="cash-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <span *ngIf="barbershop.depositAmount > 0">Sena: {{ formatPrice(barbershop.depositAmount) }}</span>
+            <span *ngIf="!barbershop.depositAmount">Sin sena requerida</span>
+          </ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-icon name="time-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>Cancelacion hasta {{ barbershop.cancellationHours }}hs antes</ion-label>
+        </ion-item>
+      </ion-list>
+    </div>
+
+    <!-- OFERTAS -->
+    <div class="section" *ngIf="offers.length > 0">
+      <h2>Ofertas disponibles</h2>
+      <ion-card *ngFor="let offer of offers" class="offer-card" color="warning">
+        <ion-card-content>
+          <div class="offer-row">
+            <ion-icon name="pricetag-outline"></ion-icon>
+            <div class="offer-info">
+              <h3>{{ offer.name }}</h3>
+              <p *ngIf="offer.description">{{ offer.description }}</p>
+              <p class="offer-discount">
+                <span *ngIf="offer.discountType === 'PORCENTAJE'">{{ offer.discountValue }}% OFF</span>
+                <span *ngIf="offer.discountType === 'MONTO_FIJO'">{{ formatPrice(offer.discountValue) }} de descuento</span>
+              </p>
+              <p class="offer-dates">
+                <ion-icon name="calendar-outline"></ion-icon>
+                {{ offer.validFrom | date:'dd/MM/yyyy' }} - {{ offer.validUntil | date:'dd/MM/yyyy' }}
+              </p>
+              <p *ngIf="offer.startTime || offer.endTime" class="offer-dates">
+                <ion-icon name="time-outline"></ion-icon>
+                {{ offer.startTime || '00:00' }} - {{ offer.endTime || '23:59' }}
+              </p>
+              <p *ngIf="offer.appliesToAll" class="offer-scope">Aplica a todos los servicios y barberos</p>
+              <p *ngIf="!offer.appliesToAll" class="offer-scope">
+                <span *ngIf="offer.serviceIds?.length">{{ offer.serviceIds.length }} servicio(s)</span>
+                <span *ngIf="offer.barberIds?.length"> | {{ offer.barberIds.length }} barbero(s)</span>
+              </p>
+            </div>
+            <ion-button *ngIf="isAdmin" fill="clear" color="danger" size="small" (click)="deleteOffer(offer.id)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <!-- SERVICIOS -->
+    <div class="section" *ngIf="services.length > 0">
+      <h2>Servicios</h2>
+      <ion-list lines="full" class="services-list">
+        <ion-item-sliding *ngFor="let s of services">
+          <ion-item>
+            <ion-icon name="cut-outline" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <h3>{{ $any(s).service?.name || s.name }}</h3>
+              <p *ngIf="$any(s).service?.description">{{ $any(s).service.description }}</p>
+              <p><ion-icon name="time-outline"></ion-icon> {{ s.durationMin }} min</p>
+            </ion-label>
+            <div slot="end" class="service-price">{{ formatPrice(s.price) }}</div>
+          </ion-item>
+          <ion-item-options side="end" *ngIf="isAdmin">
+            <ion-item-option color="danger" (click)="deleteService(s.id)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-item-option>
+          </ion-item-options>
+        </ion-item-sliding>
+      </ion-list>
+    </div>
+
+    <!-- BARBEROS -->
+    <div class="section" *ngIf="barbers.length > 0">
+      <h2>Nuestro equipo</h2>
+      <div class="barbers-scroll">
+        <div class="barber-card" *ngFor="let b of barbers">
+          <ion-button *ngIf="isAdmin" fill="clear" color="danger" size="small" class="barber-delete" (click)="deleteBarber(b.id); $event.stopPropagation()">
+            <ion-icon name="close-circle" slot="icon-only"></ion-icon>
+          </ion-button>
+          <div class="barber-avatar">
+            <img *ngIf="b.avatarUrl" [src]="b.avatarUrl" />
+            <div *ngIf="!b.avatarUrl" class="avatar-placeholder">
+              <ion-icon name="person-outline"></ion-icon>
+            </div>
+          </div>
+          <h4>{{ b.firstName }} {{ b.lastName }}</h4>
+          <p *ngIf="b.bio" class="barber-bio">{{ b.bio }}</p>
+          <div class="barber-services" *ngIf="b.services?.length > 0">
+            <ion-chip *ngFor="let bs of b.services" size="small" color="primary" outline>
+              <ion-label>{{ bs.service?.name }}</ion-label>
+            </ion-chip>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESENAS -->
+    <div class="section" *ngIf="reviews.length > 0">
+      <h2>Opiniones</h2>
+      <div class="review-card" *ngFor="let r of reviews">
+        <div class="review-header">
+          <strong>{{ r.user?.firstName }} {{ r.user?.lastName }}</strong>
+          <div class="review-stars">
+            <ion-icon *ngFor="let filled of getStarArray(r.rating)"
+                      [name]="filled ? 'star' : 'star-outline'" color="warning" size="small"></ion-icon>
+          </div>
+        </div>
+        <p *ngIf="r.comment" class="review-text">{{ r.comment }}</p>
+      </div>
+    </div>
+
+    <div style="height: 80px;"></div>
+  </div>
+
+  <!-- SCHEDULE EDITOR OVERLAY -->
+  <div class="schedule-overlay" *ngIf="showScheduleEditor">
+    <ion-card class="schedule-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="time-outline"></ion-icon>
+          Horarios - {{ scheduleBarber?.firstName }} {{ scheduleBarber?.lastName }}
+        </ion-card-title>
+        <ion-button slot="end" fill="clear" size="small" (click)="closeScheduleEditor()">
+          <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="schedule-quick-actions">
+          <ion-button size="small" fill="outline" (click)="applyToWeekdays()">
+            <ion-icon name="briefcase-outline" slot="start"></ion-icon>
+            Aplicar L-V
+          </ion-button>
+          <ion-button size="small" fill="outline" (click)="applyToAllDays()">
+            <ion-icon name="calendar-outline" slot="start"></ion-icon>
+            Todos los dias
+          </ion-button>
+        </div>
+        <div class="schedule-days">
+          <div class="schedule-day" *ngFor="let day of scheduleData">
+            <div class="day-header">
+              <ion-toggle [(ngModel)]="day.enabled"></ion-toggle>
+              <span class="day-label" [class.disabled]="!day.enabled">{{ day.label }}</span>
+            </div>
+            <div class="day-times" *ngIf="day.enabled">
+              <div class="time-field">
+                <ion-label>Desde</ion-label>
+                <input type="time" [(ngModel)]="day.openTime" />
+              </div>
+              <div class="time-field">
+                <ion-label>Hasta</ion-label>
+                <input type="time" [(ngModel)]="day.closeTime" />
+              </div>
+            </div>
+            <div class="day-off" *ngIf="!day.enabled">
+              <span>No trabaja</span>
+            </div>
+          </div>
+        </div>
+        <ion-button expand="block" color="primary" (click)="saveSchedules()" class="save-schedule-btn">
+          <ion-icon name="checkmark-outline" slot="start"></ion-icon>
+          Guardar horarios
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- FAB -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed" *ngIf="!loading && !error">
+    <ion-fab-button color="primary" (click)="goToBooking()">
+      <ion-icon name="calendar-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>

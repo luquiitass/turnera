@@ -1,0 +1,41 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin/platform" text="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Gestionar Barberias</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="createBarbershop()">
+        <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <div *ngIf="isLoading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <ion-list *ngIf="!isLoading">
+    <ion-item *ngFor="let bs of barbershops" button detail (click)="goToDetail(bs)">
+      <ion-icon name="storefront-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <h2>{{ bs.name }}</h2>
+        <p>{{ bs.address }}</p>
+        <p *ngIf="bs.phone">{{ bs.phone }}</p>
+      </ion-label>
+      <ion-chip slot="end" [color]="bs.isActive ? 'success' : 'danger'" outline>
+        <ion-label>{{ bs.isActive ? 'Activa' : 'Inactiva' }}</ion-label>
+      </ion-chip>
+    </ion-item>
+  </ion-list>
+
+  <div *ngIf="!isLoading && barbershops.length === 0" class="ion-text-center ion-padding">
+    <ion-icon name="storefront-outline" style="font-size: 64px;" color="medium"></ion-icon>
+    <h3>No hay barberias registradas</h3>
+    <ion-button fill="outline" (click)="createBarbershop()">Crear primera barberia</ion-button>
+  </div>
+
+</ion-content>

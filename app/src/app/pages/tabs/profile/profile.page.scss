@@ -1,0 +1,71 @@
+.profile-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px 16px;
+  background: var(--ion-color-primary);
+  color: white;
+
+  .avatar-container {
+    margin-bottom: 12px;
+
+    .avatar-image {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .avatar-initials {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      border: 3px solid rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      span {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+      }
+    }
+  }
+
+  .profile-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+
+  .profile-role {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    margin: 0;
+  }
+}
+
+.info-list,
+.role-list {
+  margin-top: 16px;
+
+  ion-item h3 {
+    font-weight: 500;
+  }
+
+  ion-item p {
+    font-size: 0.78rem;
+    color: var(--ion-color-medium);
+  }
+}
+
+.active-role {
+  --background: rgba(var(--ion-color-primary-rgb), 0.05);
+}
+
+.logout-section {
+  padding: 24px 16px 32px;
+}

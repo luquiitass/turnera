@@ -1,0 +1,43 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ appName }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding login-content">
+  <div class="login-container">
+    <div class="login-header">
+      <ion-icon name="cut-outline" class="logo-icon"></ion-icon>
+      <h2>{{ appName }}</h2>
+      <p *ngIf="barbershopName">Inicia sesion para reservar en {{ barbershopName }}</p>
+      <p *ngIf="!barbershopName">Inicia sesion para reservar tu turno</p>
+    </div>
+
+    <!-- Google Sign In Button (rendered by Google SDK) -->
+    <div id="google-btn-container" class="google-btn-wrapper"></div>
+
+    <!-- Loading -->
+    <div *ngIf="isLoading" class="ion-text-center ion-padding">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Iniciando sesion...</p>
+    </div>
+
+    <!-- Error -->
+    <ion-text color="danger" *ngIf="errorMessage">
+      <p class="error-text">{{ errorMessage }}</p>
+    </ion-text>
+
+    <div class="divider">
+      <span>Rapido y seguro</span>
+    </div>
+
+    <div class="info-text">
+      <p>Al continuar con Google, aceptas nuestros terminos de uso. Tu cuenta se crea automaticamente.</p>
+    </div>
+  </div>
+</ion-content>

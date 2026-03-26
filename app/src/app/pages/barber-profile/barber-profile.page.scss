@@ -1,0 +1,213 @@
+.profile-header {
+  text-align: center;
+  padding: 24px 16px 16px;
+
+  .avatar-container {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+
+    .avatar-img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--ion-color-primary);
+    }
+
+    .avatar-placeholder {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: var(--ion-color-light);
+      border: 3px solid var(--ion-color-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon {
+        font-size: 48px;
+        color: var(--ion-color-medium);
+      }
+    }
+
+    .avatar-edit-badge {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background: var(--ion-color-primary);
+      color: white;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon { font-size: 16px; }
+    }
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 12px 0 4px;
+  }
+
+  .barbershop-name {
+    font-size: 15px;
+    color: var(--ion-color-primary);
+    font-weight: 600;
+    margin: 0;
+  }
+
+  .barbershop-address {
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    margin: 2px 0 8px;
+  }
+
+  .rating-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+
+    .rating-text {
+      font-weight: 700;
+      margin-left: 4px;
+    }
+
+    .review-count {
+      font-size: 13px;
+      color: var(--ion-color-medium);
+      margin-left: 4px;
+    }
+  }
+
+  .no-reviews {
+    font-size: 13px;
+    color: var(--ion-color-medium);
+  }
+}
+
+.section-card {
+  margin: 8px 16px;
+  border-radius: 12px;
+
+  ion-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    ion-card-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 700;
+    }
+  }
+
+  .empty-text {
+    color: var(--ion-color-medium);
+    font-style: italic;
+  }
+}
+
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+
+  .portfolio-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+
+    .portfolio-caption {
+      font-size: 11px;
+      padding: 4px 8px;
+      margin: 0;
+      color: var(--ion-color-medium);
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      --background: rgba(0,0,0,0.5);
+      --color: white;
+      --border-radius: 50%;
+    }
+  }
+}
+
+.empty-portfolio {
+  text-align: center;
+  padding: 20px;
+
+  ion-icon {
+    font-size: 48px;
+    opacity: 0.5;
+  }
+
+  p {
+    color: var(--ion-color-medium);
+    font-size: 13px;
+    margin: 8px 0 12px;
+  }
+}
+
+.review-item {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+
+  &:last-child { border-bottom: none; }
+
+  .review-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+
+    strong { font-size: 14px; }
+  }
+
+  .review-comment {
+    font-size: 13px;
+    color: var(--ion-color-dark-tint);
+    margin: 0;
+  }
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+
+  .stat-item {
+    h3 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--ion-color-primary);
+      margin: 0;
+    }
+    p {
+      font-size: 12px;
+      color: var(--ion-color-medium);
+      margin: 4px 0 0;
+    }
+  }
+}
+
+.schedule-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+}

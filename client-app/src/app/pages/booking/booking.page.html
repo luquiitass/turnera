@@ -1,0 +1,359 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Reservar turno</ion-title>
+  </ion-toolbar>
+
+  <!-- Progress bar -->
+  <ion-toolbar *ngIf="!showSuccess" color="primary">
+    <div class="progress-container">
+      <ion-progress-bar [value]="progressValue"></ion-progress-bar>
+      <div class="step-indicators">
+        <span
+          *ngFor="let n of [1, 2, 3, 4]"
+          class="step-dot"
+          [class.active]="currentStep === n"
+          [class.done]="currentStep > n"
+        >
+          {{ n }}
+        </span>
+      </div>
+      <p class="step-label">Paso {{ currentStep }} de {{ totalSteps }}: {{ getStepLabel(currentStep) }}</p>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- ──────────────────────────────────────────
+       STEP 1 — Select service
+  ────────────────────────────────────────── -->
+  <div *ngIf="currentStep === 1 && !showSuccess">
+    <h2 class="step-title">Selecciona el servicio</h2>
+
+    <div *ngIf="servicesLoading" class="center-message">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando servicios...</p>
+    </div>
+
+    <ion-text color="danger" *ngIf="servicesError">
+      <p class="error-text">{{ servicesError }}</p>
+      <ion-button fill="outline" size="small" (click)="loadServices()">Reintentar</ion-button>
+    </ion-text>
+
+    <div *ngIf="!servicesLoading && !servicesError" class="services-list">
+      <ion-card
+        *ngFor="let s of services"
+        class="service-card"
+        [class.selected]="isServiceSelected(s)"
+        (click)="selectService(s)"
+        button
+      >
+        <ion-card-content>
+          <div class="service-info">
+            <div class="service-main">
+              <h3 class="service-name">{{ $any(s).service?.name || s.name }}</h3>
+              <p class="service-duration">{{ s.durationMin }} min</p>
+            </div>
+            <div class="service-price">{{ formatPrice(s.price) }}</div>
+          </div>
+          <ion-icon
+            *ngIf="isServiceSelected(s)"
+            name="checkmark-circle"
+            class="selected-icon"
+            color="primary"
+          ></ion-icon>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-text color="medium" *ngIf="services.length === 0">
+        <p class="center-message">No hay servicios disponibles.</p>
+      </ion-text>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────────
+       STEP 2 — Select barber
+  ────────────────────────────────────────── -->
+  <div *ngIf="currentStep === 2 && !showSuccess">
+    <h2 class="step-title">Selecciona el barbero</h2>
+
+    <div *ngIf="barbersLoading" class="center-message">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando barberos...</p>
+    </div>
+
+    <ion-text color="danger" *ngIf="barbersError">
+      <p class="error-text">{{ barbersError }}</p>
+      <ion-button fill="outline" size="small" (click)="loadBarbers()">Reintentar</ion-button>
+    </ion-text>
+
+    <div *ngIf="!barbersLoading && !barbersError" class="barbers-grid">
+      <ion-card
+        *ngFor="let b of filteredBarbers"
+        class="barber-card"
+        [class.selected]="isBarberSelected(b)"
+        (click)="selectBarber(b)"
+        button
+      >
+        <ion-card-content class="barber-card-content">
+          <ion-avatar class="barber-avatar">
+            <img
+              *ngIf="b.avatarUrl || b.user?.avatarUrl; else initials"
+              [src]="b.avatarUrl || b.user?.avatarUrl"
+              alt="Foto del barbero"
+            />
+            <ng-template #initials>
+              <div class="avatar-initials">
+                {{ (b.firstName || 'B').charAt(0) }}{{ (b.lastName || '').charAt(0) }}
+              </div>
+            </ng-template>
+          </ion-avatar>
+          <p class="barber-name">{{ b.firstName }} {{ b.lastName }}</p>
+          <ion-icon
+            *ngIf="isBarberSelected(b)"
+            name="checkmark-circle"
+            class="selected-icon"
+            color="primary"
+          ></ion-icon>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-text color="medium" *ngIf="filteredBarbers.length === 0">
+        <p class="center-message">No hay barberos disponibles para el servicio seleccionado.</p>
+      </ion-text>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────────
+       STEP 3 — Select date & time
+  ────────────────────────────────────────── -->
+  <div *ngIf="currentStep === 3 && !showSuccess">
+    <h2 class="step-title">Selecciona fecha y hora</h2>
+
+    <!-- Date picker -->
+    <div class="date-picker-wrapper">
+      <ion-datetime
+        presentation="date"
+        [min]="minDate"
+        [max]="maxDate"
+        [value]="selectedDate || minDate"
+        locale="es-AR"
+        firstDayOfWeek="1"
+        (ionChange)="onDateChange($event)"
+        class="custom-datetime"
+      ></ion-datetime>
+    </div>
+
+    <!-- Time slots -->
+    <div *ngIf="selectedDate">
+      <h3 class="slots-title">Horarios disponibles para el {{ formatDate(selectedDate) }}</h3>
+
+      <div *ngIf="availabilityLoading" class="center-message">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Cargando horarios...</p>
+      </div>
+
+      <ion-text color="danger" *ngIf="availabilityError">
+        <p class="error-text">{{ availabilityError }}</p>
+        <ion-button fill="outline" size="small" (click)="loadAvailability()">Reintentar</ion-button>
+      </ion-text>
+
+      <div *ngIf="!availabilityLoading && !availabilityError && timeSlots.length > 0" class="time-slots-grid">
+        <button
+          *ngFor="let slot of timeSlots"
+          class="time-slot"
+          [class.available]="slot.available"
+          [class.unavailable]="!slot.available"
+          [class.selected]="isTimeSelected(slot)"
+          [disabled]="!slot.available"
+          (click)="selectTime(slot)"
+        >
+          {{ slot.time }}
+        </button>
+      </div>
+
+      <ion-text color="medium" *ngIf="!availabilityLoading && !availabilityError && timeSlots.length === 0">
+        <p class="center-message">No hay horarios disponibles para esta fecha.</p>
+      </ion-text>
+
+      <!-- Legend -->
+      <div *ngIf="!availabilityLoading && timeSlots.length > 0" class="slots-legend">
+        <span class="legend-item"><span class="legend-dot available"></span> Disponible</span>
+        <span class="legend-item"><span class="legend-dot unavailable"></span> No disponible</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────────────────────────────────────────
+       STEP 4 — Confirm
+  ────────────────────────────────────────── -->
+  <div *ngIf="currentStep === 4 && !showSuccess">
+    <h2 class="step-title">Confirmacion del turno</h2>
+
+    <!-- Summary card -->
+    <ion-card class="summary-card">
+      <ion-card-header>
+        <ion-card-title>Resumen</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list lines="none" class="summary-list">
+          <ion-item>
+            <ion-icon name="cut-outline" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <p class="summary-label">Servicio</p>
+              <h3 class="summary-value">{{ selectedService?.name }}</h3>
+            </ion-label>
+            <ion-note slot="end" class="summary-note">{{ formatPrice(selectedService?.price ?? 0) }}</ion-note>
+          </ion-item>
+
+          <ion-item>
+            <ion-icon name="person-outline" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <p class="summary-label">Barbero</p>
+              <h3 class="summary-value">{{ selectedBarber?.firstName }} {{ selectedBarber?.lastName }}</h3>
+            </ion-label>
+          </ion-item>
+
+          <ion-item>
+            <ion-icon name="calendar-outline" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <p class="summary-label">Fecha</p>
+              <h3 class="summary-value">{{ formatDate(selectedDate) }}</h3>
+            </ion-label>
+          </ion-item>
+
+          <ion-item>
+            <ion-icon name="time-outline" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <p class="summary-label">Hora</p>
+              <h3 class="summary-value">{{ selectedTime }}</h3>
+            </ion-label>
+          </ion-item>
+
+          <ion-item>
+            <ion-icon name="hourglass-outline" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <p class="summary-label">Duracion estimada</p>
+              <h3 class="summary-value">{{ selectedService?.durationMin }} minutos</h3>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Notes -->
+    <div class="notes-section">
+      <ion-label class="notes-label">Notas adicionales (opcional)</ion-label>
+      <ion-textarea
+        [(ngModel)]="notes"
+        placeholder="Ej: quiero dejar la barba larga, alergia a ciertos productos..."
+        rows="3"
+        class="notes-textarea"
+        fill="outline"
+      ></ion-textarea>
+    </div>
+
+    <ion-text color="danger" *ngIf="confirmError">
+      <p class="error-text">{{ confirmError }}</p>
+    </ion-text>
+  </div>
+
+  <!-- ──────────────────────────────────────────
+       STEP 5 — Success
+  ────────────────────────────────────────── -->
+  <div *ngIf="showSuccess" class="success-screen">
+    <div class="success-icon-wrapper">
+      <ion-icon name="checkmark-circle" class="success-icon" color="success"></ion-icon>
+    </div>
+
+    <h2 class="success-title">Turno confirmado</h2>
+    <p class="success-subtitle">Tu reserva fue registrada correctamente.</p>
+
+    <ion-card class="summary-card" *ngIf="bookingId">
+      <ion-card-content>
+        <p class="booking-id-label">Numero de reserva</p>
+        <p class="booking-id-value">{{ bookingId }}</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="summary-card">
+      <ion-card-content>
+        <ion-list lines="none" class="summary-list">
+          <ion-item>
+            <ion-icon name="cut-outline" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <p class="summary-label">Servicio</p>
+              <h3 class="summary-value">{{ selectedService?.name }}</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="person-outline" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <p class="summary-label">Barbero</p>
+              <h3 class="summary-value">{{ selectedBarber?.firstName }} {{ selectedBarber?.lastName }}</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="calendar-outline" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <p class="summary-label">Fecha y hora</p>
+              <h3 class="summary-value">{{ formatDate(selectedDate) }} a las {{ selectedTime }}</h3>
+            </ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="cash-outline" slot="start" color="primary"></ion-icon>
+            <ion-label>
+              <p class="summary-label">Precio</p>
+              <h3 class="summary-value">{{ formatPrice(selectedService?.price ?? 0) }}</h3>
+            </ion-label>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+
+    <div class="success-actions">
+      <ion-button expand="block" color="primary" (click)="goToMyBookings()">
+        Ver mis turnos
+      </ion-button>
+      <ion-button expand="block" fill="clear" color="medium" (click)="goToHome()">
+        Volver al inicio
+      </ion-button>
+    </div>
+  </div>
+
+</ion-content>
+
+<!-- Footer navigation (hidden on success screen) -->
+<ion-footer *ngIf="!showSuccess">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button
+        fill="clear"
+        color="medium"
+        *ngIf="currentStep > 1"
+        (click)="goPrev()"
+      >
+        <ion-icon slot="start" name="chevron-back-outline"></ion-icon>
+        Anterior
+      </ion-button>
+    </ion-buttons>
+
+    <ion-buttons slot="end">
+      <ion-button
+        fill="solid"
+        color="primary"
+        [disabled]="!canGoNext || confirmLoading"
+        (click)="goNext()"
+      >
+        <ion-spinner *ngIf="confirmLoading" name="crescent" slot="start"></ion-spinner>
+        <span *ngIf="currentStep < 4">Siguiente</span>
+        <span *ngIf="currentStep === 4 && !confirmLoading">Confirmar turno</span>
+        <span *ngIf="currentStep === 4 && confirmLoading">Confirmando...</span>
+        <ion-icon *ngIf="currentStep < 4" slot="end" name="chevron-forward-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-footer>

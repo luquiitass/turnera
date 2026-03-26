@@ -1,0 +1,293 @@
+.step-counter {
+  padding-right: 12px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+// Mode selection
+.mode-select {
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 8px 0 4px;
+  }
+
+  > p {
+    color: var(--ion-color-medium);
+    margin: 0 0 16px;
+  }
+}
+
+.mode-card {
+  margin: 0 0 12px;
+  border-radius: 12px;
+  cursor: pointer;
+
+  ion-card-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+
+    > ion-icon:first-child {
+      font-size: 32px;
+      flex-shrink: 0;
+    }
+
+    > div {
+      flex: 1;
+
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 2px;
+      }
+
+      p {
+        font-size: 13px;
+        color: var(--ion-color-medium);
+        margin: 0;
+      }
+    }
+
+    > ion-icon:last-child {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+  }
+}
+
+// Barbers grid
+.barbers-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.barber-card {
+  margin: 0;
+  border-radius: 12px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &.selected {
+    border-color: var(--ion-color-primary);
+  }
+
+  .barber-avatar-container {
+    display: flex;
+    justify-content: center;
+    padding: 12px 12px 0;
+
+    .barber-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .barber-avatar-placeholder {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--ion-color-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon { font-size: 32px; color: var(--ion-color-medium); }
+    }
+  }
+
+  ion-card-header {
+    text-align: center;
+    padding: 8px 8px 12px;
+
+    ion-card-title { font-size: 14px; font-weight: 600; }
+    ion-card-subtitle { font-size: 12px; }
+  }
+}
+
+// Step description
+.step-description {
+  color: var(--ion-color-medium);
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+
+// Hour filter
+.hour-filter {
+  margin-top: 16px;
+}
+
+// Date badge
+.date-badge {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+// Barbershop group in browse-services
+.barbershop-group {
+  margin-bottom: 20px;
+
+  .barbershop-group-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 2px solid var(--ion-color-primary);
+    margin-bottom: 4px;
+
+    ion-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    p {
+      font-size: 12px;
+      color: var(--ion-color-medium);
+      margin: 0;
+    }
+  }
+
+  ion-list {
+    padding: 0;
+  }
+}
+
+// Service group (by-service mode)
+.service-group {
+  margin-bottom: 20px;
+
+  .service-group-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    border-bottom: 2px solid var(--ion-color-primary);
+    margin-bottom: 4px;
+
+    ion-icon {
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0;
+      flex: 1;
+    }
+  }
+
+  ion-list { padding: 0; }
+}
+
+// Service price
+.service-price {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+  white-space: nowrap;
+}
+
+// Time slots
+.time-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+
+  .time-slot {
+    text-align: center;
+    padding: 10px 4px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &.available {
+      background: rgba(var(--ion-color-success-rgb), 0.12);
+      color: var(--ion-color-success-shade);
+      border: 1px solid rgba(var(--ion-color-success-rgb), 0.3);
+    }
+
+    &.unavailable {
+      background: var(--ion-color-light);
+      color: var(--ion-color-medium);
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    &.selected {
+      background: var(--ion-color-primary);
+      color: white;
+      border-color: var(--ion-color-primary);
+    }
+  }
+}
+
+// Empty message
+.empty-msg {
+  padding: 32px 16px;
+  color: var(--ion-color-medium);
+
+  ion-icon { display: block; margin: 0 auto 8px; }
+}
+
+// Deposit note
+.deposit-note {
+  --background: rgba(var(--ion-color-warning-rgb), 0.08);
+  border-radius: 8px;
+  margin-top: 12px;
+}
+
+// Success
+.success-container {
+  text-align: center;
+  padding: 24px 0;
+
+  .success-icon {
+    font-size: 80px;
+    margin-bottom: 16px;
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ion-color-success-shade);
+    margin: 0 0 8px;
+  }
+
+  > p {
+    color: var(--ion-color-medium);
+    margin: 0 0 24px;
+  }
+
+  ion-card { text-align: left; margin-bottom: 24px; }
+  ion-button { margin-bottom: 8px; }
+}
+
+// Footer
+.footer-nav {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px;
+
+  .nav-spacer { flex: 1; }
+
+  .btn-spinner {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+  }
+}

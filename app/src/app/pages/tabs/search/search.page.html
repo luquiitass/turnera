@@ -1,0 +1,85 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Buscar barberias</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <ion-searchbar
+      placeholder="Nombre o direccion..."
+      debounce="0"
+      animated="true"
+      [value]="searchQuery"
+      (ionInput)="onSearchChange($event)"
+      (ionClear)="onSearchClear()">
+    </ion-searchbar>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <div *ngIf="isLoading" class="loading-container">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <ng-container *ngIf="barbershops.length > 0; else noResults">
+      <p class="results-count">{{ barbershops.length }} barberia{{ barbershops.length !== 1 ? 's' : '' }} encontrada{{ barbershops.length !== 1 ? 's' : '' }}</p>
+
+      <ion-card
+        *ngFor="let shop of barbershops"
+        class="shop-card"
+        (click)="goToDetail(shop)">
+
+        <div class="shop-cover" [style.backgroundImage]="shop.coverImage ? 'url(' + shop.coverImage + ')' : 'none'">
+          <div *ngIf="!shop.coverImage" class="cover-placeholder">
+            <ion-icon name="cut-outline" color="medium"></ion-icon>
+          </div>
+        </div>
+
+        <ion-card-header>
+          <ion-card-title class="shop-name">{{ shop.name }}</ion-card-title>
+          <ion-card-subtitle>
+            <ion-item lines="none" class="address-item">
+              <ion-icon name="location-outline" slot="start" color="medium"></ion-icon>
+              <ion-label class="ion-text-wrap">{{ shop.address }}</ion-label>
+            </ion-item>
+          </ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+          <div class="shop-meta">
+            <ion-chip *ngIf="shop.avgRating" color="warning" outline="true" class="rating-chip">
+              <ion-icon name="star-outline"></ion-icon>
+              <ion-label>{{ getRatingStars(shop.avgRating) }} ({{ shop.totalReviews }})</ion-label>
+            </ion-chip>
+            <ion-chip *ngIf="getAmenitiesCount(shop) > 0" color="primary" outline="true">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <ion-label>{{ getAmenitiesCount(shop) }} amenidades</ion-label>
+            </ion-chip>
+            <ion-chip *ngIf="shop._count?.barbers" color="secondary" outline="true">
+              <ion-icon name="people-outline"></ion-icon>
+              <ion-label>{{ shop._count?.barbers }} barberista{{ (shop._count?.barbers ?? 0) !== 1 ? 's' : '' }}</ion-label>
+            </ion-chip>
+          </div>
+
+          <div class="deposit-info" *ngIf="shop.depositAmount > 0">
+            <ion-icon name="cash-outline" color="medium"></ion-icon>
+            <span>Deposito: {{ shop.depositAmount | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+          </div>
+        </ion-card-content>
+
+      </ion-card>
+    </ng-container>
+
+    <ng-template #noResults>
+      <div class="empty-state" *ngIf="hasSearched">
+        <ion-icon name="search-outline" class="empty-icon" color="medium"></ion-icon>
+        <p class="empty-title">Sin resultados</p>
+        <p class="empty-text" *ngIf="searchQuery">No se encontraron barberias para "{{ searchQuery }}".</p>
+        <p class="empty-text" *ngIf="!searchQuery">No hay barberias disponibles en este momento.</p>
+      </div>
+    </ng-template>
+
+  </ng-container>
+
+</ion-content>

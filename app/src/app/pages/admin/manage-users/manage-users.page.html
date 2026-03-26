@@ -1,0 +1,37 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin/platform" text="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Gestionar Usuarios</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <div *ngIf="isLoading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <ion-list-header *ngIf="!isLoading">
+    <ion-label>{{ total }} usuarios registrados</ion-label>
+  </ion-list-header>
+
+  <ion-list *ngIf="!isLoading">
+    <ion-item *ngFor="let user of users">
+      <ion-avatar slot="start">
+        <img *ngIf="user.avatarUrl" [src]="user.avatarUrl">
+        <ion-icon *ngIf="!user.avatarUrl" name="person-circle-outline" style="font-size: 40px;" color="medium"></ion-icon>
+      </ion-avatar>
+      <ion-label>
+        <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+        <p>{{ user.email }}</p>
+        <p>{{ getRoleLabel(user.roles) }}</p>
+      </ion-label>
+      <ion-chip slot="end" [color]="user.isActive ? 'success' : 'danger'" outline>
+        <ion-label>{{ user.isActive ? 'Activo' : 'Inactivo' }}</ion-label>
+      </ion-chip>
+    </ion-item>
+  </ion-list>
+
+</ion-content>

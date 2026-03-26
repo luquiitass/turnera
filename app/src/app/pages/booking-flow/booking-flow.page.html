@@ -1,0 +1,413 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>{{ mode === 'select' ? 'Nueva Reserva' : currentStep?.title }}</ion-title>
+    <ion-note *ngIf="mode !== 'select' && !isSuccess" slot="end" class="step-counter">
+      {{ currentStepIndex + 1 }}/{{ steps.length }}
+    </ion-note>
+  </ion-toolbar>
+  <ion-progress-bar *ngIf="mode !== 'select'" [value]="progress"></ion-progress-bar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- ==================== MODE SELECTION ==================== -->
+  <div *ngIf="mode === 'select'" class="mode-select">
+    <h2>Como queres reservar?</h2>
+    <p>Elegi la forma que te resulte mas comoda.</p>
+
+    <ion-card class="mode-card" (click)="selectMode('by-date')" button>
+      <ion-card-content>
+        <ion-icon name="calendar-outline" color="primary"></ion-icon>
+        <div>
+          <h3>Por fecha</h3>
+          <p>Elegi la fecha y te mostramos los barberos disponibles</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" color="medium"></ion-icon>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="mode-card" (click)="selectMode('by-barbershop')" button
+              *ngIf="selectedBarbershop">
+      <ion-card-content>
+        <ion-icon name="storefront-outline" color="secondary"></ion-icon>
+        <div>
+          <h3>Por barberia</h3>
+          <p>{{ selectedBarbershop.name }} - Elegi barbero, fecha y servicio</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" color="medium"></ion-icon>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="mode-card" (click)="selectMode('by-barber')" button
+              *ngIf="selectedBarber">
+      <ion-card-content>
+        <ion-icon name="person-outline" color="tertiary"></ion-icon>
+        <div>
+          <h3>Por barbero</h3>
+          <p>{{ selectedBarber.firstName }} {{ selectedBarber.lastName }} - Elegi fecha y servicio</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" color="medium"></ion-icon>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-card class="mode-card" (click)="selectMode('by-service')" button>
+      <ion-card-content>
+        <ion-icon name="cut-outline" color="warning"></ion-icon>
+        <div>
+          <h3>Por servicio</h3>
+          <p>Elegi que necesitas y te mostramos donde conseguirlo</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" color="medium"></ion-icon>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- If no barbershop selected, show options for date and service modes -->
+    <ion-card class="mode-card" (click)="selectMode('by-date')" button
+              *ngIf="!selectedBarbershop">
+      <ion-card-content>
+        <ion-icon name="storefront-outline" color="secondary"></ion-icon>
+        <div>
+          <h3>Por barberia</h3>
+          <p>Busca una barberia primero, despues elegi barbero y fecha</p>
+        </div>
+        <ion-icon name="chevron-forward-outline" color="medium"></ion-icon>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- ==================== STEP: DATE EXPLORE (by-date mode) ==================== -->
+  <div *ngIf="currentStep?.id === 'date-explore' && !isSuccess">
+    <p class="step-description">Selecciona una fecha. Opcionalmente filtra por hora para ver disponibilidad mas precisa.</p>
+
+    <ion-datetime
+      presentation="date"
+      [min]="minDate"
+      [max]="maxDate"
+      [value]="selectedDate"
+      (ionChange)="onDateChange($event)"
+      size="cover">
+    </ion-datetime>
+
+    <div *ngIf="selectedDate" class="hour-filter">
+      <ion-item>
+        <ion-label>Filtrar por hora (opcional)</ion-label>
+        <ion-select
+          [value]="selectedHourFilter"
+          (ionChange)="onHourFilterChange($any($event).detail.value)"
+          placeholder="Cualquier hora"
+          interface="popover">
+          <ion-select-option value="">Cualquier hora</ion-select-option>
+          <ion-select-option *ngFor="let h of filterHours" [value]="h">{{ h }}</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+  </div>
+
+  <!-- ==================== STEP: PICK SERVICE GLOBAL (by-date mode) ==================== -->
+  <div *ngIf="currentStep?.id === 'pick-service-global' && !isSuccess">
+    <div class="date-badge">
+      <ion-chip color="primary">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <ion-label>{{ formatDate(selectedDate) }}</ion-label>
+      </ion-chip>
+      <ion-chip *ngIf="selectedHourFilter" color="secondary">
+        <ion-icon name="time-outline"></ion-icon>
+        <ion-label>{{ selectedHourFilter }}</ion-label>
+      </ion-chip>
+    </div>
+
+    <p class="step-description">Que servicio necesitas?</p>
+
+    <div *ngIf="isLoading" class="ion-text-center ion-padding">
+      <ion-spinner></ion-spinner>
+      <p>Cargando servicios...</p>
+    </div>
+
+    <ion-list *ngIf="!isLoading">
+      <ion-item *ngFor="let service of globalServices"
+                [color]="selectedService?.id === service.id ? 'primary' : ''"
+                (click)="selectGlobalService(service)"
+                button detail>
+        <ion-icon name="cut-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <h2>{{ service.name }}</h2>
+          <p *ngIf="service.description">{{ service.description }}</p>
+        </ion-label>
+        <ion-chip slot="end" *ngIf="service.category" color="medium" outline>
+          <ion-label>{{ service.category }}</ion-label>
+        </ion-chip>
+      </ion-item>
+    </ion-list>
+
+    <div *ngIf="!isLoading && globalServices.length === 0" class="ion-text-center empty-msg">
+      <ion-icon name="cut-outline" size="large" color="medium"></ion-icon>
+      <p>No hay servicios disponibles.</p>
+    </div>
+  </div>
+
+  <!-- ==================== STEP: ALL SERVICES (by-service mode - global catalog) ==================== -->
+  <div *ngIf="currentStep?.id === 'all-services' && !isSuccess">
+    <p class="step-description">Elegi el servicio que necesitas.</p>
+
+    <div *ngIf="isLoading" class="ion-text-center ion-padding">
+      <ion-spinner></ion-spinner>
+      <p>Cargando catalogo...</p>
+    </div>
+
+    <div *ngIf="!isLoading && globalServices.length === 0" class="ion-text-center empty-msg">
+      <ion-icon name="cut-outline" size="large" color="medium"></ion-icon>
+      <p>No hay servicios disponibles.</p>
+    </div>
+
+    <ion-list *ngIf="!isLoading">
+      <ion-item *ngFor="let service of globalServices"
+                [color]="selectedService?.id === service.id ? 'primary' : ''"
+                (click)="selectGlobalService(service)"
+                button detail>
+        <ion-icon name="cut-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <h2>{{ service.name }}</h2>
+          <p *ngIf="service.description">{{ service.description }}</p>
+        </ion-label>
+        <ion-chip slot="end" *ngIf="service.category" color="medium" outline>
+          <ion-label>{{ service.category }}</ion-label>
+        </ion-chip>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <!-- ==================== STEP: PICK BARBERSHOP FOR SERVICE ==================== -->
+  <div *ngIf="currentStep?.id === 'pick-barbershop-for-service' && !isSuccess">
+    <div class="date-badge" *ngIf="selectedService">
+      <ion-chip color="primary">
+        <ion-icon name="cut-outline"></ion-icon>
+        <ion-label>{{ selectedService.name }}</ion-label>
+      </ion-chip>
+    </div>
+
+    <p class="step-description">Estas barberias ofrecen este servicio. Elegi una.</p>
+
+    <div *ngIf="isLoading" class="ion-text-center ion-padding">
+      <ion-spinner></ion-spinner>
+    </div>
+
+    <div *ngIf="!isLoading && dateFilteredResults.length === 0" class="ion-text-center empty-msg">
+      <ion-icon name="storefront-outline" size="large" color="medium"></ion-icon>
+      <p>Ninguna barberia ofrece este servicio todavia.</p>
+    </div>
+
+    <ion-list *ngIf="!isLoading">
+      <ion-item *ngFor="let result of dateFilteredResults"
+                [color]="selectedBarbershop?.id === result.barbershop.id ? 'primary' : ''"
+                (click)="pickBarbershopForService(result.barbershop)"
+                button detail>
+        <ion-icon name="storefront-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h2>{{ result.barbershop.name }}</h2>
+          <p>{{ result.barbershop.address }}</p>
+        </ion-label>
+        <div slot="end" class="service-price" *ngIf="result.services[0]">
+          {{ formatPrice(result.services[0].price) }}
+        </div>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <!-- ==================== STEP: BARBERSHOP PICK ==================== -->
+  <div *ngIf="currentStep?.id === 'barbershop-pick' && !isSuccess">
+    <ion-searchbar placeholder="Buscar barberia..." (ionInput)="$any(0)"></ion-searchbar>
+
+    <div *ngIf="isLoading" class="ion-text-center"><ion-spinner></ion-spinner></div>
+
+    <ion-list *ngIf="!isLoading">
+      <ion-item *ngFor="let bs of allBarbershops"
+                [color]="selectedBarbershop?.id === bs.id ? 'primary' : ''"
+                (click)="pickBarbershop(bs)" button detail>
+        <ion-icon name="storefront-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h2>{{ bs.name }}</h2>
+          <p>{{ bs.address }}</p>
+        </ion-label>
+        <ion-icon *ngIf="selectedBarbershop?.id === bs.id" name="checkmark-circle" slot="end" color="light"></ion-icon>
+      </ion-item>
+    </ion-list>
+  </div>
+
+  <!-- ==================== STEP: DATE ==================== -->
+  <div *ngIf="currentStep?.id === 'date' && !isSuccess">
+    <ion-datetime
+      presentation="date"
+      [min]="minDate"
+      [max]="maxDate"
+      [value]="selectedDate"
+      (ionChange)="onDateChange($event)"
+      size="cover">
+    </ion-datetime>
+  </div>
+
+  <!-- ==================== STEP: BARBER ==================== -->
+  <div *ngIf="currentStep?.id === 'barber' && !isSuccess">
+    <p *ngIf="availableBarbers.length === 0" class="ion-text-center empty-msg">
+      No hay barberos disponibles.
+    </p>
+    <div class="barbers-grid">
+      <ion-card *ngFor="let barber of availableBarbers"
+                class="barber-card"
+                [class.selected]="selectedBarber?.id === barber.id"
+                (click)="selectBarber(barber)" button>
+        <div class="barber-avatar-container">
+          <img *ngIf="barber.avatarUrl" [src]="barber.avatarUrl" class="barber-avatar">
+          <div *ngIf="!barber.avatarUrl" class="barber-avatar-placeholder">
+            <ion-icon name="person-outline"></ion-icon>
+          </div>
+        </div>
+        <ion-card-header>
+          <ion-card-title>{{ barber.firstName }} {{ barber.lastName }}</ion-card-title>
+          <ion-card-subtitle *ngIf="barber.bio">{{ barber.bio }}</ion-card-subtitle>
+        </ion-card-header>
+      </ion-card>
+    </div>
+  </div>
+
+  <!-- ==================== STEP: SERVICE ==================== -->
+  <div *ngIf="currentStep?.id === 'service' && !isSuccess">
+    <ion-list>
+      <ion-item *ngFor="let service of availableServices"
+                [color]="selectedService?.id === service.id ? 'primary' : ''"
+                (click)="selectService(service)" button detail>
+        <ion-label>
+          <h2>{{ service.name }}</h2>
+          <p *ngIf="service.description">{{ service.description }}</p>
+          <p>
+            <ion-icon name="time-outline"></ion-icon> {{ service.durationMin }} min
+          </p>
+        </ion-label>
+        <div slot="end" class="service-price">{{ formatPrice(service.price) }}</div>
+      </ion-item>
+    </ion-list>
+    <p *ngIf="availableServices.length === 0" class="ion-text-center empty-msg">No hay servicios disponibles.</p>
+  </div>
+
+  <!-- ==================== STEP: TIME ==================== -->
+  <div *ngIf="currentStep?.id === 'time' && !isSuccess">
+    <div *ngIf="isLoading" class="ion-text-center"><ion-spinner></ion-spinner><p>Cargando horarios...</p></div>
+
+    <div *ngIf="!isLoading && timeSlots.length === 0" class="ion-text-center empty-msg">
+      <ion-icon name="time-outline" size="large" color="medium"></ion-icon>
+      <p>No hay horarios disponibles para esta fecha.</p>
+    </div>
+
+    <div class="time-slots-grid" *ngIf="!isLoading && timeSlots.length > 0">
+      <div *ngFor="let slot of timeSlots"
+           class="time-slot"
+           [class.available]="slot.available"
+           [class.unavailable]="!slot.available"
+           [class.selected]="selectedTimeSlot?.time === slot.time"
+           (click)="selectTimeSlot(slot)">
+        {{ slot.time }}
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== STEP: CONFIRM ==================== -->
+  <div *ngIf="currentStep?.id === 'confirm' && !isSuccess">
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Resumen de la reserva</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-list lines="none">
+          <ion-item>
+            <ion-icon name="storefront-outline" slot="start" color="primary"></ion-icon>
+            <ion-label><p>Barberia</p><h3>{{ selectedBarbershop?.name }}</h3></ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="person-outline" slot="start" color="primary"></ion-icon>
+            <ion-label><p>Barbero</p><h3>{{ selectedBarber?.firstName }} {{ selectedBarber?.lastName }}</h3></ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="cut-outline" slot="start" color="primary"></ion-icon>
+            <ion-label><p>Servicio</p><h3>{{ selectedService?.name }} ({{ selectedService?.durationMin }} min)</h3></ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="calendar-outline" slot="start" color="primary"></ion-icon>
+            <ion-label><p>Fecha y hora</p><h3>{{ formatDate(selectedDate) }} - {{ selectedTimeSlot?.time }} a {{ selectedTimeSlot?.endTime }}</h3></ion-label>
+          </ion-item>
+          <ion-item>
+            <ion-icon name="cash-outline" slot="start" color="primary"></ion-icon>
+            <ion-label><p>Precio</p><h2><strong>{{ formatPrice(selectedService?.price || 0) }}</strong></h2></ion-label>
+          </ion-item>
+        </ion-list>
+
+        <ion-item *ngIf="selectedBarbershop && selectedBarbershop.depositAmount > 0" class="deposit-note">
+          <ion-icon name="information-circle-outline" slot="start" color="warning"></ion-icon>
+          <ion-label class="ion-text-wrap">
+            <p>Se requiere una sena de {{ formatPrice(selectedBarbershop.depositAmount) }}</p>
+          </ion-label>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-item>
+      <ion-label position="stacked">Notas (opcional)</ion-label>
+      <ion-textarea [(ngModel)]="notes" placeholder="Algun pedido especial..."></ion-textarea>
+    </ion-item>
+  </div>
+
+  <!-- ==================== SUCCESS ==================== -->
+  <div *ngIf="isSuccess" class="success-container">
+    <ion-icon name="checkmark-circle" color="success" class="success-icon"></ion-icon>
+    <h2>Reserva confirmada</h2>
+    <p>Tu turno fue reservado exitosamente.</p>
+
+    <ion-card *ngIf="confirmedBooking">
+      <ion-card-content>
+        <p><strong>ID:</strong> {{ confirmedBooking.id?.substring(0, 8) }}...</p>
+        <p><strong>Fecha:</strong> {{ formatDate(selectedDate) }}</p>
+        <p><strong>Hora:</strong> {{ confirmedBooking.startTime }} - {{ confirmedBooking.endTime }}</p>
+        <p><strong>Estado:</strong> {{ confirmedBooking.status }}</p>
+      </ion-card-content>
+    </ion-card>
+
+    <ion-button expand="block" color="primary" (click)="goToMyBookings()">Ver mis reservas</ion-button>
+    <ion-button expand="block" fill="clear" (click)="goHome()">Volver al inicio</ion-button>
+  </div>
+
+</ion-content>
+
+<!-- ==================== FOOTER NAV ==================== -->
+<ion-footer *ngIf="mode !== 'select' && !isSuccess">
+  <ion-toolbar>
+    <div class="footer-nav">
+      <ion-button fill="clear" (click)="goPrev()">
+        <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+        {{ currentStepIndex === 0 ? 'Modo' : 'Anterior' }}
+      </ion-button>
+      <div class="nav-spacer"></div>
+      <ion-button *ngIf="currentStep?.id !== 'confirm'"
+                  color="primary" fill="solid"
+                  [disabled]="!canGoNext()"
+                  (click)="goNext()">
+        Siguiente
+        <ion-icon name="arrow-forward-outline" slot="end"></ion-icon>
+      </ion-button>
+      <ion-button *ngIf="currentStep?.id === 'confirm'"
+                  color="success" fill="solid"
+                  [disabled]="isLoading"
+                  (click)="confirmBooking()">
+        <ion-spinner *ngIf="isLoading" name="crescent" class="btn-spinner"></ion-spinner>
+        Confirmar Reserva
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-footer>
+
+<ion-footer *ngIf="isSuccess">
+  <ion-toolbar class="ion-padding">
+  </ion-toolbar>
+</ion-footer>

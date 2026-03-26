@@ -1,0 +1,92 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Panel de Plataforma</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <div *ngIf="isLoading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando estadisticas...</p>
+  </div>
+
+  <div *ngIf="error" class="ion-text-center ion-padding">
+    <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+    <p>{{ error }}</p>
+    <ion-button fill="outline" (click)="loadDashboard()">Reintentar</ion-button>
+  </div>
+
+  <ng-container *ngIf="dashboard && !isLoading">
+
+    <ion-list-header>
+      <ion-label>Resumen de la plataforma</ion-label>
+    </ion-list-header>
+
+    <div class="stats-grid">
+      <ion-card class="stat-card">
+        <ion-card-content class="ion-text-center">
+          <ion-icon name="storefront-outline" color="primary" style="font-size: 32px;"></ion-icon>
+          <h2>{{ dashboard.totalBarbershops }}</h2>
+          <p>Barberias totales</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="stat-card">
+        <ion-card-content class="ion-text-center">
+          <ion-icon name="checkmark-circle-outline" color="success" style="font-size: 32px;"></ion-icon>
+          <h2>{{ dashboard.activeBarbershops }}</h2>
+          <p>Barberias activas</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="stat-card">
+        <ion-card-content class="ion-text-center">
+          <ion-icon name="people-outline" color="secondary" style="font-size: 32px;"></ion-icon>
+          <h2>{{ dashboard.totalUsers }}</h2>
+          <p>Usuarios</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="stat-card">
+        <ion-card-content class="ion-text-center">
+          <ion-icon name="calendar-outline" color="tertiary" style="font-size: 32px;"></ion-icon>
+          <h2>{{ dashboard.totalBookings }}</h2>
+          <p>Reservas totales</p>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="stat-card wide">
+        <ion-card-content class="ion-text-center">
+          <ion-icon name="cash-outline" color="warning" style="font-size: 32px;"></ion-icon>
+          <h2>${{ dashboard.totalRevenue | number:'1.0-0' }}</h2>
+          <p>Ingresos totales</p>
+        </ion-card-content>
+      </ion-card>
+    </div>
+
+    <ion-list-header>
+      <ion-label>Acciones rapidas</ion-label>
+    </ion-list-header>
+
+    <ion-list>
+      <ion-item button detail routerLink="/admin/manage-barbershops">
+        <ion-icon name="storefront-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>Gestionar barberias</ion-label>
+      </ion-item>
+      <ion-item button detail routerLink="/admin/manage-users">
+        <ion-icon name="people-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>Gestionar usuarios</ion-label>
+      </ion-item>
+      <ion-item button detail>
+        <ion-icon name="settings-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>Configuracion global</ion-label>
+      </ion-item>
+    </ion-list>
+
+  </ng-container>
+
+</ion-content>

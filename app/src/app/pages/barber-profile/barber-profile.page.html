@@ -1,0 +1,188 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mi Perfil de Barbero</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando perfil...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!isLoading && error" class="ion-text-center ion-padding">
+    <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+    <p>{{ error }}</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !error && selectedProfile">
+
+    <!-- Selector si tiene multiples perfiles -->
+    <ion-item *ngIf="barberProfiles.length > 1">
+      <ion-label>Barberia</ion-label>
+      <ion-select [value]="selectedProfile" (ionChange)="selectProfile($any($event).detail.value)" interface="action-sheet">
+        <ion-select-option *ngFor="let p of barberProfiles" [value]="p">{{ p.barbershop?.name }}</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <!-- Header del perfil -->
+    <div class="profile-header">
+      <div class="avatar-container" (click)="editAvatar()">
+        <img *ngIf="selectedProfile.avatarUrl" [src]="selectedProfile.avatarUrl" class="avatar-img" />
+        <div *ngIf="!selectedProfile.avatarUrl" class="avatar-placeholder">
+          <ion-icon name="person-outline"></ion-icon>
+        </div>
+        <div class="avatar-edit-badge">
+          <ion-icon name="camera-outline"></ion-icon>
+        </div>
+      </div>
+      <h2>{{ selectedProfile.firstName }} {{ selectedProfile.lastName }}</h2>
+      <p class="barbershop-name">{{ selectedProfile.barbershop?.name }}</p>
+      <p class="barbershop-address">{{ selectedProfile.barbershop?.address }}</p>
+
+      <!-- Rating -->
+      <div class="rating-row" *ngIf="selectedProfile.reviews?.length > 0">
+        <ion-icon *ngFor="let filled of getStarArray(avgRating)"
+                  [name]="filled ? 'star' : 'star-outline'" color="warning"></ion-icon>
+        <span class="rating-text">{{ avgRating }}</span>
+        <span class="review-count">({{ selectedProfile._count?.reviews || 0 }} resenas)</span>
+      </div>
+      <p *ngIf="!selectedProfile.reviews?.length" class="no-reviews">Sin resenas todavia</p>
+    </div>
+
+    <!-- Bio -->
+    <ion-card class="section-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="document-text-outline"></ion-icon>
+          Bio
+        </ion-card-title>
+        <ion-button slot="end" fill="clear" size="small" (click)="editBio()">
+          <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-card-header>
+      <ion-card-content>
+        <p *ngIf="selectedProfile.bio">{{ selectedProfile.bio }}</p>
+        <p *ngIf="!selectedProfile.bio" class="empty-text">Agrega una descripcion sobre ti y tu experiencia.</p>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Servicios asignados -->
+    <ion-card class="section-card" *ngIf="selectedProfile.services?.length > 0">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="cut-outline"></ion-icon>
+          Mis Servicios
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-chip *ngFor="let bs of selectedProfile.services" color="primary" outline>
+          <ion-label>{{ bs.service?.name }}</ion-label>
+        </ion-chip>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Horarios -->
+    <ion-card class="section-card" *ngIf="selectedProfile.schedules?.length > 0">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="time-outline"></ion-icon>
+          Mis Horarios
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item *ngFor="let s of selectedProfile.schedules" lines="none" class="schedule-item">
+          <ion-label>
+            <strong>{{ s.dayOfWeek }}</strong>
+          </ion-label>
+          <ion-note slot="end">{{ s.openTime }} - {{ s.closeTime }}</ion-note>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Portfolio (fotos de trabajos) -->
+    <ion-card class="section-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="images-outline"></ion-icon>
+          Portfolio
+        </ion-card-title>
+        <ion-button slot="end" fill="clear" size="small" (click)="addPortfolioImage()">
+          <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-card-header>
+      <ion-card-content>
+        <div *ngIf="selectedProfile.images?.length > 0" class="portfolio-grid">
+          <div class="portfolio-item" *ngFor="let img of selectedProfile.images">
+            <img [src]="img.imageUrl" [alt]="img.caption || 'Trabajo'" />
+            <p *ngIf="img.caption" class="portfolio-caption">{{ img.caption }}</p>
+            <ion-button fill="clear" size="small" color="danger" class="delete-btn" (click)="removePortfolioImage(img.id)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </div>
+        <div *ngIf="!selectedProfile.images?.length" class="empty-portfolio">
+          <ion-icon name="images-outline" color="medium"></ion-icon>
+          <p>Agrega fotos de tus mejores trabajos para que los clientes vean tu estilo.</p>
+          <ion-button fill="outline" size="small" (click)="addPortfolioImage()">Agregar foto</ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Resenas -->
+    <ion-card class="section-card" *ngIf="selectedProfile.reviews?.length > 0">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="star-outline"></ion-icon>
+          Resenas de clientes
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="review-item" *ngFor="let review of selectedProfile.reviews">
+          <div class="review-header">
+            <strong>{{ review.user?.firstName }} {{ review.user?.lastName }}</strong>
+            <div class="review-stars">
+              <ion-icon *ngFor="let filled of getStarArray(review.rating)"
+                        [name]="filled ? 'star' : 'star-outline'" color="warning" size="small"></ion-icon>
+            </div>
+          </div>
+          <p *ngIf="review.comment" class="review-comment">{{ review.comment }}</p>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Stats -->
+    <ion-card class="section-card">
+      <ion-card-header>
+        <ion-card-title>
+          <ion-icon name="stats-chart-outline"></ion-icon>
+          Estadisticas
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="stats-row">
+          <div class="stat-item">
+            <h3>{{ selectedProfile._count?.bookings || 0 }}</h3>
+            <p>Reservas</p>
+          </div>
+          <div class="stat-item">
+            <h3>{{ selectedProfile._count?.reviews || 0 }}</h3>
+            <p>Resenas</p>
+          </div>
+          <div class="stat-item">
+            <h3>{{ avgRating || '-' }}</h3>
+            <p>Rating</p>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+  </ng-container>
+
+</ion-content>

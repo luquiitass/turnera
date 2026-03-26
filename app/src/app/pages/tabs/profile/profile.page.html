@@ -1,0 +1,104 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Mi perfil</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <!-- Avatar y nombre -->
+  <div class="profile-header">
+    <div class="avatar-container">
+      <img
+        *ngIf="currentUser?.avatarUrl"
+        [src]="currentUser!.avatarUrl"
+        alt="Foto de perfil"
+        class="avatar-image" />
+      <div *ngIf="!currentUser?.avatarUrl" class="avatar-initials">
+        <span>{{ initials }}</span>
+      </div>
+    </div>
+    <h2 class="profile-name">{{ fullName }}</h2>
+    <p class="profile-role">{{ getRoleLabel(activeRole) }}</p>
+  </div>
+
+  <!-- Informacion de contacto -->
+  <ion-list class="info-list">
+    <ion-list-header>
+      <ion-label>Informacion personal</ion-label>
+    </ion-list-header>
+
+    <ion-item>
+      <ion-icon name="mail-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <p>Correo electronico</p>
+        <h3>{{ currentUser?.email }}</h3>
+      </ion-label>
+    </ion-item>
+
+    <ion-item *ngIf="currentUser?.phone">
+      <ion-icon name="call-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <p>Telefono</p>
+        <h3>{{ currentUser?.phone }}</h3>
+      </ion-label>
+    </ion-item>
+
+    <ion-item *ngIf="currentUser?.address">
+      <ion-icon name="location-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <p>Direccion</p>
+        <h3 class="ion-text-wrap">{{ currentUser?.address }}</h3>
+      </ion-label>
+    </ion-item>
+
+    <ion-item button detail="true">
+      <ion-icon name="create-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>Editar perfil</ion-label>
+    </ion-item>
+
+    <ion-item button detail="true" routerLink="/barber-profile">
+      <ion-icon name="cut-outline" slot="start" color="tertiary"></ion-icon>
+      <ion-label>
+        <h3>Mi perfil de barbero</h3>
+        <p>Gestiona tu foto, portfolio y resenas</p>
+      </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <!-- Cambio de rol -->
+  <ion-list class="role-list" *ngIf="hasMultipleRoles">
+    <ion-list-header>
+      <ion-label>Modo de uso</ion-label>
+    </ion-list-header>
+
+    <ion-item
+      *ngFor="let role of availableRoles"
+      button
+      (click)="switchRole(role)"
+      [class.active-role]="role === activeRole">
+      <ion-icon
+        [name]="role === activeRole ? 'radio-button-on-outline' : 'radio-button-off-outline'"
+        slot="start"
+        [color]="role === activeRole ? 'primary' : 'medium'">
+      </ion-icon>
+      <ion-label [color]="role === activeRole ? 'primary' : ''">
+        {{ getRoleLabel(role) }}
+      </ion-label>
+      <ion-icon *ngIf="role === activeRole" name="checkmark-outline" slot="end" color="primary"></ion-icon>
+    </ion-item>
+  </ion-list>
+
+  <!-- Cerrar sesion -->
+  <div class="logout-section">
+    <ion-button
+      expand="block"
+      fill="outline"
+      color="danger"
+      (click)="confirmLogout()">
+      <ion-icon name="log-out-outline" slot="start"></ion-icon>
+      Cerrar sesion
+    </ion-button>
+  </div>
+
+</ion-content>

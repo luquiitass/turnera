@@ -1,0 +1,99 @@
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.results-count {
+  padding: 8px 16px 0;
+  font-size: 0.85rem;
+  color: var(--ion-color-medium);
+  margin: 0;
+}
+
+.shop-card {
+  margin: 8px 16px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  overflow: hidden;
+
+  .shop-cover {
+    height: 140px;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--ion-color-light);
+
+    .cover-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ion-icon {
+        font-size: 48px;
+      }
+    }
+  }
+
+  .shop-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .address-item {
+    --padding-start: 0;
+    --inner-padding-end: 0;
+    font-size: 0.85rem;
+  }
+
+  .shop-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 8px;
+
+    ion-chip {
+      font-size: 0.78rem;
+      height: 28px;
+    }
+  }
+
+  .deposit-info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--ion-color-medium);
+
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 16px;
+  text-align: center;
+
+  .empty-icon {
+    font-size: 64px;
+    margin-bottom: 16px;
+  }
+
+  .empty-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+    margin: 0 0 8px;
+  }
+
+  .empty-text {
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}

@@ -1,0 +1,79 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text="Volver"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Panel de Barberia</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando barberias...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+
+    <!-- Sin barberias -->
+    <div *ngIf="barbershops.length === 0" class="ion-text-center ion-padding">
+      <ion-icon name="storefront-outline" style="font-size: 64px;" color="medium"></ion-icon>
+      <h3>No tienes barberias asignadas</h3>
+      <p>Contacta al administrador para que te asigne una barberia.</p>
+    </div>
+
+    <!-- Selector de barberia (si tiene mas de una) -->
+    <ion-item *ngIf="barbershops.length > 1">
+      <ion-label>Barberia activa</ion-label>
+      <ion-select
+        [value]="selectedBarbershop"
+        (ionChange)="selectBarbershop($any($event).detail.value)"
+        interface="action-sheet"
+        placeholder="Seleccionar">
+        <ion-select-option *ngFor="let bs of barbershops" [value]="bs">
+          {{ bs.name }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <!-- Info de barberia seleccionada -->
+    <ng-container *ngIf="selectedBarbershop">
+      <ion-card class="barbershop-hero">
+        <ion-card-header>
+          <ion-card-title>{{ selectedBarbershop.name }}</ion-card-title>
+          <ion-card-subtitle>{{ selectedBarbershop.address }}</ion-card-subtitle>
+        </ion-card-header>
+        <ion-card-content>
+          <div class="info-chips">
+            <ion-chip color="primary" outline>
+              <ion-icon name="people-outline"></ion-icon>
+              <ion-label>{{ selectedBarbershop._count?.barbers || 0 }} barberos</ion-label>
+            </ion-chip>
+            <ion-chip color="secondary" outline>
+              <ion-icon name="cut-outline"></ion-icon>
+              <ion-label>{{ selectedBarbershop._count?.services || 0 }} servicios</ion-label>
+            </ion-chip>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Menu de gestion -->
+      <ion-list-header>
+        <ion-label>Gestion</ion-label>
+      </ion-list-header>
+
+      <div class="menu-grid">
+        <ion-card *ngFor="let item of menuItems" class="menu-card" (click)="goToSection(item.route)" button>
+          <ion-card-content class="ion-text-center">
+            <ion-icon [name]="item.icon" color="primary" style="font-size: 32px;"></ion-icon>
+            <p>{{ item.label }}</p>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </ng-container>
+
+  </ng-container>
+
+</ion-content>

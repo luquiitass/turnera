@@ -1,0 +1,39 @@
+.barbershop-hero {
+  ion-card-title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+}
+
+.info-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.menu-card {
+  margin: 0;
+  border-radius: 12px;
+
+  ion-card-content {
+    padding: 16px 8px;
+
+    ion-icon {
+      margin-bottom: 8px;
+    }
+
+    p {
+      font-size: 12px;
+      font-weight: 600;
+      margin: 0;
+      color: var(--ion-color-dark);
+    }
+  }
+}
