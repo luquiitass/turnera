@@ -3,13 +3,14 @@ import {
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { CloudflareService } from '../../common/cloudflare.service.js';
 import {
   CreateBarbershopDto, UpdateBarbershopDto, AddBarbershopAdminDto, SearchBarbershopsQuery,
 } from './dto/barbershops.dto.js';
 
 @Injectable()
 export class BarbershopsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private cloudflare: CloudflareService) {}
 
   async findAll(query: SearchBarbershopsQuery) {
     const { search, page = 1, limit = 20 } = query;
@@ -128,6 +129,9 @@ export class BarbershopsService {
         data: { roles: { push: Role.ADMIN_BARBERSHOP } },
       });
     }
+
+    // Register subdomain in Cloudflare Pages
+    this.cloudflare.registerSubdomain(finalSlug).catch(() => {});
 
     return barbershop;
   }

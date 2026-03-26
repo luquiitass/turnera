@@ -68,7 +68,9 @@
       "Bash(curl -m 15 -s https://barber-12.barberiaalem.com)",
       "Bash(curl -m 15 -s -o /dev/null -w \"the-classic-cut: %{http_code}\\\\n\" https://the-classic-cut.barberiaalem.com)",
       "Bash(curl -m 15 -s -o /dev/null -w \"don-bigote: %{http_code}\\\\n\" https://don-bigote.barberiaalem.com)",
-      "Bash(curl -m 15 -s -o /dev/null -w \"urban-barber-studio: %{http_code}\\\\n\" https://urban-barber-studio.barberiaalem.com)"
+      "Bash(curl -m 15 -s -o /dev/null -w \"urban-barber-studio: %{http_code}\\\\n\" https://urban-barber-studio.barberiaalem.com)",
+      "Bash(curl -m 10 -s -o /dev/null -w \"%{http_code}\" https://barber-12.barberiaalem.com/runtime.b3a98c6bf4654f25.js)",
+      "Bash(curl -m 10 -s -o /dev/null -w \"%{http_code}\" https://barber-12.barberiaalem.com/main.568ec2ae7ef7fddb.js)"
     ]
   }
 }

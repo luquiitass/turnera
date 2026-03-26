@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { CloudflareService } from '../../common/cloudflare.service.js';
 import * as crypto from 'crypto';
 
 @Injectable()
 export class RegistrationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private cloudflare: CloudflareService) {}
 
   async createOrder(expiresInDays = 7) {
     const code = crypto.randomBytes(4).toString('hex').toUpperCase(); // 8 char code
@@ -71,6 +72,9 @@ export class RegistrationService {
         data: { roles: { push: Role.ADMIN_BARBERSHOP } },
       });
     }
+
+    // Register subdomain in Cloudflare Pages
+    this.cloudflare.registerSubdomain(finalSlug).catch(() => {});
 
     // Mark order as used
     await this.prisma.registrationOrder.update({
