@@ -8,7 +8,6 @@ services:
   - type: web
     name: turnera-api
     runtime: node
-    plan: free
     rootDir: api
     buildCommand: npm install && npx prisma generate && npm run build
     startCommand: npx prisma db push && npm run start:prod
@@ -36,7 +35,6 @@ services:
   - type: web
     name: turnera-client
     runtime: static
-    plan: free
     rootDir: client-app
     buildCommand: npm install && npx ng build --configuration production
     staticPublishPath: www
