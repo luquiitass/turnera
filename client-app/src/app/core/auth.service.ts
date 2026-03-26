@@ -62,7 +62,7 @@ export class AuthService {
       const baseDomain = baseDomains[0];
       window.location.href = `${protocol}//${baseDomain}${port}/auth/login?redirect=${slug}`;
     } else {
-      window.location.href = '/tabs/home';
+      window.location.href = '/auth/login';
     }
   }
 
