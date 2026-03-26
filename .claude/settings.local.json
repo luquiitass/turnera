@@ -70,7 +70,10 @@
       "Bash(curl -m 15 -s -o /dev/null -w \"don-bigote: %{http_code}\\\\n\" https://don-bigote.barberiaalem.com)",
       "Bash(curl -m 15 -s -o /dev/null -w \"urban-barber-studio: %{http_code}\\\\n\" https://urban-barber-studio.barberiaalem.com)",
       "Bash(curl -m 10 -s -o /dev/null -w \"%{http_code}\" https://barber-12.barberiaalem.com/runtime.b3a98c6bf4654f25.js)",
-      "Bash(curl -m 10 -s -o /dev/null -w \"%{http_code}\" https://barber-12.barberiaalem.com/main.568ec2ae7ef7fddb.js)"
+      "Bash(curl -m 10 -s -o /dev/null -w \"%{http_code}\" https://barber-12.barberiaalem.com/main.568ec2ae7ef7fddb.js)",
+      "Bash(curl -m 10 -s https://turnera-api-production.up.railway.app/api/services)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f''''API OK - {len\\(d[\"\"data\"\"]\\)} services''''\\)\")",
+      "Bash(curl:*)"
     ]
   }
 }

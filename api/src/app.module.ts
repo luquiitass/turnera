@@ -18,11 +18,12 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard.js';
 import { RolesGuard } from './common/guards/roles.guard.js';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor.js';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter.js';
-import { CloudflareService } from './common/cloudflare.service.js';
+import { CloudflareModule } from './common/cloudflare.module.js';
 
 @Module({
   imports: [
     PrismaModule,
+    CloudflareModule,
     AuthModule,
     UsersModule,
     BarbershopsModule,
@@ -42,8 +43,6 @@ import { CloudflareService } from './common/cloudflare.service.js';
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
-    CloudflareService,
   ],
-  exports: [CloudflareService],
 })
 export class AppModule {}
