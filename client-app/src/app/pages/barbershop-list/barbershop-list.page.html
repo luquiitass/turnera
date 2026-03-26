@@ -7,46 +7,118 @@
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+  <ion-toolbar *ngIf="isAdmin">
+    <ion-segment [value]="activeTab" (ionChange)="onTabChange($any($event).detail.value)">
+      <ion-segment-button value="barbershops">
+        <ion-label>Barberias</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="users">
+        <ion-label>Usuarios</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content>
 
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
-    <ion-refresher-content pullingText="Soltar para actualizar" refreshingSpinner="crescent" refreshingText="Actualizando..."></ion-refresher-content>
+    <ion-refresher-content pullingText="Soltar para actualizar" refreshingSpinner="crescent"></ion-refresher-content>
   </ion-refresher>
 
-  <div class="greeting" *ngIf="userName">
-    <h2>Hola, {{ userName }}!</h2>
-    <p>Selecciona una barberia para reservar tu turno.</p>
+  <!-- ==================== ADMIN DASHBOARD ==================== -->
+  <div *ngIf="isAdmin && dashboard" class="dashboard">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <ion-icon name="storefront-outline" color="primary"></ion-icon>
+        <h3>{{ dashboard.totalBarbershops }}</h3>
+        <p>Barberias</p>
+      </div>
+      <div class="stat-card">
+        <ion-icon name="people-outline" color="secondary"></ion-icon>
+        <h3>{{ dashboard.totalUsers }}</h3>
+        <p>Usuarios</p>
+      </div>
+      <div class="stat-card">
+        <ion-icon name="calendar-outline" color="tertiary"></ion-icon>
+        <h3>{{ dashboard.totalBookings }}</h3>
+        <p>Reservas</p>
+      </div>
+      <div class="stat-card">
+        <ion-icon name="cash-outline" color="warning"></ion-icon>
+        <h3>${{ dashboard.totalRevenue }}</h3>
+        <p>Ingresos</p>
+      </div>
+    </div>
+
+    <div class="admin-actions">
+      <ion-button size="small" fill="outline" (click)="createBarbershop()">
+        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+        Nueva barberia
+      </ion-button>
+      <ion-button size="small" fill="outline" color="tertiary" (click)="generateOrder()">
+        <ion-icon name="ticket-outline" slot="start"></ion-icon>
+        Generar orden
+      </ion-button>
+    </div>
   </div>
 
-  <div *ngIf="loading" class="ion-text-center ion-padding">
-    <ion-spinner name="crescent" color="primary"></ion-spinner>
-  </div>
+  <!-- ==================== BARBERSHOPS TAB ==================== -->
+  <ng-container *ngIf="activeTab === 'barbershops'">
 
-  <ion-list *ngIf="!loading">
-    <ion-item *ngFor="let bs of barbershops" button detail (click)="goToBarbershop(bs)">
-      <ion-avatar slot="start">
-        <img *ngIf="bs.logoImage" [src]="bs.logoImage" />
-        <div *ngIf="!bs.logoImage" class="avatar-placeholder">
-          <ion-icon name="storefront-outline"></ion-icon>
-        </div>
-      </ion-avatar>
-      <ion-label>
-        <h2>{{ bs.name }}</h2>
-        <p>{{ bs.address }}</p>
-        <p *ngIf="bs.phone">{{ bs.phone }}</p>
-      </ion-label>
-      <ion-chip slot="end" color="primary" outline *ngIf="bs.avgRating">
-        <ion-icon name="star" color="warning"></ion-icon>
-        <ion-label>{{ bs.avgRating }}</ion-label>
-      </ion-chip>
-    </ion-item>
-  </ion-list>
+    <div class="greeting" *ngIf="userName && !isAdmin">
+      <h2>Hola, {{ userName }}!</h2>
+      <p>Selecciona una barberia para reservar tu turno.</p>
+    </div>
 
-  <div *ngIf="!loading && barbershops.length === 0" class="ion-text-center ion-padding">
-    <ion-icon name="storefront-outline" size="large" color="medium"></ion-icon>
-    <p>No hay barberias disponibles.</p>
-  </div>
+    <div *ngIf="loading" class="ion-text-center ion-padding">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+
+    <ion-list *ngIf="!loading">
+      <ion-item *ngFor="let bs of barbershops" button detail (click)="goToBarbershop(bs)">
+        <ion-avatar slot="start">
+          <img *ngIf="bs.logoImage" [src]="bs.logoImage" />
+          <div *ngIf="!bs.logoImage" class="avatar-placeholder">
+            <ion-icon name="storefront-outline"></ion-icon>
+          </div>
+        </ion-avatar>
+        <ion-label>
+          <h2>{{ bs.name }}</h2>
+          <p>{{ bs.address }}</p>
+          <p class="slug-text">{{ bs.slug }}.barberiaalem.com</p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+
+    <div *ngIf="!loading && barbershops.length === 0" class="ion-text-center ion-padding">
+      <ion-icon name="storefront-outline" size="large" color="medium"></ion-icon>
+      <p>No hay barberias disponibles.</p>
+      <ion-button *ngIf="isAdmin" fill="outline" (click)="createBarbershop()">Crear primera barberia</ion-button>
+    </div>
+
+  </ng-container>
+
+  <!-- ==================== USERS TAB (ADMIN) ==================== -->
+  <ng-container *ngIf="activeTab === 'users' && isAdmin">
+
+    <ion-list>
+      <ion-item *ngFor="let user of users" button (click)="assignRole(user)">
+        <ion-icon name="person-circle-outline" slot="start" color="medium" style="font-size: 32px;"></ion-icon>
+        <ion-label>
+          <h2>{{ user.firstName }} {{ user.lastName }}</h2>
+          <p>{{ user.email }}</p>
+          <p class="roles-text">{{ getRoleLabel(user.roles) }}</p>
+        </ion-label>
+        <ion-chip slot="end" [color]="user.isActive ? 'success' : 'danger'" outline>
+          <ion-label>{{ user.isActive ? 'Activo' : 'Inactivo' }}</ion-label>
+        </ion-chip>
+      </ion-item>
+    </ion-list>
+
+    <div *ngIf="users.length === 0" class="ion-text-center ion-padding">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    </div>
+
+  </ng-container>
 
 </ion-content>
