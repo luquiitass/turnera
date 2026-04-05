@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/auth.service';
 import { StorageService } from '../../core/storage.service';
-import { ModalController } from '@ionic/angular';
+import { ModalController, AlertController } from '@ionic/angular';
 import { environment } from '../../../environments/environment';
 
 declare const google: any;
@@ -22,7 +22,26 @@ export class LoginPage implements OnInit {
   redirectSlug = '';
   registrationCode = '';
   isDevelopment = true; // Siempre mostrar modo desarrollo
-  users: any[] = [];
+  users: any[] = [
+    {
+      id: 1,
+      email: 'usuario1@example.com',
+      role: 'USER',
+      name: 'Usuario 1',
+    },
+    {
+      id: 2,
+      email: 'usuario2@example.com',
+      role: 'USER',
+      name: 'Usuario 2',
+    },
+    {
+      id: 3,
+      email: 'usuario3@example.com',
+      role: 'USER',
+      name: 'Usuario 3',
+    },
+  ];
 
   constructor(
     private authService: AuthService,
@@ -31,7 +50,7 @@ export class LoginPage implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private ngZone: NgZone,
-    private modalController: ModalController,
+    private alertController: AlertController,
   ) {}
 
   ngOnInit(): void {
@@ -47,47 +66,21 @@ export class LoginPage implements OnInit {
         },
       });
     }
-    this.loadDevUsers();
     this.initGoogleButton();
-  }
-
-  /**
-   * Cargar lista de usuarios para desarrollo
-   */
-  private loadDevUsers(): void {
-    this.http.get<any>(`${environment.apiUrl}/users`, {
-      headers: { Authorization: `Bearer temp` }
-    }).subscribe({
-      next: (res) => {
-        this.users = res.data || [];
-        console.log('📋 Usuarios disponibles:', this.users.length);
-      },
-      error: () => {
-        // Si hay error, mostrar lista vacía
-        this.users = [];
-      },
-    });
   }
 
   /**
    * Seleccionar usuario en modo desarrollo
    */
   async selectDevUser(): Promise<void> {
-    const inputs = this.users.map((user: any) => ({
-      name: 'user',
-      type: 'radio',
-      label: `${user.email} (${user.role})`,
-      value: JSON.stringify(user),
-    }));
-
-    if (inputs.length === 0) {
-      this.errorMessage = 'No hay usuarios disponibles';
-      return;
-    }
-
-    const alert = await (window as any).alertController?.create({
+    const alert = await this.alertController.create({
       header: 'Seleccionar Usuario (Dev)',
-      inputs,
+      inputs: this.users.map((user: any) => ({
+        name: 'user',
+        type: 'radio',
+        label: `${user.email}`,
+        value: JSON.stringify(user),
+      })),
       buttons: [
         {
           text: 'Cancelar',
@@ -105,9 +98,7 @@ export class LoginPage implements OnInit {
       ],
     });
 
-    if (alert) {
-      await alert.present();
-    }
+    await alert.present();
   }
 
   /**
@@ -123,15 +114,27 @@ export class LoginPage implements OnInit {
     // Guardar datos en storage
     this.storage.set('accessToken', devToken);
     this.storage.set('refreshToken', devToken);
-    this.storage.setJson('currentUser', user);
+    this.storage.setJson('currentUser', {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    });
 
     // Actualizar auth service
-    (this.authService as any).currentUserSubject.next(user);
+    (this.authService as any).currentUserSubject.next({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    });
 
     console.log('🔓 Dev login:', user.email);
 
-    this.isLoading = false;
-    this.redirectAfterLogin();
+    setTimeout(() => {
+      this.isLoading = false;
+      this.redirectAfterLogin();
+    }, 500);
   }
 
   initGoogleButton(): void {
