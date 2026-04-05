@@ -5,6 +5,7 @@ import { IonicModule, ModalController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { NominatimService, AutocompleteResult } from '../../../core/nominatim.service';
+import { GeolocationService, Location } from '../../../core/geolocation.service';
 
 @Component({
   selector: 'app-create-barbershop-modal',
@@ -28,19 +29,54 @@ export class CreateBarbershopModalComponent implements OnInit, OnDestroy {
 
   private addressSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
+  private userLocation: Location | null = null;
+  private locationInfo = { city: '', state: '', country: '' };
 
   constructor(
     private modalController: ModalController,
     private nominatimService: NominatimService,
+    private geolocationService: GeolocationService,
   ) {
     this.setupAddressDebounce();
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.initializeLocation();
+  }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  private async initializeLocation(): Promise<void> {
+    try {
+      const location = await this.geolocationService.getCurrentLocation();
+      if (location) {
+        this.userLocation = location;
+        console.log('📍 Ubicación obtenida:', location);
+        this.getLocationInfo(location);
+      }
+    } catch (error) {
+      console.warn('⚠️ No se pudo obtener ubicación:', error);
+    }
+  }
+
+  private getLocationInfo(location: Location): void {
+    this.nominatimService.reverseGeocode(location.latitude, location.longitude).subscribe({
+      next: (result: any) => {
+        const addr = result.data?.address || result.address || {};
+        this.locationInfo = {
+          city: addr.city || addr.town || '',
+          state: addr.state || '',
+          country: addr.country || '',
+        };
+        console.log('🏘️ Localidad, Provincia, País:', this.locationInfo);
+      },
+      error: (err: any) => {
+        console.warn('⚠️ Error en reverse geocode:', err);
+      },
+    });
   }
 
   private setupAddressDebounce(): void {
@@ -61,13 +97,11 @@ export class CreateBarbershopModalComponent implements OnInit, OnDestroy {
 
   onAddressChange(newValue: string): void {
     console.log('📝 Escribiendo:', newValue);
-    // Solo mostrar lista si hay resultados previos, no buscar automáticamente
     if (!newValue || newValue.trim().length < 3) {
       this.autocompleteResults = [];
       this.showAutocomplete = false;
       return;
     }
-    // Enviar al subject para debounce
     this.addressSubject.next(newValue.trim());
   }
 
@@ -80,9 +114,21 @@ export class CreateBarbershopModalComponent implements OnInit, OnDestroy {
 
   private performSearch(query: string): void {
     this.isSearching = true;
-    console.log('🔍 Buscando:', query);
 
-    this.nominatimService.autocomplete(query).subscribe({
+    // Enriquecer búsqueda con localidad si no la contiene
+    let enrichedQuery = query;
+    const queryLower = query.toLowerCase();
+
+    if (
+      this.locationInfo.city &&
+      !queryLower.includes(this.locationInfo.city.toLowerCase())
+    ) {
+      enrichedQuery = `${query}, ${this.locationInfo.city}`;
+    }
+
+    console.log('🔍 Buscando:', enrichedQuery);
+
+    this.nominatimService.autocomplete(enrichedQuery).subscribe({
       next: (results: AutocompleteResult[]) => {
         console.log('✅ Resultados:', results.length);
 

@@ -1,0 +1,136 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Barberias Cercanas</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Sin ubicación -->
+  <div *ngIf="!hasLocation && activeTab === 'nearby'" class="no-location">
+    <ion-icon name="location-outline" class="big-icon"></ion-icon>
+    <h2>Permite acceso a tu ubicación</h2>
+    <p>Para ver barberias cercanas, necesitamos acceso a tu ubicación</p>
+    <ion-button expand="block" fill="solid" (click)="requestLocation()">
+      <ion-icon slot="start" name="location"></ion-icon>
+      Habilitar ubicación
+    </ion-button>
+    <p class="or-text">O busca por ciudad/nombre</p>
+  </div>
+
+  <!-- Con ubicación o búsqueda -->
+  <div *ngIf="hasLocation || barbershops.length > 0" class="content-with-results">
+    <!-- Tabs -->
+    <ion-segment class="tab-segment">
+      <ion-segment-button 
+        [ngClass]="{'ion-segment-button-selected': activeTab === 'nearby'}"
+        (click)="activeTab = 'nearby'"
+        *ngIf="hasLocation"
+      >
+        <ion-label>Cercanas</ion-label>
+      </ion-segment-button>
+      <ion-segment-button 
+        [ngClass]="{'ion-segment-button-selected': activeTab === 'search'}"
+        (click)="activeTab = 'search'"
+      >
+        <ion-label>Buscar</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <!-- TAB: Cercanas -->
+    <div *ngIf="activeTab === 'nearby' && hasLocation" class="tab-content">
+      <ion-card class="filter-card">
+        <ion-card-content>
+          <ion-text>
+            <h3>Radio de búsqueda: {{ radiusKm }} km</h3>
+          </ion-text>
+          <ion-range
+            [min]="minRadius"
+            [max]="maxRadius"
+            [(ngModel)]="radiusKm"
+            (ionChange)="onRadiusChange()"
+            color="primary"
+          >
+            <ion-label slot="start">{{ minRadius }} km</ion-label>
+            <ion-label slot="end">{{ maxRadius }} km</ion-label>
+          </ion-range>
+        </ion-card-content>
+      </ion-card>
+
+      <div *ngIf="barbershops.length === 0" class="empty-state">
+        <ion-icon name="search-outline"></ion-icon>
+        <p>No hay barberias en este radio</p>
+      </div>
+
+      <div *ngFor="let barbershop of barbershops" class="barbershop-card">
+        <ion-card (click)="goToBarbershop(barbershop.id)">
+          <ion-card-header>
+            <ion-img
+              [src]="barbershop.logoImage || 'assets/barbershop-placeholder.png'"
+              class="barbershop-image"
+            ></ion-img>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-card-title>{{ barbershop.name }}</ion-card-title>
+            <ion-text color="medium">
+              <p class="address">{{ barbershop.address }}</p>
+              <p *ngIf="barbershop.distance" class="distance">
+                <ion-icon name="location"></ion-icon>
+                {{ barbershop.distance }} km
+              </p>
+            </ion-text>
+            <div class="rating">
+              <ion-icon name="star" [color]="barbershop.avgRating > 0 ? 'warning' : 'light'"></ion-icon>
+              <span>{{ barbershop.avgRating }} ({{ barbershop.totalReviews }})</span>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+
+    <!-- TAB: Búsqueda -->
+    <div *ngIf="activeTab === 'search'" class="tab-content">
+      <ion-card class="search-input-card">
+        <ion-card-content>
+          <ion-searchbar
+            [(ngModel)]="searchCity"
+            placeholder="Ej: Buenos Aires, CABA"
+            (ionChange)="searchByCity()"
+          ></ion-searchbar>
+        </ion-card-content>
+      </ion-card>
+
+      <div *ngIf="barbershops.length === 0 && searchCity" class="empty-state">
+        <ion-icon name="search-outline"></ion-icon>
+        <p>No hay resultados para "{{ searchCity }}"</p>
+      </div>
+
+      <div *ngFor="let barbershop of barbershops" class="barbershop-card">
+        <ion-card (click)="goToBarbershop(barbershop.id)">
+          <ion-card-header>
+            <ion-img
+              [src]="barbershop.logoImage || 'assets/barbershop-placeholder.png'"
+              class="barbershop-image"
+            ></ion-img>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-card-title>{{ barbershop.name }}</ion-card-title>
+            <ion-text color="medium">
+              <p class="address">{{ barbershop.address }}</p>
+            </ion-text>
+            <div class="rating">
+              <ion-icon name="star" [color]="barbershop.avgRating > 0 ? 'warning' : 'light'"></ion-icon>
+              <span>{{ barbershop.avgRating }} ({{ barbershop.totalReviews }})</span>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    </div>
+  </div>
+</ion-content>

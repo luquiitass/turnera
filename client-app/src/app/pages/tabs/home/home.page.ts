@@ -4,6 +4,8 @@ import { AlertController, ToastController } from '@ionic/angular';
 import { HttpClient } from '@angular/common/http';
 import { ApiService } from '../../../core/api.service';
 import { AuthService } from '../../../core/auth.service';
+import { GeolocationService } from '../../../core/geolocation.service';
+import { NearbyBarbershopsService } from '../../../core/nearby-barbershops.service';
 import { environment } from '../../../../environments/environment';
 
 @Component({
@@ -31,6 +33,8 @@ export class HomePage implements OnInit {
 
   allGlobalServices: any[] = [];
   allGlobalAmenities: any[] = [];
+  nearbyBarbershops: any[] = [];
+  hasUserLocation = false;
 
   constructor(
     private api: ApiService,
@@ -39,6 +43,8 @@ export class HomePage implements OnInit {
     private router: Router,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
+    private geolocationService: GeolocationService,
+    private nearbyService: NearbyBarbershopsService,
   ) {}
 
   ngOnInit(): void {
@@ -63,6 +69,7 @@ export class HomePage implements OnInit {
         this.offers = (data.offers ?? []).filter((o: any) => o.isActive);
         this.loading = false;
         this.checkAdmin();
+        this.loadNearbyBarbershops();
       },
       error: () => { this.error = true; this.loading = false; },
     });
@@ -79,6 +86,7 @@ export class HomePage implements OnInit {
         this.reviews = data.reviews ?? [];
         this.offers = (data.offers ?? []).filter((o: any) => o.isActive);
         this.checkAdmin();
+        this.loadNearbyBarbershops();
         event.target.complete();
       },
       error: () => { event.target.complete(); },
@@ -97,6 +105,29 @@ export class HomePage implements OnInit {
       },
       error: () => { this.isAdmin = false; },
     });
+  }
+
+  loadNearbyBarbershops(): void {
+    const location = this.geolocationService.getStoredLocation();
+    if (!location) {
+      this.hasUserLocation = false;
+      return;
+    }
+
+    this.hasUserLocation = true;
+    this.nearbyService.findNearby(location.latitude, location.longitude, 5).subscribe({
+      next: (data) => {
+        this.nearbyBarbershops = (data || []).slice(0, 3); // Top 3
+      },
+      error: (err) => {
+        console.error('Error cargando barberias cercanas:', err);
+        this.nearbyBarbershops = [];
+      },
+    });
+  }
+
+  goToNearbyBarbershops(): void {
+    this.router.navigateByUrl('/nearby-barbershops');
   }
 
   toggleAdminPanel(): void {

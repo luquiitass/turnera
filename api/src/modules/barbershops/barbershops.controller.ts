@@ -2,7 +2,7 @@ import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards } fro
 import { Role } from '@prisma/client';
 import { BarbershopsService } from './barbershops.service.js';
 import {
-  CreateBarbershopDto, UpdateBarbershopDto, AddBarbershopAdminDto, SearchBarbershopsQuery,
+  CreateBarbershopDto, UpdateBarbershopDto, AddBarbershopAdminDto, SearchBarbershopsQuery, NearbyBarbershopsQuery, SearchByNameOrCityQuery,
 } from './dto/barbershops.dto.js';
 import { Roles } from '../../common/decorators/roles.decorator.js';
 import { Public } from '../../common/decorators/public.decorator.js';
@@ -23,6 +23,25 @@ export class BarbershopsController {
   @Roles(Role.ADMIN_BARBERSHOP, Role.SUB_ADMIN)
   getMyBarbershops(@CurrentUser('id') userId: string) {
     return this.barbershopsService.getMyBarbershops(userId);
+  }
+
+  @Public()
+  @Get('nearby')
+  findNearby(@Query() query: NearbyBarbershopsQuery) {
+    return this.barbershopsService.findNearby(query.latitude, query.longitude, query.radiusKm);
+  }
+
+  @Public()
+  @Get('search-by-city/:city')
+  searchByCity(@Param('city') city: string) {
+    return this.barbershopsService.searchByCity(city);
+  }
+
+  @Public()
+  @Get('search')
+  search(@Query() query: any) {
+    const { q, lat, lng, radius, limit } = query;
+    return this.barbershopsService.search(q, lat, lng, radius, limit);
   }
 
   @Public()

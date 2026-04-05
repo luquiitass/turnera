@@ -14,6 +14,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module.js';
 import { StatsModule } from './modules/stats/stats.module.js';
 import { OffersModule } from './modules/offers/offers.module.js';
 import { RegistrationModule } from './modules/registration/registration.module.js';
+import { GeocodingModule } from './modules/geocoding/geocoding.module.js';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard.js';
 import { RolesGuard } from './common/guards/roles.guard.js';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor.js';
@@ -37,6 +38,7 @@ import { CloudflareModule } from './common/cloudflare.module.js';
     StatsModule,
     OffersModule,
     RegistrationModule,
+    GeocodingModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

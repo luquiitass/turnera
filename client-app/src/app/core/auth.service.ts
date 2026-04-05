@@ -4,13 +4,19 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { StorageService } from './storage.service';
+import { GeolocationService } from './geolocation.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<any>(null);
   currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient, private storage: StorageService, private router: Router) {
+  constructor(
+    private http: HttpClient,
+    private storage: StorageService,
+    private router: Router,
+    private geolocationService: GeolocationService,
+  ) {
     this.loadStoredUser();
   }
 
@@ -45,6 +51,7 @@ export class AuthService {
     this.storage.remove('accessToken');
     this.storage.remove('refreshToken');
     this.storage.remove('currentUser');
+    this.geolocationService.clearLocation();
     this.currentUserSubject.next(null);
     // Redirect to base domain login with slug
     const hostname = window.location.hostname;
@@ -71,6 +78,20 @@ export class AuthService {
     this.storage.set('refreshToken', data.refreshToken);
     this.storage.setJson('currentUser', data.user);
     this.currentUserSubject.next(data.user);
+
+    // Solicitar ubicación después del login (sin bloquear)
+    this.requestLocationAfterLogin();
+  }
+
+  private requestLocationAfterLogin(): void {
+    // Esperar un poco para que se complete el login y navigate
+    setTimeout(async () => {
+      const location = this.geolocationService.getStoredLocation();
+      if (!location) {
+        // Si no tiene ubicación guardada, solicitar
+        await this.geolocationService.getCurrentLocation(true);
+      }
+    }, 500);
   }
 
   private loadStoredUser(): void {

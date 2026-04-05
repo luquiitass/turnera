@@ -26,6 +26,11 @@ const routes: Routes = [
     loadChildren: () => import('./pages/barbershop-list/barbershop-list.module').then(m => m.BarbershopListPageModule),
   },
   {
+    path: 'nearby-barbershops',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./pages/nearby-barbershops/nearby-barbershops.module').then(m => m.NearbyBarbershopsPageModule),
+  },
+  {
     path: 'create-barber',
     canActivate: [AuthGuard],
     loadChildren: () => import('./pages/create-barber/create-barber.module').then(m => m.CreateBarberPageModule),

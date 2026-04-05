@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController } from '@ionic/angular';
+import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { BarbershopsService } from '../../../services/barbershops.service';
+import { GeocodingService } from '../../../core/geocoding.service';
+import { CreateBarbershopModalComponent } from '../create-barbershop-modal/create-barbershop-modal.component';
 import { Barbershop } from '../../../shared/models';
 
 @Component({
@@ -18,6 +20,10 @@ export class ManageBarbershopsPage implements OnInit {
     private barbershopsService: BarbershopsService,
     private alertController: AlertController,
     private router: Router,
+    private geocodingService: GeocodingService,
+    private loadingController: LoadingController,
+    private modalController: ModalController,
+    private toastController: ToastController,
   ) {}
 
   ngOnInit(): void {
@@ -46,41 +52,63 @@ export class ManageBarbershopsPage implements OnInit {
   }
 
   async createBarbershop(): Promise<void> {
+    const modal = await this.modalController.create({
+      component: CreateBarbershopModalComponent,
+      cssClass: 'create-barbershop-modal',
+    });
+
+    await modal.present();
+
+    const { data, role } = await modal.onDidDismiss();
+
+    if (role === 'create' && data) {
+      // data ya incluye latitude y longitude
+      await this.submitCreateBarbershop(data);
+    }
+  }
+
+  private async submitCreateBarbershop(data: any): Promise<void> {
+    const loader = await this.loadingController.create({
+      message: 'Creando barberia...',
+    });
+    await loader.present();
+
+    this.barbershopsService.create({
+      adminEmail: data.adminEmail,
+      name: data.name,
+      address: data.formattedAddress,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      phone: data.phone || undefined,
+    } as any).subscribe({
+      next: async () => {
+        await loader.dismiss();
+        await this.showSuccess('Barberia creada con éxito');
+        this.loadBarbershops();
+      },
+      error: async (err: any) => {
+        await loader.dismiss();
+        const msg = err?.error?.error?.message || 'Error al crear barberia';
+        await this.showError(msg);
+      },
+    });
+  }
+
+  private async showSuccess(message: string): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      position: 'bottom',
+      color: 'success',
+    });
+    await toast.present();
+  }
+
+  private async showError(message: string): Promise<void> {
     const alert = await this.alertController.create({
-      header: 'Nueva barberia',
-      message: 'El email del administrador debe ser de un usuario registrado.',
-      inputs: [
-        { name: 'adminEmail', type: 'email', placeholder: 'Email del administrador' },
-        { name: 'name', type: 'text', placeholder: 'Nombre de la barberia' },
-        { name: 'address', type: 'text', placeholder: 'Direccion' },
-        { name: 'phone', type: 'tel', placeholder: 'Telefono (opcional)' },
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Crear',
-          handler: (data: any) => {
-            if (!data.adminEmail || !data.name || !data.address) {
-              return false;
-            }
-            this.barbershopsService.create({
-              adminEmail: data.adminEmail,
-              name: data.name,
-              address: data.address,
-              phone: data.phone || undefined,
-            } as any).subscribe({
-              next: () => this.loadBarbershops(),
-              error: (err: any) => {
-                const msg = err?.error?.error?.message || 'Error al crear barberia';
-                this.alertController.create({
-                  header: 'Error', message: msg, buttons: ['OK'],
-                }).then(a => a.present());
-              },
-            });
-            return true;
-          },
-        },
-      ],
+      header: 'Error',
+      message,
+      buttons: ['OK'],
     });
     await alert.present();
   }

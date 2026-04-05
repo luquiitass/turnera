@@ -96,6 +96,31 @@
       <p *ngIf="barbershop.description" class="hero-desc">{{ barbershop.description }}</p>
     </div>
 
+    <!-- BARBERIAS CERCANAS -->
+    <div class="section" *ngIf="hasUserLocation && nearbyBarbershops.length > 0">
+      <h2>Barberias cercanas a ti</h2>
+      <ion-list class="nearby-list">
+        <ion-item *ngFor="let nearby of nearbyBarbershops" button (click)="goToNearbyBarbershops()" routerLink="/nearby-barbershops">
+          <ion-thumbnail slot="start">
+            <ion-img [src]="nearby.logoImage || 'assets/barbershop-placeholder.png'"></ion-img>
+          </ion-thumbnail>
+          <ion-label>
+            <h3>{{ nearby.name }}</h3>
+            <p *ngIf="nearby.distance" class="distance">
+              <ion-icon name="location"></ion-icon> {{ nearby.distance }} km
+            </p>
+            <p class="rating">
+              <ion-icon name="star" color="warning"></ion-icon> {{ nearby.avgRating }} ({{ nearby.totalReviews }})
+            </p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+      <ion-button expand="block" fill="outline" (click)="goToNearbyBarbershops()">
+        <ion-icon slot="start" name="location"></ion-icon>
+        Ver todas las cercanas
+      </ion-button>
+    </div>
+
     <!-- CARACTERISTICAS -->
     <div class="section" *ngIf="amenities.length > 0">
       <h2>Caracteristicas</h2>

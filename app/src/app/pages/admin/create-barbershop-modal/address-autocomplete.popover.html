@@ -1,0 +1,14 @@
+<ion-list>
+  <ion-item 
+    *ngFor="let result of results"
+    (click)="selectAddress(result)"
+    button
+    detail=false
+  >
+    <ion-icon name="location-outline" slot="start" color="primary"></ion-icon>
+    <ion-label>
+      <h3>{{ result.address }}</h3>
+      <p *ngIf="result.city">{{ result.city }}</p>
+    </ion-label>
+  </ion-item>
+</ion-list>

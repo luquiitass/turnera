@@ -99,3 +99,27 @@ export class SearchBarbershopsQuery {
   @Min(1)
   limit?: number = 20;
 }
+
+export class NearbyBarbershopsQuery {
+  @IsNumber()
+  latitude: number;
+
+  @IsNumber()
+  longitude: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  radiusKm?: number = 5;
+}
+
+export class SearchByNameOrCityQuery {
+  @IsString()
+  @IsNotEmpty()
+  query: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  limit?: number = 20;
+}

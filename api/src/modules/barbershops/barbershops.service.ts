@@ -161,8 +161,135 @@ export class BarbershopsService {
     const admin = await this.prisma.barbershopAdmin.findUnique({
       where: { userId_barbershopId: { userId, barbershopId } },
     });
-    if (!admin) throw new NotFoundException('Admin no encontrado');
-    return this.prisma.barbershopAdmin.delete({ where: { id: admin.id } });
+}
+
+  /**
+   * Buscar barberias cercanas por ubicación
+   */
+  async findNearby(lat: number, lng: number, radiusKm: number = 5) {
+    if (!lat || !lng) {
+      throw new Error('Latitud y longitud requeridas');
+    }
+
+    // Buscar todas las barberias activas con ubicación
+    const allBarbershops = await this.prisma.barbershop.findMany({
+      where: {
+        isActive: true,
+        latitude: { not: null },
+        longitude: { not: null },
+      },
+      include: {
+        amenities: { include: { amenity: true } },
+        reviews: { select: { rating: true } },
+        _count: { select: { barbers: true, services: true } },
+      },
+    });
+
+    // Calcular distancias y filtrar
+    const withDistance = allBarbershops
+      .map((b) => {
+        const distance = this.calculateDistance(lat, lng, b.latitude!, b.longitude!);
+        const ratings = b.reviews.map((r) => r.rating);
+        const avgRating = ratings.length ? ratings.reduce((a, c) => a + c, 0) / ratings.length : 0;
+        const { reviews, ...rest } = b;
+        return {
+          ...rest,
+          distance: Math.round(distance * 100) / 100,
+          avgRating: Math.round(avgRating * 10) / 10,
+          totalReviews: ratings.length,
+        };
+      })
+      .filter((b) => b.distance <= radiusKm)
+      .sort((a, b) => a.distance - b.distance);
+
+    return withDistance;
+  }
+
+  /**
+   * Buscar barberias por ciudad
+   */
+  async searchByCity(city: string, limit: number = 20) {
+    const where: any = {
+      isActive: true,
+    };
+
+    if (city && city.trim()) {
+      where.address = { contains: city, mode: 'insensitive' };
+    }
+
+    const data = await this.prisma.barbershop.findMany({
+      where,
+      take: limit,
+      include: {
+        amenities: { include: { amenity: true } },
+        reviews: { select: { rating: true } },
+        _count: { select: { barbers: true, services: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return data.map((b) => {
+      const ratings = b.reviews.map((r) => r.rating);
+      const avgRating = ratings.length ? ratings.reduce((a, c) => a + c, 0) / ratings.length : 0;
+      const { reviews, ...rest } = b;
+      return { ...rest, avgRating: Math.round(avgRating * 10) / 10, totalReviews: ratings.length };
+    });
+  }
+
+  /**
+   * Búsqueda combinada: nombre + ciudad + ubicación
+   */
+  async search(query: string, lat?: number, lng?: number, radiusKm?: number, limit: number = 20) {
+    // Si tiene ubicación y radio, buscar por proximidad
+    if (lat && lng && radiusKm) {
+      return this.findNearby(lat, lng, radiusKm);
+    }
+
+    // Si no, buscar por nombre o ciudad
+    const where: any = { isActive: true };
+
+    if (query && query.trim()) {
+      where.OR = [
+        { name: { contains: query, mode: 'insensitive' } },
+        { address: { contains: query, mode: 'insensitive' } },
+      ];
+    }
+
+    const data = await this.prisma.barbershop.findMany({
+      where,
+      take: limit,
+      include: {
+        amenities: { include: { amenity: true } },
+        reviews: { select: { rating: true } },
+        _count: { select: { barbers: true, services: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return data.map((b) => {
+      const ratings = b.reviews.map((r) => r.rating);
+      const avgRating = ratings.length ? ratings.reduce((a, c) => a + c, 0) / ratings.length : 0;
+      const { reviews, ...rest } = b;
+      return { ...rest, avgRating: Math.round(avgRating * 10) / 10, totalReviews: ratings.length };
+    });
+  }
+
+  /**
+   * Calcular distancia Haversine entre dos puntos
+   */
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = this.toRad(lat2 - lat1);
+    const dLng = this.toRad(lng2 - lng1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  }
+
+  private toRad(degrees: number): number {
+    return degrees * (Math.PI / 180);
   }
 
   private async ensureExists(id: string) {

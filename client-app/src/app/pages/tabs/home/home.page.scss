@@ -309,3 +309,60 @@
     line-height: 1.4;
   }
 }
+
+// NEARBY BARBERSHOPS
+.nearby-list {
+  margin-bottom: 1rem;
+
+  ion-item {
+    --padding-start: 0;
+    --padding-end: 0;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    --background: var(--ion-color-light);
+
+    ion-thumbnail {
+      width: 60px;
+      height: 60px;
+      margin-right: 1rem;
+
+      ion-img {
+        border-radius: 8px;
+      }
+    }
+
+    ion-label {
+      h3 {
+        font-weight: 600;
+        font-size: 1rem;
+      }
+
+      p {
+        margin: 0.25rem 0;
+        font-size: 0.85rem;
+      }
+
+      .distance {
+        color: var(--ion-color-primary);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+
+        ion-icon {
+          font-size: 0.9rem;
+        }
+      }
+
+      .rating {
+        color: var(--ion-color-medium);
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+
+        ion-icon {
+          font-size: 0.9rem;
+        }
+      }
+    }
+  }
+}

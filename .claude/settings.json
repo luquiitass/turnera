@@ -1,0 +1,5 @@
+{
+  "enabledPlugins": {
+    "meli-genai-costs@meli-claude-marketplace": true
+  }
+}
