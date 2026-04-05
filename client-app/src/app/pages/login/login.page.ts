@@ -57,7 +57,6 @@ export class LoginPage implements OnInit {
   private loadDevUsers(): void {
     this.http.get<any>(`${environment.apiUrl}/users/dev/list`).subscribe({
       next: (res) => {
-        // Endpoint retorna array directo
         this.users = Array.isArray(res) ? res : res.data || [];
         console.log('📋 Usuarios disponibles:', this.users.length);
       },
@@ -108,43 +107,48 @@ export class LoginPage implements OnInit {
   /**
    * Login con usuario de desarrollo (sin autenticación)
    */
-  private async loginWithDevUser(user: any): Promise<void> {
+  private loginWithDevUser(user: any): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    console.log('🔐 Iniciando dev login para:', user.email);
+    console.log('🔐 Step 1: Iniciando dev login para:', user.email);
 
-    // Crear token ficticio para desarrollo
+    // Crear token ficticio
     const devToken = `dev-token-${user.id}-${Date.now()}`;
+    const userData = {
+      id: user.id,
+      email: user.email,
+      name: user.name || user.email,
+      role: user.role,
+    };
 
-    // Guardar datos en storage
+    // PASO 1: Guardar en storage
+    console.log('💾 Step 2: Guardando en storage...');
     this.storage.set('accessToken', devToken);
     this.storage.set('refreshToken', devToken);
-    this.storage.setJson('currentUser', {
-      id: user.id,
-      email: user.email,
-      name: user.name || user.email,
-      role: user.role,
+    this.storage.setJson('currentUser', userData);
+
+    // PASO 2: Verificar que se guardó
+    const savedToken = this.storage.get('accessToken');
+    const savedUser = this.storage.getJson('currentUser');
+    console.log('✅ Step 3: Verificando storage...', {
+      tokenSaved: !!savedToken,
+      userSaved: !!savedUser,
+      isAuthenticated: this.authService.isAuthenticated,
     });
 
-    console.log('💾 Token guardado:', devToken);
-    console.log('👤 Usuario guardado:', user.email);
-    console.log('✅ isAuthenticated:', this.authService.isAuthenticated);
+    // PASO 3: Actualizar auth service
+    console.log('👤 Step 4: Actualizando AuthService...');
+    (this.authService as any).currentUserSubject.next(userData);
 
-    // Actualizar auth service subjects
-    (this.authService as any).currentUserSubject.next({
-      id: user.id,
-      email: user.email,
-      name: user.name || user.email,
-      role: user.role,
-    });
-
-    // Pequeño delay para asegurar que todo se ha guardado
-    await new Promise(resolve => setTimeout(resolve, 300));
-
+    // PASO 4: Log final y navegar
+    console.log('🔓 Step 5: Login completado, navegando...');
     this.isLoading = false;
-    console.log('🔓 Dev login completado, navegando...');
-    this.redirectAfterLogin();
+
+    // Navegar directamente sin delay
+    this.ngZone.run(() => {
+      this.router.navigate(['/tabs/home'], { replaceUrl: true });
+    });
   }
 
   initGoogleButton(): void {
@@ -176,7 +180,7 @@ export class LoginPage implements OnInit {
     this.authService.googleLogin(response.credential).subscribe({
       next: () => {
         this.isLoading = false;
-        this.redirectAfterLogin();
+        this.router.navigate(['/tabs/home'], { replaceUrl: true });
       },
       error: (err) => {
         this.isLoading = false;
@@ -184,28 +188,6 @@ export class LoginPage implements OnInit {
         console.error('Google login error:', err);
       },
     });
-  }
-
-  redirectAfterLogin(): void {
-    console.log('🔀 redirectAfterLogin:', {
-      registrationCode: this.registrationCode,
-      redirectSlug: this.redirectSlug,
-      isAuthenticated: this.authService.isAuthenticated,
-    });
-
-    if (this.registrationCode) {
-      console.log('📍 Navegando a /tabs/home (registrationCode)');
-      this.router.navigate(['/tabs/home']);
-      return;
-    }
-
-    if (this.redirectSlug) {
-      console.log('📍 Navegando a /barbershop/', this.redirectSlug);
-      this.router.navigate([`/barbershop/${this.redirectSlug}`]);
-    } else {
-      console.log('📍 Navegando a /tabs/home');
-      this.router.navigate(['/tabs/home']);
-    }
   }
 
   goBack(): void {
