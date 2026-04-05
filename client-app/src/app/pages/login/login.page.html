@@ -18,6 +18,20 @@
       <p *ngIf="!barbershopName">Inicia sesion para reservar tu turno</p>
     </div>
 
+    <!-- Dev User Selector (solo en desarrollo) -->
+    <div *ngIf="isDevelopment && users.length > 0" class="dev-selector">
+      <ion-button 
+        expand="block" 
+        color="warning"
+        (click)="selectDevUser()"
+        [disabled]="isLoading"
+      >
+        <ion-icon name="person-circle" slot="start"></ion-icon>
+        Seleccionar Usuario (Dev)
+      </ion-button>
+      <small>{{ users.length }} usuarios disponibles</small>
+    </div>
+
     <!-- Google Sign In Button (rendered by Google SDK) -->
     <div id="google-btn-container" class="google-btn-wrapper"></div>
 

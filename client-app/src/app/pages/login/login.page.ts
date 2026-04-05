@@ -1,8 +1,9 @@
 import { Component, OnInit, NgZone } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/auth.service';
 import { StorageService } from '../../core/storage.service';
+import { ModalController } from '@ionic/angular';
 import { environment } from '../../../environments/environment';
 
 declare const google: any;
@@ -20,13 +21,17 @@ export class LoginPage implements OnInit {
   errorMessage = '';
   redirectSlug = '';
   registrationCode = '';
+  isDevelopment = true; // Siempre mostrar modo desarrollo
+  users: any[] = [];
 
   constructor(
     private authService: AuthService,
     private storage: StorageService,
     private http: HttpClient,
     private route: ActivatedRoute,
+    private router: Router,
     private ngZone: NgZone,
+    private modalController: ModalController,
   ) {}
 
   ngOnInit(): void {
@@ -42,7 +47,91 @@ export class LoginPage implements OnInit {
         },
       });
     }
+    this.loadDevUsers();
     this.initGoogleButton();
+  }
+
+  /**
+   * Cargar lista de usuarios para desarrollo
+   */
+  private loadDevUsers(): void {
+    this.http.get<any>(`${environment.apiUrl}/users`, {
+      headers: { Authorization: `Bearer temp` }
+    }).subscribe({
+      next: (res) => {
+        this.users = res.data || [];
+        console.log('📋 Usuarios disponibles:', this.users.length);
+      },
+      error: () => {
+        // Si hay error, mostrar lista vacía
+        this.users = [];
+      },
+    });
+  }
+
+  /**
+   * Seleccionar usuario en modo desarrollo
+   */
+  async selectDevUser(): Promise<void> {
+    const inputs = this.users.map((user: any) => ({
+      name: 'user',
+      type: 'radio',
+      label: `${user.email} (${user.role})`,
+      value: JSON.stringify(user),
+    }));
+
+    if (inputs.length === 0) {
+      this.errorMessage = 'No hay usuarios disponibles';
+      return;
+    }
+
+    const alert = await (window as any).alertController?.create({
+      header: 'Seleccionar Usuario (Dev)',
+      inputs,
+      buttons: [
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+        {
+          text: 'OK',
+          handler: (selectedUser: string) => {
+            if (selectedUser) {
+              const user = JSON.parse(selectedUser);
+              this.loginWithDevUser(user);
+            }
+          },
+        },
+      ],
+    });
+
+    if (alert) {
+      await alert.present();
+    }
+  }
+
+  /**
+   * Login con usuario de desarrollo (sin autenticación)
+   */
+  private loginWithDevUser(user: any): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    // Crear token ficticio para desarrollo
+    const devToken = `dev-token-${user.id}-${Date.now()}`;
+
+    // Guardar datos en storage
+    this.storage.set('accessToken', devToken);
+    this.storage.set('refreshToken', devToken);
+    this.storage.setJson('currentUser', user);
+
+    // Actualizar auth service
+    (this.authService as any).currentUserSubject.next(user);
+
+    console.log('🔓 Dev login:', user.email);
+
+    this.isLoading = false;
+    this.redirectAfterLogin();
   }
 
   initGoogleButton(): void {
@@ -78,38 +167,26 @@ export class LoginPage implements OnInit {
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err?.error?.error?.message ?? err?.error?.message ?? 'Error al iniciar sesion con Google.';
+        this.errorMessage = 'Error al iniciar sesion con Google';
+        console.error('Google login error:', err);
       },
     });
   }
 
-  private redirectAfterLogin(): void {
-    if (this.redirectSlug === 'create-barber' && this.registrationCode) {
-      // Go to create barbershop page
-      window.location.href = `/create-barber?code=${this.registrationCode}`;
-    } else if (this.redirectSlug && this.redirectSlug !== 'create-barber') {
-      // Redirect to subdomain
-      const token = this.storage.get('accessToken') || '';
-      const refreshToken = this.storage.get('refreshToken') || '';
-      const user = this.storage.get('currentUser') || '';
-      const port = window.location.port ? `:${window.location.port}` : '';
-      const protocol = window.location.protocol;
-      const baseDomain = environment.baseDomains[0];
-      const params = new URLSearchParams({ t: token, r: refreshToken, u: user });
-      window.location.href = `${protocol}//${this.redirectSlug}.${baseDomain}${port}/tabs/home#auth=${params.toString()}`;
+  redirectAfterLogin(): void {
+    if (this.registrationCode) {
+      this.router.navigate(['/tabs/home']);
+      return;
+    }
+
+    if (this.redirectSlug) {
+      this.router.navigate([`/barbershop/${this.redirectSlug}`]);
     } else {
-      window.location.href = '/barbershop-list';
+      this.router.navigate(['/tabs/home']);
     }
   }
 
   goBack(): void {
-    if (this.redirectSlug) {
-      const port = window.location.port ? `:${window.location.port}` : '';
-      const protocol = window.location.protocol;
-      const baseDomain = environment.baseDomains[0];
-      window.location.href = `${protocol}//${this.redirectSlug}.${baseDomain}${port}`;
-    } else {
-      window.location.href = '/tabs/home';
-    }
+    window.history.back();
   }
 }

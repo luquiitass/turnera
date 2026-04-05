@@ -57,3 +57,24 @@
   color: var(--ion-color-medium);
   line-height: 1.5;
 }
+
+// Dev User Selector
+.dev-selector {
+  margin-bottom: 24px;
+  padding: 12px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px dashed var(--ion-color-warning);
+  border-radius: 8px;
+
+  ion-button {
+    --padding-start: 12px;
+    --padding-end: 12px;
+  }
+
+  small {
+    display: block;
+    font-size: 11px;
+    color: var(--ion-color-warning);
+    margin-top: 4px;
+  }
+}
