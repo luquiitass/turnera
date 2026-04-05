@@ -20,8 +20,6 @@ export interface AddressAutocompleteResult {
 export class GeocodingService {
   private readonly nominatimBaseUrl = 'https://nominatim.openstreetmap.org';
   private readonly timeout = 5000;
-  private readonly cache = new Map<string, AddressAutocompleteResult[]>();
-  private readonly cacheExpiry = 3600000; // 1 hora en ms
 
   /**
    * Convierte una dirección a coordenadas (lat/lng)
@@ -34,7 +32,7 @@ export class GeocodingService {
     try {
       const searchAddress = this.enrichAddress(address);
       console.log('🔍 Geocodificando:', searchAddress);
-      
+
       const response = await axios.get(
         `${this.nominatimBaseUrl}/search`,
         {
@@ -77,26 +75,17 @@ export class GeocodingService {
   }
 
   /**
-   * Autocompletado de direcciones (busca mientras escribe)
-   * Implementa cache para evitar rate limiting
+   * Autocompletado de direcciones (búsqueda manual con debounce en cliente)
    */
   async autocompleteAddress(query: string): Promise<AddressAutocompleteResult[]> {
     if (!query || query.trim().length < 3) {
       return [];
     }
 
-    const cacheKey = query.toLowerCase();
-
-    // Verificar cache
-    if (this.cache.has(cacheKey)) {
-      console.log('📦 Resultado desde cache:', cacheKey);
-      return this.cache.get(cacheKey) || [];
-    }
-
     try {
       const searchQuery = this.enrichAddress(query);
       console.log('🌐 Llamando Nominatim:', searchQuery);
-      
+
       const response = await axios.get(
         `${this.nominatimBaseUrl}/search`,
         {
@@ -114,23 +103,12 @@ export class GeocodingService {
 
       console.log('✅ Resultados encontrados:', response.data?.length || 0);
 
-      const results = (response.data || []).map((result) => ({
+      return (response.data || []).map((result) => ({
         address: result.display_name,
         lat: parseFloat(result.lat),
         lng: parseFloat(result.lon),
         city: result.address?.city || result.address?.town,
       }));
-
-      // Guardar en cache
-      this.cache.set(cacheKey, results);
-      
-      // Limpiar cache después de 1 hora
-      setTimeout(() => {
-        this.cache.delete(cacheKey);
-        console.log('🗑️ Cache expirado:', cacheKey);
-      }, this.cacheExpiry);
-
-      return results;
     } catch (error) {
       console.error('❌ Error en autocompleteAddress:', error);
       return [];
@@ -142,22 +120,22 @@ export class GeocodingService {
    */
   private enrichAddress(address: string): string {
     const query = address.trim().toLowerCase();
-    
+
     // Si ya tiene "argentina" o "buenos aires", no agregar nada
     if (query.includes('argentina') || query.includes('buenos aires')) {
       return address;
     }
-    
+
     // Si es solo una dirección (Av., Calle, etc), agregar Buenos Aires
     if (query.match(/^(av\.|avenida|calle|str|saint|pje\.)/i)) {
       return `${address}, Buenos Aires, Argentina`;
     }
-    
+
     // Si parece una dirección con número, agregar Buenos Aires
     if (query.match(/\d+\s*$/)) {
       return `${address}, Buenos Aires, Argentina`;
     }
-    
+
     // Por defecto, agregar Argentina
     return `${address}, Argentina`;
   }

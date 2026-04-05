@@ -1,0 +1,96 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Nueva Barberia</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cancel()">
+        <ion-icon name="close"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <!-- Email Admin -->
+  <ion-item>
+    <ion-label position="stacked">Email del Administrador*</ion-label>
+    <ion-input 
+      [(ngModel)]="form.adminEmail"
+      type="email"
+      placeholder="admin@example.com"
+    ></ion-input>
+  </ion-item>
+
+  <!-- Nombre Barberia -->
+  <ion-item>
+    <ion-label position="stacked">Nombre de la Barberia*</ion-label>
+    <ion-input 
+      [(ngModel)]="form.name"
+      type="text"
+      placeholder="Ej: The Classic Cut"
+    ></ion-input>
+  </ion-item>
+
+  <!-- Dirección -->
+  <ion-item>
+    <ion-label position="stacked">Dirección* (Nominatim)</ion-label>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <ion-input
+        [(ngModel)]="form.address"
+        (ngModelChange)="onAddressChange($event)"
+        type="text"
+        placeholder="Mínimo 3 caracteres"
+        autocomplete="off"
+        style="flex: 1;"
+      ></ion-input>
+      <ion-button
+        fill="solid"
+        color="primary"
+        size="small"
+        (click)="searchAddress()"
+        [disabled]="!form.address || form.address.length < 3 || isSearching"
+      >
+        <ion-icon name="search"></ion-icon>
+      </ion-button>
+    </div>
+    <span *ngIf="isSearching" style="color: #3880ff; font-size: 12px; margin-top: 8px;">
+      Buscando...
+    </span>
+  </ion-item>
+
+  <!-- DROPDOWN DE AUTOCOMPLETADO -->
+  <div *ngIf="showAutocomplete && autocompleteResults.length > 0" class="dropdown">
+    <div *ngFor="let result of autocompleteResults" 
+         class="dropdown-item"
+         (click)="selectAddress(result)">
+      <ion-icon name="location-outline" class="location-icon"></ion-icon>
+      <div class="address-text">
+        <strong>{{ result.address }}</strong>
+        <small *ngIf="result.city">{{ result.city }}</small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dirección Seleccionada -->
+  <div *ngIf="selectedAddress" class="success-box">
+    <ion-icon name="checkmark-circle" color="success"></ion-icon>
+    <span>{{ selectedAddress.address }}</span>
+  </div>
+
+  <!-- Teléfono (opcional) -->
+  <ion-item>
+    <ion-label position="stacked">Teléfono (opcional)</ion-label>
+    <ion-input 
+      [(ngModel)]="form.phone"
+      type="tel"
+      placeholder="+54 11 1234-5678"
+    ></ion-input>
+  </ion-item>
+
+  <!-- Botones -->
+  <ion-button expand="block" color="primary" (click)="createBarbershop()" class="mt">
+    Crear Barberia
+  </ion-button>
+  <ion-button expand="block" color="medium" (click)="cancel()">
+    Cancelar
+  </ion-button>
+</ion-content>
