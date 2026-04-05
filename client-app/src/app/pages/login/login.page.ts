@@ -108,9 +108,11 @@ export class LoginPage implements OnInit {
   /**
    * Login con usuario de desarrollo (sin autenticación)
    */
-  private loginWithDevUser(user: any): void {
+  private async loginWithDevUser(user: any): Promise<void> {
     this.isLoading = true;
     this.errorMessage = '';
+
+    console.log('🔐 Iniciando dev login para:', user.email);
 
     // Crear token ficticio para desarrollo
     const devToken = `dev-token-${user.id}-${Date.now()}`;
@@ -121,24 +123,28 @@ export class LoginPage implements OnInit {
     this.storage.setJson('currentUser', {
       id: user.id,
       email: user.email,
-      name: user.name,
+      name: user.name || user.email,
       role: user.role,
     });
 
-    // Actualizar auth service
+    console.log('💾 Token guardado:', devToken);
+    console.log('👤 Usuario guardado:', user.email);
+    console.log('✅ isAuthenticated:', this.authService.isAuthenticated);
+
+    // Actualizar auth service subjects
     (this.authService as any).currentUserSubject.next({
       id: user.id,
       email: user.email,
-      name: user.name,
+      name: user.name || user.email,
       role: user.role,
     });
 
-    console.log('🔓 Dev login:', user.email);
+    // Pequeño delay para asegurar que todo se ha guardado
+    await new Promise(resolve => setTimeout(resolve, 300));
 
-    setTimeout(() => {
-      this.isLoading = false;
-      this.redirectAfterLogin();
-    }, 500);
+    this.isLoading = false;
+    console.log('🔓 Dev login completado, navegando...');
+    this.redirectAfterLogin();
   }
 
   initGoogleButton(): void {
@@ -181,14 +187,23 @@ export class LoginPage implements OnInit {
   }
 
   redirectAfterLogin(): void {
+    console.log('🔀 redirectAfterLogin:', {
+      registrationCode: this.registrationCode,
+      redirectSlug: this.redirectSlug,
+      isAuthenticated: this.authService.isAuthenticated,
+    });
+
     if (this.registrationCode) {
+      console.log('📍 Navegando a /tabs/home (registrationCode)');
       this.router.navigate(['/tabs/home']);
       return;
     }
 
     if (this.redirectSlug) {
+      console.log('📍 Navegando a /barbershop/', this.redirectSlug);
       this.router.navigate([`/barbershop/${this.redirectSlug}`]);
     } else {
+      console.log('📍 Navegando a /tabs/home');
       this.router.navigate(['/tabs/home']);
     }
   }
