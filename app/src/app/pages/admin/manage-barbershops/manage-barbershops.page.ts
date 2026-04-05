@@ -1,13 +1,15 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
+import { AlertController, LoadingController, ModalController, ToastController, IonicModule } from '@ionic/angular';
 import { BarbershopsService } from '../../../services/barbershops.service';
 import { GeocodingService } from '../../../core/geocoding.service';
 import { CreateBarbershopModalComponent } from '../create-barbershop-modal/create-barbershop-modal.component';
 import { Barbershop } from '../../../shared/models';
 
 @Component({
-  standalone: false,
+  standalone: true,
+  imports: [CommonModule, IonicModule, CreateBarbershopModalComponent],
   selector: 'app-manage-barbershops',
   templateUrl: './manage-barbershops.page.html',
   styleUrls: ['./manage-barbershops.page.scss'],
@@ -18,12 +20,9 @@ export class ManageBarbershopsPage implements OnInit {
 
   constructor(
     private barbershopsService: BarbershopsService,
-    private alertController: AlertController,
     private router: Router,
     private geocodingService: GeocodingService,
-    private loadingController: LoadingController,
     private modalController: ModalController,
-    private toastController: ToastController,
   ) {}
 
   ngOnInit(): void {
@@ -48,68 +47,22 @@ export class ManageBarbershopsPage implements OnInit {
   }
 
   goToDetail(barbershop: Barbershop): void {
-    this.router.navigate(['/barbershop', barbershop.id]);
+    this.router.navigate([`/admin/barbershops/${barbershop.id}`]);
   }
 
   async createBarbershop(): Promise<void> {
     const modal = await this.modalController.create({
       component: CreateBarbershopModalComponent,
-      cssClass: 'create-barbershop-modal',
+      componentProps: {},
+      cssClass: 'modal-overlay',
     });
 
     await modal.present();
+    const { role } = await modal.onDidDismiss();
 
-    const { data, role } = await modal.onDidDismiss();
-
-    if (role === 'create' && data) {
-      // data ya incluye latitude y longitude
-      await this.submitCreateBarbershop(data);
+    // Si el modal se cerró exitosamente, recargar lista
+    if (role === 'success') {
+      this.loadBarbershops();
     }
-  }
-
-  private async submitCreateBarbershop(data: any): Promise<void> {
-    const loader = await this.loadingController.create({
-      message: 'Creando barberia...',
-    });
-    await loader.present();
-
-    this.barbershopsService.create({
-      adminEmail: data.adminEmail,
-      name: data.name,
-      address: data.formattedAddress,
-      latitude: data.latitude,
-      longitude: data.longitude,
-      phone: data.phone || undefined,
-    } as any).subscribe({
-      next: async () => {
-        await loader.dismiss();
-        await this.showSuccess('Barberia creada con éxito');
-        this.loadBarbershops();
-      },
-      error: async (err: any) => {
-        await loader.dismiss();
-        const msg = err?.error?.error?.message || 'Error al crear barberia';
-        await this.showError(msg);
-      },
-    });
-  }
-
-  private async showSuccess(message: string): Promise<void> {
-    const toast = await this.toastController.create({
-      message,
-      duration: 2000,
-      position: 'bottom',
-      color: 'success',
-    });
-    await toast.present();
-  }
-
-  private async showError(message: string): Promise<void> {
-    const alert = await this.alertController.create({
-      header: 'Error',
-      message,
-      buttons: ['OK'],
-    });
-    await alert.present();
   }
 }

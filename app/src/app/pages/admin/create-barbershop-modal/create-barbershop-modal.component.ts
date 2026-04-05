@@ -1,11 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { IonicModule, ModalController, LoadingController, ToastController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { NominatimService, AutocompleteResult } from '../../../core/nominatim.service';
 import { GeolocationService, Location } from '../../../core/geolocation.service';
+import { BarbershopsService } from '../../../services/barbershops.service';
 
 @Component({
   selector: 'app-create-barbershop-modal',
@@ -26,6 +27,7 @@ export class CreateBarbershopModalComponent implements OnInit, OnDestroy {
   showAutocomplete = false;
   selectedAddress: AutocompleteResult | null = null;
   isSearching = false;
+  isSubmitting = false;
 
   private addressSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
@@ -36,6 +38,9 @@ export class CreateBarbershopModalComponent implements OnInit, OnDestroy {
     private modalController: ModalController,
     private nominatimService: NominatimService,
     private geolocationService: GeolocationService,
+    private barbershopsService: BarbershopsService,
+    private loadingController: LoadingController,
+    private toastController: ToastController,
   ) {
     this.setupAddressDebounce();
   }
@@ -147,7 +152,7 @@ export class CreateBarbershopModalComponent implements OnInit, OnDestroy {
 
   selectAddress(result: AutocompleteResult): void {
     console.log('✅ Seleccionado:', result.address);
-    
+
     this.selectedAddress = result;
     this.form.address = result.address;
     this.autocompleteResults = [];
@@ -158,14 +163,20 @@ export class CreateBarbershopModalComponent implements OnInit, OnDestroy {
     const { adminEmail, name, address, phone } = this.form;
 
     if (!adminEmail || !name || !address) {
-      alert('Email, nombre y dirección son requeridos');
+      await this.showError('Email, nombre y dirección son requeridos');
       return;
     }
 
     if (!this.selectedAddress) {
-      alert('Por favor selecciona una dirección de las sugerencias');
+      await this.showError('Por favor selecciona una dirección de las sugerencias');
       return;
     }
+
+    this.isSubmitting = true;
+    const loader = await this.loadingController.create({
+      message: 'Creando barberia...',
+    });
+    await loader.present();
 
     const payload = {
       adminEmail,
@@ -177,10 +188,52 @@ export class CreateBarbershopModalComponent implements OnInit, OnDestroy {
     };
 
     console.log('🚀 Creando barberia:', payload);
-    this.modalController.dismiss(payload, 'create');
+
+    this.barbershopsService.create(payload as any).subscribe({
+      next: async () => {
+        await loader.dismiss();
+        this.isSubmitting = false;
+        await this.showSuccess('Barberia creada con éxito');
+        // Solo cerrar el modal si fue exitoso
+        this.modalController.dismiss(null, 'success');
+      },
+      error: async (err: any) => {
+        await loader.dismiss();
+        this.isSubmitting = false;
+        const msg = err?.error?.error?.message || 'Error al crear barberia';
+        await this.showError(msg);
+        // NO cerrar el modal, mantiene el formulario abierto para reintentar
+      },
+    });
   }
 
   cancel(): void {
     this.modalController.dismiss(null, 'cancel');
+  }
+
+  private async showSuccess(message: string): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      position: 'bottom',
+      color: 'success',
+    });
+    await toast.present();
+  }
+
+  private async showError(message: string): Promise<void> {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      position: 'bottom',
+      color: 'danger',
+      buttons: [
+        {
+          text: 'OK',
+          role: 'cancel',
+        },
+      ],
+    });
+    await toast.present();
   }
 }

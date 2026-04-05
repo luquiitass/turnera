@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { GuestGuard } from './core/guards/auth.guard';
+import { ManageBarbershopsPage } from './pages/admin/manage-barbershops/manage-barbershops.page';
 
 const routes: Routes = [
   { path: '', redirectTo: 'tabs/home', pathMatch: 'full' },
@@ -40,7 +41,7 @@ const routes: Routes = [
   {
     path: 'admin/manage-barbershops',
     canActivate: [AuthGuard],
-    loadChildren: () => import('./pages/admin/manage-barbershops/manage-barbershops.module').then(m => m.ManageBarbershopsPageModule),
+    component: ManageBarbershopsPage,
   },
   {
     path: 'admin/manage-users',
