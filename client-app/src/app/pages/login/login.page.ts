@@ -57,7 +57,8 @@ export class LoginPage implements OnInit {
   private loadDevUsers(): void {
     this.http.get<any>(`${environment.apiUrl}/users/dev/list`).subscribe({
       next: (res) => {
-        this.users = res.data || [];
+        // Endpoint retorna array directo
+        this.users = Array.isArray(res) ? res : res.data || [];
         console.log('📋 Usuarios disponibles:', this.users.length);
       },
       error: (err) => {

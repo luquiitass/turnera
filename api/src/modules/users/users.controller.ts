@@ -21,16 +21,17 @@ export class UsersController {
   @Public()
   async getDevUsers() {
     // Endpoint solo para desarrollo - retorna usuarios sin autenticación
-    const users = await this.usersService.findAll({ limit: 100, page: 1 });
-    return {
-      success: true,
-      data: (users as any).data.map((user: any) => ({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-      })),
-    };
+    // Acceso directo a la BD, sin pasar por el servicio
+    const result = await this.usersService.findAll({ limit: 100, page: 1 });
+    const data = (result as any).data;
+    
+    // Retornar directamente el array para el cliente
+    return data.map((user: any) => ({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    }));
   }
 
   @Get('me')
