@@ -104,7 +104,7 @@ export class GeocodingService {
       console.log('✅ Resultados encontrados:', response.data?.length || 0);
 
       return (response.data || []).map((result) => ({
-        address: result.display_name,
+        address: this.formatAddress(result),
         lat: parseFloat(result.lat),
         lng: parseFloat(result.lon),
         city: result.address?.city || result.address?.town,
@@ -113,6 +113,46 @@ export class GeocodingService {
       console.error('❌ Error en autocompleteAddress:', error);
       return [];
     }
+  }
+
+  /**
+   * Formatea dirección en formato: calle numero, localidad, provincia, pais
+   */
+  private formatAddress(result: any): string {
+    const addr = result.address || {};
+
+    // Extrae componentes
+    const street = addr.road || addr.street || addr.footway || '';
+    const number = addr.house_number || '';
+    const city = addr.city || addr.town || addr.village || '';
+    const state = addr.state || addr.province || '';
+    const country = addr.country || '';
+
+    // Construye la dirección
+    const parts: string[] = [];
+
+    // Calle y número
+    if (street) {
+      parts.push(number ? `${street} ${number}` : street);
+    }
+
+    // Localidad
+    if (city) {
+      parts.push(city);
+    }
+
+    // Provincia
+    if (state) {
+      parts.push(state);
+    }
+
+    // País
+    if (country) {
+      parts.push(country);
+    }
+
+    // Si no hay partes construidas, retorna el display_name
+    return parts.length > 0 ? parts.join(', ') : result.display_name;
   }
 
   /**
