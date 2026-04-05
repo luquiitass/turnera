@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/auth.service';
 import { StorageService } from '../../core/storage.service';
-import { ModalController, AlertController } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 import { environment } from '../../../environments/environment';
 
 declare const google: any;
@@ -21,27 +21,8 @@ export class LoginPage implements OnInit {
   errorMessage = '';
   redirectSlug = '';
   registrationCode = '';
-  isDevelopment = true; // Siempre mostrar modo desarrollo
-  users: any[] = [
-    {
-      id: 1,
-      email: 'usuario1@example.com',
-      role: 'USER',
-      name: 'Usuario 1',
-    },
-    {
-      id: 2,
-      email: 'usuario2@example.com',
-      role: 'USER',
-      name: 'Usuario 2',
-    },
-    {
-      id: 3,
-      email: 'usuario3@example.com',
-      role: 'USER',
-      name: 'Usuario 3',
-    },
-  ];
+  isDevelopment = true;
+  users: any[] = [];
 
   constructor(
     private authService: AuthService,
@@ -66,13 +47,35 @@ export class LoginPage implements OnInit {
         },
       });
     }
+    this.loadDevUsers();
     this.initGoogleButton();
+  }
+
+  /**
+   * Cargar usuarios registrados desde la API
+   */
+  private loadDevUsers(): void {
+    this.http.get<any>(`${environment.apiUrl}/users/dev/list`).subscribe({
+      next: (res) => {
+        this.users = res.data || [];
+        console.log('📋 Usuarios disponibles:', this.users.length);
+      },
+      error: (err) => {
+        console.error('Error cargando usuarios:', err);
+        this.users = [];
+      },
+    });
   }
 
   /**
    * Seleccionar usuario en modo desarrollo
    */
   async selectDevUser(): Promise<void> {
+    if (this.users.length === 0) {
+      this.errorMessage = 'No hay usuarios disponibles';
+      return;
+    }
+
     const alert = await this.alertController.create({
       header: 'Seleccionar Usuario (Dev)',
       inputs: this.users.map((user: any) => ({

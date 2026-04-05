@@ -88,7 +88,11 @@
       "Bash(pkill -f 'node')",
       "Bash(npm start:*)",
       "Bash(pkill -f 'ng serve')",
-      "Bash(pkill -f 'npm start')"
+      "Bash(pkill -f 'npm start')",
+      "Bash(pkill -f 'ng serve client-app')",
+      "Bash(pkill -f 'ng\\\\|npm start')",
+      "Bash(pkill -f 'ng serve\\\\|npm start')",
+      "Bash(ng serve:*)"
     ]
   },
   "disabledMcpjsonServers": [

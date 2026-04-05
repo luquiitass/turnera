@@ -4,6 +4,7 @@ import { UsersService } from './users.service.js';
 import { UpdateUserDto, AssignRoleDto } from './dto/users.dto.js';
 import { Roles } from '../../common/decorators/roles.decorator.js';
 import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
+import { Public } from '../../common/decorators/public.decorator.js';
 import { PaginationQuery } from '../../common/types/pagination.js';
 
 @Controller('users')
@@ -14,6 +15,22 @@ export class UsersController {
   @Roles(Role.ADMIN_GENERAL)
   findAll(@Query() query: PaginationQuery) {
     return this.usersService.findAll(query);
+  }
+
+  @Get('dev/list')
+  @Public()
+  async getDevUsers() {
+    // Endpoint solo para desarrollo - retorna usuarios sin autenticación
+    const users = await this.usersService.findAll({ limit: 100, page: 1 });
+    return {
+      success: true,
+      data: (users as any).data.map((user: any) => ({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      })),
+    };
   }
 
   @Get('me')
