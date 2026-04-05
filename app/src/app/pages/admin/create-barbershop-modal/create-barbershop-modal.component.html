@@ -30,9 +30,12 @@
     ></ion-input>
   </ion-item>
 
-  <!-- Dirección -->
+  <!-- Dirección con Autocomplete -->
   <ion-item>
     <ion-label position="stacked">Dirección* (Nominatim)</ion-label>
+  </ion-item>
+  
+  <div class="address-input-wrapper">
     <div style="display: flex; gap: 8px; align-items: center;">
       <ion-input
         [(ngModel)]="form.address"
@@ -52,20 +55,21 @@
         <ion-icon name="search"></ion-icon>
       </ion-button>
     </div>
-    <span *ngIf="isSearching" style="color: #3880ff; font-size: 12px; margin-top: 8px;">
+    
+    <span *ngIf="isSearching" style="color: #3880ff; font-size: 12px; margin-top: 8px; display: block;">
       Buscando...
     </span>
-  </ion-item>
 
-  <!-- DROPDOWN DE AUTOCOMPLETADO -->
-  <div *ngIf="showAutocomplete && autocompleteResults.length > 0" class="dropdown">
-    <div *ngFor="let result of autocompleteResults" 
-         class="dropdown-item"
-         (click)="selectAddress(result)">
-      <ion-icon name="location-outline" class="location-icon"></ion-icon>
-      <div class="address-text">
-        <strong>{{ result.address }}</strong>
-        <small *ngIf="result.city">{{ result.city }}</small>
+    <!-- DROPDOWN DE AUTOCOMPLETADO -->
+    <div *ngIf="showAutocomplete && autocompleteResults.length > 0" class="dropdown">
+      <div *ngFor="let result of autocompleteResults" 
+           class="dropdown-item"
+           (click)="selectAddress(result)">
+        <ion-icon name="location-outline" class="location-icon"></ion-icon>
+        <div class="address-text">
+          <strong>{{ result.address }}</strong>
+          <small *ngIf="result.city">{{ result.city }}</small>
+        </div>
       </div>
     </div>
   </div>

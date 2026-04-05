@@ -24,19 +24,26 @@ ion-item {
   margin-bottom: 16px;
 }
 
+.address-input-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+  padding: 0 16px;
+  margin-left: -16px;
+  margin-right: -16px;
+}
+
 .dropdown {
   position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  top: calc(100% + 4px);
+  left: 16px;
+  right: 16px;
   background: white;
   border: 1px solid #ddd;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
+  border-radius: 8px;
   max-height: 300px;
   overflow-y: auto;
   z-index: 10000 !important;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .dropdown-item {
@@ -47,6 +54,10 @@ ion-item {
   gap: 12px;
   align-items: flex-start;
   transition: background-color 0.2s;
+
+  &:last-child {
+    border-bottom: none;
+  }
 
   &:hover {
     background-color: #f9f9f9;
