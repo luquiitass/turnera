@@ -92,7 +92,14 @@
       "Bash(pkill -f 'ng serve client-app')",
       "Bash(pkill -f 'ng\\\\|npm start')",
       "Bash(pkill -f 'ng serve\\\\|npm start')",
-      "Bash(ng serve:*)"
+      "Bash(ng serve:*)",
+      "Bash(chmod +x /tmp/test_dev_login.sh)",
+      "Bash(/tmp/test_dev_login.sh)",
+      "Bash(tmux new-session:*)",
+      "Bash(npm ci:*)",
+      "Bash(echo \"API iniciado \\(PID: $!\\)\")",
+      "Bash(echo \"Client-app iniciado \\(PID: $!\\)\")",
+      "Bash(echo \"Barber-app iniciado \\(PID: $!\\)\" sleep 3)"
     ]
   },
   "disabledMcpjsonServers": [

@@ -34,6 +34,7 @@ export class NearbyBarbershopsPage implements OnInit {
   maxRadius = 50;
   searchCity = '';
   activeTab: 'nearby' | 'search' = 'nearby';
+  userLocation: { latitude: number; longitude: number } | null = null;
 
   constructor(
     private geolocationService: GeolocationService,
@@ -44,6 +45,7 @@ export class NearbyBarbershopsPage implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.userLocation = this.geolocationService.getStoredLocation();
     this.loadNearbyBarbershops();
   }
 
@@ -55,6 +57,7 @@ export class NearbyBarbershopsPage implements OnInit {
       return;
     }
 
+    this.userLocation = location;
     this.hasLocation = true;
     await this.searchNearby(location);
   }
@@ -94,7 +97,7 @@ export class NearbyBarbershopsPage implements OnInit {
 
     this.nearbyService.searchByCity(this.searchCity).subscribe({
       next: (data) => {
-        this.barbershops = data;
+        this.barbershops = this.enrichWithDistance(data);
         loader.dismiss();
       },
       error: (err) => {
@@ -116,7 +119,7 @@ export class NearbyBarbershopsPage implements OnInit {
 
     this.nearbyService.search(this.searchQuery).subscribe({
       next: (data) => {
-        this.barbershops = data;
+        this.barbershops = this.enrichWithDistance(data);
         loader.dismiss();
       },
       error: (err) => {
@@ -127,11 +130,57 @@ export class NearbyBarbershopsPage implements OnInit {
     });
   }
 
+  /**
+   * Enriquece barbershops con distancia si no la tienen
+   */
+  private enrichWithDistance(barbershops: any[]): Barbershop[] {
+    if (!this.userLocation) return barbershops;
+
+    return barbershops.map(b => ({
+      ...b,
+      distance: b.distance || this.calculateDistance(
+        this.userLocation!.latitude,
+        this.userLocation!.longitude,
+        b.latitude,
+        b.longitude
+      ),
+    }));
+  }
+
+  /**
+   * Calcula distancia en km usando fórmula de Haversine
+   */
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371; // Radio de la Tierra en km
+    const dLat = this.toRad(lat2 - lat1);
+    const dLng = this.toRad(lng2 - lng1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.round(R * c * 100) / 100; // Redondear a 2 decimales
+  }
+
+  private toRad(degrees: number): number {
+    return degrees * (Math.PI / 180);
+  }
+
+  /**
+   * Formatea distancia en metros o km
+   */
+  formatDistance(distance: number): string {
+    if (!distance) return '';
+    if (distance < 1) {
+      return `${Math.round(distance * 1000)} m`;
+    }
+    return `${distance} km`;
+  }
+
   goToBarbershop(barbershopId: string, slug?: string): void {
     if (slug) {
       window.location.href = `${slug}.${window.location.hostname}:${window.location.port}`;
     } else {
-      this.router.navigate(['/tabs/home'], { queryParams: { barbershop: barbershopId } });
+      this.router.navigate(['/barbershop', barbershopId]);
     }
   }
 

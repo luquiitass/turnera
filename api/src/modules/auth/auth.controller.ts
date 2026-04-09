@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param } from '@nestjs/common';
 import { AuthService } from './auth.service.js';
 import {
   RegisterDto,
@@ -48,6 +48,12 @@ export class AuthController {
   @Post('reset-password')
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto.token, dto.newPassword);
+  }
+
+  @Public()
+  @Post('dev/login/:userId')
+  async devLogin(@Param('userId') userId: string) {
+    return this.authService.generateDevToken(userId);
   }
 
   @Get('profile')

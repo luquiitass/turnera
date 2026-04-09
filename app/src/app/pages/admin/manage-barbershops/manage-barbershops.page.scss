@@ -1,3 +1,20 @@
 ion-item h2 {
   font-weight: 600;
 }
+
+.admins-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--ion-color-primary);
+
+  ion-icon {
+    min-width: 16px;
+  }
+
+  .admin-names {
+    font-weight: 500;
+  }
+}

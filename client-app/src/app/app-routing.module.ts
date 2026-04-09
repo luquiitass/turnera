@@ -35,6 +35,11 @@ const routes: Routes = [
     canActivate: [AuthGuard],
     loadChildren: () => import('./pages/create-barber/create-barber.module').then(m => m.CreateBarberPageModule),
   },
+  {
+    path: 'barbershop/:id',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./pages/barbershop-profile/barbershop-profile.module').then(m => m.BarbershopProfilePageModule),
+  },
 ];
 
 @NgModule({

@@ -71,19 +71,21 @@
       <div *ngFor="let barbershop of barbershops" class="barbershop-card">
         <ion-card (click)="goToBarbershop(barbershop.id)">
           <ion-card-header>
-            <ion-img
-              [src]="barbershop.logoImage || 'assets/barbershop-placeholder.png'"
-              class="barbershop-image"
-            ></ion-img>
+            <div class="card-header-container">
+              <ion-img
+                [src]="barbershop.logoImage || 'assets/barbershop-placeholder.png'"
+                class="barbershop-image"
+              ></ion-img>
+              <div *ngIf="barbershop.distance" class="distance-badge">
+                <ion-icon name="location" class="location-icon"></ion-icon>
+                <span class="distance-text">{{ formatDistance(barbershop.distance) }}</span>
+              </div>
+            </div>
           </ion-card-header>
           <ion-card-content>
             <ion-card-title>{{ barbershop.name }}</ion-card-title>
             <ion-text color="medium">
               <p class="address">{{ barbershop.address }}</p>
-              <p *ngIf="barbershop.distance" class="distance">
-                <ion-icon name="location"></ion-icon>
-                {{ barbershop.distance }} km
-              </p>
             </ion-text>
             <div class="rating">
               <ion-icon name="star" [color]="barbershop.avgRating > 0 ? 'warning' : 'light'"></ion-icon>
@@ -114,10 +116,16 @@
       <div *ngFor="let barbershop of barbershops" class="barbershop-card">
         <ion-card (click)="goToBarbershop(barbershop.id)">
           <ion-card-header>
-            <ion-img
-              [src]="barbershop.logoImage || 'assets/barbershop-placeholder.png'"
-              class="barbershop-image"
-            ></ion-img>
+            <div class="card-header-container">
+              <ion-img
+                [src]="barbershop.logoImage || 'assets/barbershop-placeholder.png'"
+                class="barbershop-image"
+              ></ion-img>
+              <div *ngIf="barbershop.distance" class="distance-badge">
+                <ion-icon name="location" class="location-icon"></ion-icon>
+                <span class="distance-text">{{ formatDistance(barbershop.distance) }}</span>
+              </div>
+            </div>
           </ion-card-header>
           <ion-card-content>
             <ion-card-title>{{ barbershop.name }}</ion-card-title>

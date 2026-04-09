@@ -32,6 +32,7 @@ export class BarbershopsService {
         include: {
           amenities: { include: { amenity: true } },
           reviews: { select: { rating: true } },
+          barbershopAdmins: { include: { user: { select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true } } } },
           _count: { select: { barbers: true, services: true } },
         },
         orderBy: { createdAt: 'desc' },

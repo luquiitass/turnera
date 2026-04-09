@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface NearbyBarbershop {
@@ -32,14 +33,18 @@ export class NearbyBarbershopsService {
     params = params.set('longitude', lng.toString());
     params = params.set('radiusKm', radiusKm.toString());
 
-    return this.http.get<any>(`${this.api}/barbershops/nearby`, { params });
+    return this.http.get<any>(`${this.api}/barbershops/nearby`, { params }).pipe(
+      map(response => Array.isArray(response) ? response : (response.data || []))
+    );
   }
 
   /**
    * Buscar por ciudad
    */
   searchByCity(city: string): Observable<NearbyBarbershop[]> {
-    return this.http.get<any>(`${this.api}/barbershops/search-by-city/${city}`);
+    return this.http.get<any>(`${this.api}/barbershops/search-by-city/${city}`).pipe(
+      map(response => Array.isArray(response) ? response : (response.data || []))
+    );
   }
 
   /**
@@ -48,6 +53,8 @@ export class NearbyBarbershopsService {
   search(query: string): Observable<NearbyBarbershop[]> {
     let params = new HttpParams();
     params = params.set('q', query);
-    return this.http.get<any>(`${this.api}/barbershops/search`, { params });
+    return this.http.get<any>(`${this.api}/barbershops/search`, { params }).pipe(
+      map(response => Array.isArray(response) ? response : (response.data || []))
+    );
   }
 }

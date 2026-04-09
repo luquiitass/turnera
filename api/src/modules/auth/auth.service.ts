@@ -169,6 +169,23 @@ export class AuthService {
     return { message: 'Contrasena actualizada' };
   }
 
+  async generateDevToken(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
+    const tokens = await this.generateTokens(user.id, user.email, user.roles);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return {
+      user: this.sanitizeUser(user),
+      ...tokens,
+    };
+  }
+
   private async generateTokens(userId: string, email: string, roles: string[]) {
     const payload = { sub: userId, email, roles };
 

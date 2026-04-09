@@ -27,13 +27,23 @@ export class GeolocationService {
         }
       }
 
-      // Solicitar permiso y obtener ubicación
-      const coordinates = await Geolocation.getCurrentPosition();
+      let location: Location;
 
-      const location: Location = {
-        latitude: coordinates.coords.latitude,
-        longitude: coordinates.coords.longitude,
-      };
+      try {
+        // Solicitar permiso y obtener ubicación
+        const coordinates = await Geolocation.getCurrentPosition();
+        location = {
+          latitude: coordinates.coords.latitude,
+          longitude: coordinates.coords.longitude,
+        };
+      } catch (geoError) {
+        // En desarrollo (localhost), usar ubicación de Buenos Aires por defecto
+        console.warn('⚠️ No se pudo obtener ubicación. Usando ubicación de desarrollo (Buenos Aires)');
+        location = {
+          latitude: -34.6037, // Buenos Aires
+          longitude: -58.3816,
+        };
+      }
 
       // Guardar en localStorage
       this.saveLocation(location);

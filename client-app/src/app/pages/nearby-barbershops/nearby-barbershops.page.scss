@@ -84,10 +84,42 @@
     }
   }
 
+  .card-header-container {
+    position: relative;
+    width: 100%;
+  }
+
   .barbershop-image {
     width: 100%;
     height: 200px;
     object-fit: cover;
+    display: block;
+  }
+
+  .distance-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(10px);
+    background: rgba(56, 128, 255, 0.95);
+
+    .location-icon {
+      font-size: 0.9rem;
+    }
+
+    .distance-text {
+      white-space: nowrap;
+    }
   }
 
   ion-card-title {
@@ -100,18 +132,6 @@
     font-size: 0.9rem;
     margin: 0.5rem 0;
     line-height: 1.4;
-  }
-
-  .distance {
-    font-weight: 500;
-    color: var(--ion-color-primary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    ion-icon {
-      font-size: 1rem;
-    }
   }
 
   .rating {

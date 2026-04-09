@@ -25,6 +25,15 @@
         <h2>{{ bs.name }}</h2>
         <p>{{ bs.address }}</p>
         <p *ngIf="bs.phone">{{ bs.phone }}</p>
+        <!-- Administrador/es -->
+        <p *ngIf="bs.barbershopAdmins && bs.barbershopAdmins.length > 0" class="admins-list">
+          <ion-icon name="shield-checkmark-outline" size="small" color="primary"></ion-icon>
+          <span class="admin-names">
+            <span *ngFor="let admin of bs.barbershopAdmins; let last = last">
+              {{ admin.user?.firstName }} {{ admin.user?.lastName }}<span *ngIf="!last">, </span>
+            </span>
+          </span>
+        </p>
       </ion-label>
       <ion-chip slot="end" [color]="bs.isActive ? 'success' : 'danger'" outline>
         <ion-label>{{ bs.isActive ? 'Activa' : 'Inactiva' }}</ion-label>
