@@ -105,49 +105,42 @@ export class LoginPage implements OnInit {
   }
 
   /**
-   * Login con usuario de desarrollo (sin autenticación)
+   * Login con usuario de desarrollo - genera token JWT válido
    */
   private loginWithDevUser(user: any): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    console.log('🔐 Step 1: Iniciando dev login para:', user.email);
+    console.log('🔐 Iniciando dev login para:', user.email);
 
-    // Crear token ficticio
-    const devToken = `dev-token-${user.id}-${Date.now()}`;
-    const userData = {
-      id: user.id,
-      email: user.email,
-      name: user.name || user.email,
-      role: user.role,
-    };
+    this.http.post<any>(`${environment.apiUrl}/auth/dev/login/${user.id}`, {}).subscribe({
+      next: (response) => {
+        console.log('✅ Token generado exitosamente', response);
 
-    // PASO 1: Guardar en storage
-    console.log('💾 Step 2: Guardando en storage...');
-    this.storage.set('accessToken', devToken);
-    this.storage.set('refreshToken', devToken);
-    this.storage.setJson('currentUser', userData);
+        // Extraer datos de la respuesta envuelta
+        const authData = response.data;
 
-    // PASO 2: Verificar que se guardó
-    const savedToken = this.storage.get('accessToken');
-    const savedUser = this.storage.getJson('currentUser');
-    console.log('✅ Step 3: Verificando storage...', {
-      tokenSaved: !!savedToken,
-      userSaved: !!savedUser,
-      isAuthenticated: this.authService.isAuthenticated,
-    });
+        // Usar handleAuth del AuthService para mantener consistencia
+        this.authService.handleAuth(authData);
 
-    // PASO 3: Actualizar auth service
-    console.log('👤 Step 4: Actualizando AuthService...');
-    (this.authService as any).currentUserSubject.next(userData);
+        console.log('✅ Usuario autenticado:', {
+          email: authData.user.email,
+          roles: authData.user.roles,
+          id: authData.user.id,
+        });
 
-    // PASO 4: Log final y navegar
-    console.log('🔓 Step 5: Login completado, navegando...');
-    this.isLoading = false;
+        console.log('🔓 Navegando a home...');
+        this.isLoading = false;
 
-    // Navegar directamente sin delay
-    this.ngZone.run(() => {
-      this.router.navigate(['/tabs/home'], { replaceUrl: true });
+        this.ngZone.run(() => {
+          this.router.navigate(['/tabs/home'], { replaceUrl: true });
+        });
+      },
+      error: (err) => {
+        console.error('❌ Error en dev login:', err);
+        this.isLoading = false;
+        this.errorMessage = 'Error al generar token de desarrollo';
+      },
     });
   }
 

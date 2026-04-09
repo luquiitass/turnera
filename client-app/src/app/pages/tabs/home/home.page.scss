@@ -310,6 +310,407 @@
   }
 }
 
+// ==================== CLIENT HOME (SIN SUBDOMINIO) ====================
+
+.client-home-header {
+  padding: 24px 16px 16px;
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+  color: white;
+
+  .welcome-title {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+
+  .welcome-subtitle {
+    font-size: 14px;
+    opacity: 0.9;
+    margin: 0;
+  }
+}
+
+.next-booking-card {
+  margin: 12px 16px;
+  border-radius: 12px;
+
+  ion-card-header {
+    padding-bottom: 0;
+  }
+
+  ion-card-title {
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  ion-card-content {
+    padding-top: 8px;
+
+    .booking-detail {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 14px;
+
+      .booking-label {
+        font-weight: 600;
+        color: var(--ion-color-medium);
+        flex: 0 0 100px;
+      }
+
+      .booking-value {
+        flex: 1;
+        text-align: right;
+      }
+    }
+  }
+}
+
+.barbershops-section {
+  padding: 16px 16px 0;
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 12px;
+  }
+
+  ion-searchbar {
+    --padding-start: 8px;
+    --padding-end: 8px;
+    margin-bottom: 12px;
+  }
+
+  .barbershops-list {
+    margin-bottom: 1rem;
+
+    ion-item {
+      --padding-start: 0;
+      --padding-end: 0;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      --background: var(--ion-color-light);
+
+      ion-thumbnail {
+        width: 60px;
+        height: 60px;
+        margin-right: 1rem;
+
+        ion-img {
+          border-radius: 8px;
+        }
+      }
+
+      ion-label {
+        h3 {
+          font-weight: 600;
+          font-size: 1rem;
+        }
+
+        p {
+          margin: 0.25rem 0;
+          font-size: 0.85rem;
+        }
+
+        .distance {
+          color: var(--ion-color-primary);
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+
+          ion-icon {
+            font-size: 0.9rem;
+          }
+        }
+
+        .rating {
+          color: var(--ion-color-medium);
+          display: flex;
+          align-items: center;
+          gap: 0.3rem;
+
+          ion-icon {
+            font-size: 0.9rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+// ==================== BARBERIA CON SUBDOMINIO ====================
+
+.hero-section {
+  position: relative;
+  background: var(--ion-color-light);
+
+  .cover-image {
+    display: block;
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+
+  .logo-container {
+    position: absolute;
+    bottom: -40px;
+    left: 16px;
+    right: auto;
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    background: white;
+    border: 4px solid white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+
+    ion-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+}
+
+.info-card {
+  margin: 60px 12px 16px;
+  border-radius: 12px;
+
+  .barbershop-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 12px;
+  }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 14px;
+
+    ion-icon {
+      flex-shrink: 0;
+    }
+
+    a {
+      color: var(--ion-color-primary);
+      text-decoration: none;
+    }
+  }
+
+  .description {
+    margin: 12px 0;
+    padding: 12px 0;
+    border-top: 1px solid var(--ion-color-light-shade);
+    border-bottom: 1px solid var(--ion-color-light-shade);
+
+    p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: var(--ion-color-medium);
+    }
+  }
+
+  .quick-info {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+
+    .info-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 10px;
+      background: var(--ion-color-light);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+
+      ion-icon {
+        font-size: 16px;
+      }
+    }
+  }
+}
+
+.booking-button {
+  padding: 0 16px 16px;
+
+  ion-button {
+    --border-radius: 8px;
+  }
+}
+
+// ==================== BARBER AGENDA ====================
+
+.barber-agenda-header {
+  padding: 16px;
+  background: var(--ion-color-light);
+
+  .date-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .current-date {
+      flex: 1;
+      text-align: center;
+
+      h2 {
+        font-size: 20px;
+        font-weight: 700;
+        margin: 0;
+        text-transform: capitalize;
+      }
+    }
+
+    ion-button {
+      --padding-start: 8px;
+      --padding-end: 8px;
+      font-size: 24px;
+    }
+  }
+}
+
+.agenda-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+
+  .agenda-slot {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    background: var(--ion-color-light);
+    border-left: 4px solid var(--ion-color-primary);
+
+    &.booking {
+      border-left-color: var(--ion-color-success);
+    }
+
+    &.block {
+      border-left-color: var(--ion-color-danger);
+    }
+
+    &.free {
+      border-left-color: var(--ion-color-medium);
+    }
+
+    .slot-time {
+      font-weight: 700;
+      font-size: 16px;
+      min-width: 60px;
+    }
+
+    .slot-content {
+      flex: 1;
+
+      h4 {
+        font-size: 14px;
+        font-weight: 600;
+        margin: 0 0 2px;
+      }
+
+      p {
+        font-size: 13px;
+        color: var(--ion-color-medium);
+        margin: 0;
+      }
+    }
+  }
+}
+
+// ==================== ADMIN AGENDA ====================
+
+.barber-agenda-item {
+  background: var(--ion-color-light);
+  border-radius: 10px;
+  margin: 0 16px 8px;
+  overflow: hidden;
+
+  .barber-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:active {
+      background: var(--ion-color-light-shade);
+    }
+
+    .barber-info {
+      flex: 1;
+
+      h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      .barber-bio {
+        font-size: 12px;
+        color: var(--ion-color-medium);
+        margin: 4px 0 0;
+      }
+    }
+
+    ion-icon {
+      flex-shrink: 0;
+    }
+  }
+
+  .barber-slots {
+    padding: 8px 12px 12px;
+    border-top: 1px solid var(--ion-color-light-shade);
+
+    .slots-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+
+      .slot-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px;
+        background: white;
+        border-radius: 8px;
+        font-size: 13px;
+
+        .slot-time {
+          font-weight: 700;
+          min-width: 45px;
+        }
+
+        .slot-service {
+          flex: 1;
+          color: var(--ion-color-medium);
+        }
+
+        ion-chip {
+          --padding-end: 8px;
+          --padding-start: 8px;
+          height: 24px;
+        }
+      }
+    }
+
+    .empty-slots {
+      text-align: center;
+      padding: 8px;
+      color: var(--ion-color-medium);
+      font-size: 13px;
+    }
+  }
+}
+
 // NEARBY BARBERSHOPS
 .nearby-list {
   margin-bottom: 1rem;

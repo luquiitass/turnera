@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, ToastController } from '@ionic/angular';
-import { HttpClient } from '@angular/common/http';
+import { AlertController, ToastController, LoadingController } from '@ionic/angular';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { ApiService } from '../../../core/api.service';
 import { AuthService } from '../../../core/auth.service';
-import { GeolocationService } from '../../../core/geolocation.service';
+import { BarbershopResolverService } from '../../../core/barbershop-resolver.service';
+import { GeolocationService, Location } from '../../../core/geolocation.service';
 import { NearbyBarbershopsService } from '../../../core/nearby-barbershops.service';
 import { environment } from '../../../../environments/environment';
 
@@ -19,6 +20,14 @@ export class HomePage implements OnInit {
   apiUrl = environment.apiUrl;
   bsId = environment.barbershopId;
 
+  // Context detection
+  hasSubdomain = false;
+  isBarber = false;
+  isAdmin = false;
+  showAdminPanel = false;
+  currentUser: any = null;
+
+  // Barbershop data
   barbershop: any = null;
   services: any[] = [];
   barbers: any[] = [];
@@ -26,84 +35,133 @@ export class HomePage implements OnInit {
   reviews: any[] = [];
   offers: any[] = [];
 
-  loading = true;
-  error = false;
-  isAdmin = false;
-  showAdminPanel = false;
-
-  allGlobalServices: any[] = [];
-  allGlobalAmenities: any[] = [];
+  // Client home (sin subdominio)
+  nextBooking: any = null;
   nearbyBarbershops: any[] = [];
   hasUserLocation = false;
+  searchQuery = '';
+  searchResults: any[] = [];
+  isSearching = false;
+  userLocation: Location | null = null;
+
+  // Barber agenda
+  agendaDate: Date = new Date();
+  agendaSlots: any[] = [];
+  barberProfile: any = null;
+
+  // Admin agenda
+  selectedBarberForAgenda: any = null;
+  barberAgendaSlots: any[] = [];
+  showBarberAgenda: any = {};
+
+  // Loading & Error
+  loading = true;
+  error = false;
+
+  // Admin panel & schedule editor
+  allGlobalServices: any[] = [];
+  allGlobalAmenities: any[] = [];
+  private offerDraft: any = {};
+
+  // Schedule editor
+  scheduleBarber: any = null;
+  scheduleData: { day: string; label: string; enabled: boolean; openTime: string; closeTime: string }[] = [];
+  showScheduleEditor = false;
 
   constructor(
     private api: ApiService,
-    private auth: AuthService,
+    public auth: AuthService,
     private http: HttpClient,
     private router: Router,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
+    private loadingCtrl: LoadingController,
+    private resolverService: BarbershopResolverService,
     private geolocationService: GeolocationService,
     private nearbyService: NearbyBarbershopsService,
   ) {}
 
   ngOnInit(): void {
-    this.loadData();
+    this.hasSubdomain = this.resolverService.hasSubdomain;
+    this.currentUser = this.auth.currentUser;
+
+    if (!this.hasSubdomain) {
+      // Modo: cliente sin subdominio
+      this.loadClientHome();
+    } else {
+      // Modo: con subdominio (barbería específica)
+      this.loadBarbershopData();
+      if (this.auth.isAuthenticated) {
+        // Detectar rol del usuario desde su perfil
+        this.checkUserRoles();
+      }
+    }
+  }
+
+  /**
+   * Detecta el rol del usuario: admin o barbero de la barbería actual
+   */
+  private checkUserRoles(): void {
+    if (!this.bsId) return;
+
+    // Primero intentar detección rápida desde roles en el token
+    if (this.currentUser?.roles && Array.isArray(this.currentUser.roles)) {
+      console.log('📋 Roles del usuario:', this.currentUser.roles);
+      // Si tiene rol ADMIN en cualquier contexto, es potencial admin
+      if (this.currentUser.roles.includes('ADMIN')) {
+        this.checkAdmin();
+      }
+      if (this.currentUser.roles.includes('BARBER')) {
+        this.checkBarber();
+      }
+    }
+
+    // Si no hay roles en el token, hacer las llamadas API
+    if (!this.isAdmin) {
+      this.checkAdmin();
+    }
+    if (!this.isBarber) {
+      this.checkBarber();
+    }
   }
 
   ionViewWillEnter(): void {
-    if (this.barbershop) this.loadData();
+    if (this.hasSubdomain && this.barbershop) {
+      this.loadBarbershopData();
+    } else if (!this.hasSubdomain) {
+      if (this.auth.isAuthenticated) {
+        this.loadNextBooking();
+      }
+      this.loadNearbyBarbershops();
+    }
   }
 
-  loadData(): void {
+  // ==================== CLIENT HOME (SIN SUBDOMINIO) ====================
+
+  loadClientHome(): void {
     this.loading = true;
     this.error = false;
-    this.api.getBarbershop().subscribe({
-      next: (res) => {
-        const data = res.data ?? res;
-        this.barbershop = data;
-        this.services = data.services ?? [];
-        this.barbers = (data.barbers ?? []).filter((b: any) => b.isActive);
-        this.amenities = data.amenities ?? [];
-        this.reviews = data.reviews ?? [];
-        this.offers = (data.offers ?? []).filter((o: any) => o.isActive);
-        this.loading = false;
-        this.checkAdmin();
-        this.loadNearbyBarbershops();
-      },
-      error: () => { this.error = true; this.loading = false; },
-    });
+
+    if (this.auth.isAuthenticated) {
+      this.loadNextBooking();
+    }
+    this.loadNearbyBarbershops();
+    this.loading = false;
   }
 
-  doRefresh(event: any): void {
-    this.api.getBarbershop().subscribe({
+  loadNextBooking(): void {
+    this.api.getMyBookings().subscribe({
       next: (res) => {
-        const data = res.data ?? res;
-        this.barbershop = data;
-        this.services = data.services ?? [];
-        this.barbers = (data.barbers ?? []).filter((b: any) => b.isActive);
-        this.amenities = data.amenities ?? [];
-        this.reviews = data.reviews ?? [];
-        this.offers = (data.offers ?? []).filter((o: any) => o.isActive);
-        this.checkAdmin();
-        this.loadNearbyBarbershops();
-        event.target.complete();
+        const bookings = Array.isArray(res.data) ? res.data : res.data?.data || [];
+        const upcoming = bookings
+          .filter((b: any) => {
+            const bookDate = new Date(b.bookingDate);
+            return bookDate >= new Date() && ['PENDIENTE', 'CONFIRMADA'].includes(b.status);
+          })
+          .sort((a: any, b: any) => new Date(a.bookingDate).getTime() - new Date(b.bookingDate).getTime());
+        this.nextBooking = upcoming[0] || null;
       },
-      error: () => { event.target.complete(); },
-    });
-  }
-
-  checkAdmin(): void {
-    if (!this.auth.isAuthenticated) { this.isAdmin = false; return; }
-    this.api.getMyBarberProfile().subscribe({
-      next: () => {}, error: () => {},
-    });
-    this.http.get<any>(`${this.apiUrl}/barbershops/admin/my-barbershops`).subscribe({
-      next: (res: any) => {
-        const myBs = Array.isArray(res.data) ? res.data : [];
-        this.isAdmin = myBs.some((bs: any) => bs.id === this.bsId);
-      },
-      error: () => { this.isAdmin = false; },
+      error: () => { this.nextBooking = null; },
     });
   }
 
@@ -114,10 +172,11 @@ export class HomePage implements OnInit {
       return;
     }
 
+    this.userLocation = location;
     this.hasUserLocation = true;
     this.nearbyService.findNearby(location.latitude, location.longitude, 5).subscribe({
       next: (data) => {
-        this.nearbyBarbershops = (data || []).slice(0, 3); // Top 3
+        this.nearbyBarbershops = (data || []).slice(0, 3);
       },
       error: (err) => {
         console.error('Error cargando barberias cercanas:', err);
@@ -126,8 +185,227 @@ export class HomePage implements OnInit {
     });
   }
 
-  goToNearbyBarbershops(): void {
-    this.router.navigateByUrl('/nearby-barbershops');
+  async searchBarbershops(query: string, searchType: 'city' | 'name' = 'name'): Promise<void> {
+    if (!query.trim()) {
+      this.searchResults = [];
+      this.isSearching = false;
+      return;
+    }
+
+    const loader = await this.loadingCtrl.create({ message: 'Buscando...' });
+    await loader.present();
+
+    const observable = searchType === 'city' ? this.nearbyService.searchByCity(query) : this.nearbyService.search(query);
+
+    observable.subscribe({
+      next: (data) => {
+        this.searchResults = this.enrichWithDistance(data);
+        this.isSearching = true;
+        loader.dismiss();
+      },
+      error: () => {
+        this.toast('Error al buscar');
+        loader.dismiss();
+      },
+    });
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.searchResults = [];
+    this.isSearching = false;
+  }
+
+  private enrichWithDistance(barbershops: any[]): any[] {
+    if (!this.userLocation) return barbershops;
+
+    return barbershops.map(b => ({
+      ...b,
+      distance: b.distance || this.calculateDistance(
+        this.userLocation!.latitude,
+        this.userLocation!.longitude,
+        b.latitude,
+        b.longitude
+      ),
+    }));
+  }
+
+  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371;
+    const dLat = this.toRad(lat2 - lat1);
+    const dLng = this.toRad(lng2 - lng1);
+    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return Math.round(R * c * 100) / 100;
+  }
+
+  private toRad(degrees: number): number {
+    return degrees * (Math.PI / 180);
+  }
+
+  formatDistance(distance: number): string {
+    if (!distance) return '';
+    if (distance < 1) return `${Math.round(distance * 1000)} m`;
+    return `${distance} km`;
+  }
+
+  goToBarbershop(barbershopId: string): void {
+    this.router.navigate(['/barbershop', barbershopId]);
+  }
+
+  // ==================== BARBERSHOP DATA (CON SUBDOMINIO) ====================
+
+  /**
+   * Método genérico que redirige a loadBarbershopData (para compatibilidad con código admin existente)
+   */
+  loadData(): void {
+    this.loadBarbershopData();
+  }
+
+  loadBarbershopData(): void {
+    this.loading = true;
+    this.error = false;
+
+    // Usar datos del resolver si ya están cargados
+    if (this.resolverService.barbershop) {
+      this.barbershop = this.resolverService.barbershop;
+      this.services = this.barbershop.services ?? [];
+      this.barbers = (this.barbershop.barbers ?? []).filter((b: any) => b.isActive);
+      this.amenities = this.barbershop.amenities ?? [];
+      this.reviews = this.barbershop.reviews ?? [];
+      this.offers = (this.barbershop.offers ?? []).filter((o: any) => o.isActive);
+      this.loading = false;
+      return;
+    }
+
+    // Si no están cargados, llamar a la API
+    this.api.getBarbershop().subscribe({
+      next: (res) => {
+        const data = res.data ?? res;
+        this.barbershop = data;
+        this.services = data.services ?? [];
+        this.barbers = (data.barbers ?? []).filter((b: any) => b.isActive);
+        this.amenities = data.amenities ?? [];
+        this.reviews = data.reviews ?? [];
+        this.offers = (data.offers ?? []).filter((o: any) => o.isActive);
+        this.loading = false;
+      },
+      error: () => { this.error = true; this.loading = false; },
+    });
+  }
+
+  doRefresh(event: any): void {
+    if (this.hasSubdomain) {
+      this.loadBarbershopData();
+      if (this.isAdmin) {
+        this.checkAdmin();
+      }
+      if (this.isBarber) {
+        this.loadAgenda();
+      }
+    } else {
+      if (this.auth.isAuthenticated) {
+        this.loadNextBooking();
+      }
+      this.loadNearbyBarbershops();
+    }
+    setTimeout(() => event.target.complete(), 500);
+  }
+
+  // ==================== BARBERSHOP ROLE DETECTION ====================
+
+  checkAdmin(): void {
+    if (!this.auth.isAuthenticated || !this.bsId) {
+      this.isAdmin = false;
+      return;
+    }
+    this.http.get<any>(`${this.apiUrl}/barbershops/admin/my-barbershops`).subscribe({
+      next: (res: any) => {
+        const myBs = Array.isArray(res.data) ? res.data : [];
+        this.isAdmin = myBs.some((bs: any) => bs.id === this.bsId);
+      },
+      error: () => { this.isAdmin = false; },
+    });
+  }
+
+  checkBarber(): void {
+    this.api.getMyBarberProfile().subscribe({
+      next: (res: any) => {
+        const profiles = Array.isArray(res.data) ? res.data : [];
+        this.isBarber = profiles.some((p: any) => p.barbershopId === this.bsId);
+        if (this.isBarber) {
+          this.barberProfile = profiles.find((p: any) => p.barbershopId === this.bsId);
+          this.loadAgenda();
+        }
+      },
+      error: () => { this.isBarber = false; },
+    });
+  }
+
+  // ==================== BARBER AGENDA ====================
+
+  loadAgenda(date?: Date): void {
+    const targetDate = date || this.agendaDate;
+    const dateStr = targetDate.toISOString().split('T')[0];
+
+    this.api.getMyAgenda(dateStr).subscribe({
+      next: (res: any) => {
+        this.agendaSlots = res.data || [];
+      },
+      error: () => { this.agendaSlots = []; },
+    });
+  }
+
+  prevAgendaDate(): void {
+    this.agendaDate.setDate(this.agendaDate.getDate() - 1);
+    this.agendaDate = new Date(this.agendaDate);
+    this.loadAgenda();
+  }
+
+  nextAgendaDate(): void {
+    this.agendaDate.setDate(this.agendaDate.getDate() + 1);
+    this.agendaDate = new Date(this.agendaDate);
+    this.loadAgenda();
+  }
+
+  formatAgendaDate(): string {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const dateStr = this.agendaDate.toISOString().split('T')[0];
+    const todayStr = today.toISOString().split('T')[0];
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    if (dateStr === todayStr) return 'Hoy';
+    if (dateStr === tomorrowStr) return 'Mañana';
+    return this.agendaDate.toLocaleDateString('es-ES', { weekday: 'long', month: 'short', day: 'numeric' });
+  }
+
+  // ==================== ADMIN AGENDA ====================
+
+  toggleBarberAgenda(barber: any): void {
+    const barberId = barber.id;
+    if (this.showBarberAgenda[barberId]) {
+      delete this.showBarberAgenda[barberId];
+    } else {
+      this.loadBarberAgenda(barber);
+      this.showBarberAgenda[barberId] = true;
+    }
+  }
+
+  loadBarberAgenda(barber: any): void {
+    const dateStr = new Date().toISOString().split('T')[0];
+    const params = new HttpParams().set('barberId', barber.id).set('date', dateStr);
+
+    this.http.get<any>(`${this.apiUrl}/bookings`, { params }).subscribe({
+      next: (res: any) => {
+        const bookings = Array.isArray(res.data) ? res.data : res.data?.data || [];
+        this.barberAgendaSlots = bookings.filter((b: any) => b.barberId === barber.id);
+      },
+      error: () => { this.barberAgendaSlots = []; },
+    });
   }
 
   toggleAdminPanel(): void {
@@ -282,10 +560,6 @@ export class HomePage implements OnInit {
     { key: 'DOMINGO', label: 'Domingo' },
   ];
 
-  scheduleBarber: any = null;
-  scheduleData: { day: string; label: string; enabled: boolean; openTime: string; closeTime: string }[] = [];
-  showScheduleEditor = false;
-
   async manageSchedules(): Promise<void> {
     if (!this.barbers.length) { this.toast('Primero agrega un barbero', 'warning'); return; }
     const buttons = this.barbers.map((b: any) => ({
@@ -369,8 +643,6 @@ export class HomePage implements OnInit {
   }
 
   // Offer creation: multi-step
-  private offerDraft: any = {};
-
   async manageOffers(): Promise<void> {
     this.offerDraft = {};
     const alert = await this.alertCtrl.create({

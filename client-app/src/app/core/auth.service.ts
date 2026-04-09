@@ -73,7 +73,7 @@ export class AuthService {
     }
   }
 
-  private handleAuth(data: any): void {
+  handleAuth(data: any): void {
     this.storage.set('accessToken', data.accessToken);
     this.storage.set('refreshToken', data.refreshToken);
     this.storage.setJson('currentUser', data.user);
