@@ -17,6 +17,7 @@ export interface BarbershopAdmin {
   barbershopId: string;
   role: string;
   barbershop?: { id: string; name: string };
+  user?: { id: string; email: string; firstName: string; lastName: string; avatarUrl?: string };
 }
 
 export interface Barbershop {
