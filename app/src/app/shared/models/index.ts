@@ -39,7 +39,7 @@ export interface Barbershop {
   amenities?: BarbershopAmenity[];
   reviews?: Review[];
   offers?: Offer[];
-  barbershopAdmins?: BarbershopAdmin[];
+  admins?: BarbershopAdmin[];
   avgRating?: number;
   totalReviews?: number;
   _count?: { barbers: number; services: number };

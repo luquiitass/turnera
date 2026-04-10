@@ -99,7 +99,10 @@
       "Bash(npm ci:*)",
       "Bash(echo \"API iniciado \\(PID: $!\\)\")",
       "Bash(echo \"Client-app iniciado \\(PID: $!\\)\")",
-      "Bash(echo \"Barber-app iniciado \\(PID: $!\\)\" sleep 3)"
+      "Bash(echo \"Barber-app iniciado \\(PID: $!\\)\" sleep 3)",
+      "Bash(pkill -f \"nest start\")",
+      "Bash(pkill -f \"node.*api\")",
+      "Bash(kill -9 36598)"
     ]
   },
   "disabledMcpjsonServers": [
