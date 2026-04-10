@@ -104,25 +104,10 @@ export class HomePage implements OnInit {
   private checkUserRoles(): void {
     if (!this.bsId) return;
 
-    // Primero intentar detección rápida desde roles en el token
-    if (this.currentUser?.roles && Array.isArray(this.currentUser.roles)) {
-      console.log('📋 Roles del usuario:', this.currentUser.roles);
-      // Si tiene rol ADMIN en cualquier contexto, es potencial admin
-      if (this.currentUser.roles.includes('ADMIN')) {
-        this.checkAdmin();
-      }
-      if (this.currentUser.roles.includes('BARBER')) {
-        this.checkBarber();
-      }
-    }
-
-    // Si no hay roles en el token, hacer las llamadas API
-    if (!this.isAdmin) {
-      this.checkAdmin();
-    }
-    if (!this.isBarber) {
-      this.checkBarber();
-    }
+    // Siempre hacer las llamadas API para detectar admin/barbero en esta barbería específica
+    // Los roles del token solo indican si el usuario es admin en general, pero no si es admin de ESTA barbería
+    this.checkAdmin();
+    this.checkBarber();
   }
 
   ionViewWillEnter(): void {
