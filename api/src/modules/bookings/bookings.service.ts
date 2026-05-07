@@ -1,13 +1,19 @@
 import {
-  Injectable, NotFoundException, BadRequestException, ConflictException,
+  Injectable, Logger, NotFoundException, BadRequestException, ConflictException,
 } from '@nestjs/common';
 import { DayOfWeek } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { NotificationDispatcher } from '../notifications/notification-dispatcher.service.js';
 import { CreateBookingDto, CreateRecurringBookingDto, BookingFiltersDto } from './dto/bookings.dto.js';
 
 @Injectable()
 export class BookingsService {
-  constructor(private prisma: PrismaService) {}
+  private readonly logger = new Logger(BookingsService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private dispatcher: NotificationDispatcher,
+  ) {}
 
   async create(userId: string, dto: CreateBookingDto) {
     const service = await this.prisma.service.findUnique({ where: { id: dto.serviceId } });
@@ -82,7 +88,7 @@ export class BookingsService {
 
     const price = bsService.price;
 
-    return this.prisma.booking.create({
+    const booking = await this.prisma.booking.create({
       data: {
         userId,
         barberId: dto.barberId,
@@ -100,6 +106,13 @@ export class BookingsService {
         service: { select: { name: true } },
       },
     });
+
+    this.dispatcher.onBookingCreated({
+      id: booking.id, userId, barberId: dto.barberId,
+      date: dateObj, startTime: dto.startTime,
+    }).catch(e => this.logger.error('Error en notificación de nueva reserva', e));
+
+    return booking;
   }
 
   async getMyBookings(userId: string, filters: BookingFiltersDto) {
@@ -170,6 +183,7 @@ export class BookingsService {
         barber: { include: { barbershop: { select: { id: true, name: true, cancellationHours: true } } } },
         service: true,
         payments: true,
+        cancelledBy: { select: { id: true, firstName: true, lastName: true } },
       },
     });
     if (!booking) throw new NotFoundException('Reserva no encontrada');
@@ -183,7 +197,13 @@ export class BookingsService {
       userRoles.includes('ADMIN_BARBERSHOP') ||
       userRoles.includes('SUB_ADMIN');
 
-    if (!isAdmin) {
+    // Verificar si el usuario es el barbero asignado a esta reserva
+    const barberProfile = await this.prisma.barber.findFirst({
+      where: { userId, id: booking.barberId },
+    });
+    const isBarberOfBooking = !!barberProfile;
+
+    if (!isAdmin && !isBarberOfBooking) {
       if (booking.userId !== userId) {
         throw new BadRequestException('No puedes cancelar esta reserva');
       }
@@ -201,10 +221,34 @@ export class BookingsService {
       }
     }
 
-    return this.prisma.booking.update({
+    const cancelled = await this.prisma.booking.update({
       where: { id },
-      data: { status: 'CANCELADA' },
+      data: { status: 'CANCELADA', cancelledById: userId },
     });
+
+    this.dispatcher.onBookingCancelled({
+      id: booking.id, userId: booking.userId, barberId: booking.barberId,
+      date: booking.date, startTime: booking.startTime,
+      // No pasamos barber — el dispatcher lo carga fresco con todas las relaciones necesarias
+    }, userId).catch(e => this.logger.error('Error en notificación de cancelación', e));
+
+    return cancelled;
+  }
+
+  async updateStatus(id: string, status: string, _userId: string) {
+    const allowed = ['CONFIRMADA', 'COMPLETADA', 'NO_SHOW', 'CANCELADA'];
+    if (!allowed.includes(status)) throw new BadRequestException('Estado inválido');
+    const booking = await this.findOne(id);
+    const updated = await this.prisma.booking.update({ where: { id }, data: { status: status as any } });
+
+    if (status === 'CONFIRMADA') {
+      this.dispatcher.onBookingConfirmed({
+        id: booking.id, userId: booking.userId,
+        date: booking.date, startTime: booking.startTime,
+      }).catch(e => this.logger.error('Error en notificación de confirmación', e));
+    }
+
+    return updated;
   }
 
   async createRecurring(userId: string, dto: CreateRecurringBookingDto) {

@@ -64,32 +64,98 @@ enum DiscountType {
   MONTO_FIJO
 }
 
+enum NotificationType {
+  NOT_RESERVA_NUEVA
+  NOT_RESERVA_CONFIRMADA
+  NOT_RESERVA_CANCELADA
+  NOT_RESERVA_RECORDATORIO_24H
+  NOT_RESERVA_RECORDATORIO_1H
+  NOT_RESERVA_COMPLETADA
+  NOT_RESERVA_NO_SHOW
+  NOT_PAGO_SENA
+  NOT_PAGO_RECIBIDO
+  NOT_OFERTA_NUEVA
+  NOT_BIENVENIDA
+  NOT_SISTEMA
+}
+
+enum NotificationEntityType {
+  BOOKING
+  BARBERSHOP
+  PAYMENT
+  OFFER
+  USER
+}
+
 // ==================== USERS ====================
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String?
-  firstName String
-  lastName  String
-  phone     String?
-  address   String?
-  avatarUrl String?
-  googleId  String?  @unique
-  roles     Role[]   @default([USUARIO])
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(uuid())
+  email      String   @unique
+  password   String?
+  firstName  String
+  lastName   String
+  phone      String?
+  address    String?
+  avatarUrl  String?
+  googleId   String?  @unique
+  roles      Role[]   @default([USUARIO])
+  isActive   Boolean  @default(true)
+  pushTokens String[] @default([])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  barbershopAdmins BarbershopAdmin[]
-  barberProfiles   Barber[]
-  bookings         Booking[]
-  reviews          Review[]
-  payments         Payment[]         @relation("RegisteredBy")
-  notifications    Notification[]
-  refreshToken     String?
+  barbershopAdmins          BarbershopAdmin[]
+  barberProfiles            Barber[]
+  bookings                  Booking[]
+  cancelledBookings         Booking[]              @relation("BookingCancelledBy")
+  reviews                   Review[]
+  payments                  Payment[]              @relation("RegisteredBy")
+  sentNotifications         Notification[]         @relation("SentNotifications")
+  notificationRecipients    NotificationUser[]
+  notificationPreferences   NotificationPreference[]
+  refreshToken              String?
 
   @@map("users")
+}
+
+// ==================== IMAGES ====================
+
+enum ImageType {
+  ICONO
+  PORTADA
+  PERFIL
+  GALERIA
+}
+
+model Image {
+  id        String    @id @default(uuid())
+  path      String
+  url       String
+  name      String?
+  type      ImageType
+  mimeType  String?
+  size      Int?
+  createdAt DateTime  @default(now())
+
+  barbershopImages BarbershopImage[]
+  barberImages     BarberImage[]
+
+  @@map("images")
+}
+
+model BarbershopImage {
+  id           String @id @default(uuid())
+  barbershopId String
+  imageId      String
+
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  image      Image      @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([barbershopId, imageId])
+  @@map("barbershop_images")
 }
 
 // ==================== BARBERSHOPS ====================
@@ -103,26 +169,27 @@ model Barbershop {
   latitude          Float?
   longitude         Float?
   phone             String?
-  coverImage        String?
-  logoImage         String?
   depositAmount     Float         @default(0)
   cancellationHours Int           @default(12)
   minAdvanceHours   Int           @default(1)
   maxAdvanceDays    Int           @default(30)
   businessModel     BusinessModel @default(GRATUITO)
   maxBarbers        Int           @default(10)
+  maxBarberImages   Int           @default(3)
   isActive          Boolean       @default(true)
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
   admins         BarbershopAdmin[]
   barbers        Barber[]
+  images         BarbershopImage[]
   services       BarbershopService[]
   amenities      BarbershopAmenity[]
   paymentMethods BarbershopPaymentMethod[]
   reviews        Review[]
   offers         Offer[]
-  subscription   BarbershopSubscription?
+  subscription         BarbershopSubscription?
+  platformTransactions PlatformTransaction[]
 
   @@map("barbershops")
 }
@@ -151,7 +218,6 @@ model Barber {
   firstName    String
   lastName     String
   bio          String?
-  avatarUrl    String?
   phone        String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
@@ -170,16 +236,17 @@ model Barber {
 }
 
 model BarberImage {
-  id        String  @id @default(uuid())
+  id        String @id @default(uuid())
   barberId  String
-  imageUrl  String
-  caption   String?
-  sortOrder Int     @default(0)
+  imageId   String
+  sortOrder Int    @default(0)
 
-  barber Barber @relation(fields: [barberId], references: [id])
+  barber Barber @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  image  Image  @relation(fields: [imageId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
+  @@unique([barberId, imageId])
   @@map("barber_images")
 }
 
@@ -300,16 +367,22 @@ model Booking {
   endTime      String
   totalPrice   Float
   depositPrice Float         @default(0)
-  status       BookingStatus @default(PENDIENTE)
-  notes        String?
+  status           BookingStatus @default(PENDIENTE)
+  notes            String?
+  mpPreferenceId   String?
+  mpPaymentId      String?
+  depositPaid      Boolean  @default(false)
 
   recurringBookingId String?
+  cancelledById      String?
 
   user             User              @relation(fields: [userId], references: [id])
   barber           Barber            @relation(fields: [barberId], references: [id])
   service          Service           @relation(fields: [serviceId], references: [id])
   recurringBooking RecurringBooking? @relation(fields: [recurringBookingId], references: [id])
-  payments         Payment[]
+  cancelledBy      User?             @relation("BookingCancelledBy", fields: [cancelledById], references: [id])
+  payments             Payment[]
+  platformTransactions PlatformTransaction[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -428,19 +501,60 @@ model Review {
 // ==================== NOTIFICATIONS ====================
 
 model Notification {
-  id     String  @id @default(uuid())
-  userId String
-  title  String
-  body   String
-  isRead Boolean @default(false)
-  type   String?
-  data   Json?
+  id         String                  @id @default(uuid())
+  senderId   String?
+  title      String
+  body       String
+  type       NotificationType
+  entityType NotificationEntityType?
+  entityId   String?
+  actionUrl  String?
+  channels   String[]                @default([])
+  priority   String                  @default("NORMAL")
+  expiresAt  DateTime?
+  metadata   Json?
+  createdAt  DateTime                @default(now())
+  updatedAt  DateTime                @updatedAt
+
+  sender     User?              @relation("SentNotifications", fields: [senderId], references: [id])
+  recipients NotificationUser[]
+
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationUser {
+  id             String    @id @default(uuid())
+  notificationId String
+  userId         String
+  isRead         Boolean   @default(false)
+  readAt         DateTime?
+  extraData      Json?
+  deliveredAt    Json?
+  createdAt      DateTime  @default(now())
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@unique([notificationId, userId])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notification_users")
+}
+
+model NotificationPreference {
+  id       String           @id @default(uuid())
+  userId   String
+  type     NotificationType
+  inApp    Boolean          @default(true)
+  push     Boolean          @default(true)
+  whatsapp Boolean          @default(true)
+  email    Boolean          @default(false)
 
   user User @relation(fields: [userId], references: [id])
 
-  createdAt DateTime @default(now())
-
-  @@map("notifications")
+  @@unique([userId, type])
+  @@map("notification_preferences")
 }
 
 // ==================== PLATFORM ====================
@@ -454,12 +568,21 @@ model PlatformConfig {
 }
 
 model BarbershopSubscription {
-  id           String   @id @default(uuid())
-  barbershopId String   @unique
-  plan         String
-  startDate    DateTime
-  endDate      DateTime
-  isActive     Boolean  @default(true)
+  id              String    @id @default(uuid())
+  barbershopId    String    @unique
+  plan            String    // GRATUITO | SUSCRIPCION | COMISION
+  startDate       DateTime
+  endDate         DateTime?
+  isActive        Boolean   @default(true)
+
+  // MercadoPago — modelo 2 (suscripción)
+  mpPreapprovalId String?   // ID del preapproval en MP
+  mpPlanId        String?   // ID del plan en MP (reutilizable)
+  nextBillingDate DateTime?
+
+  // Modelo 3 (comisión)
+  commissionRate  Float     @default(0.10)  // % que cobra la plataforma
+  minDepositRate  Float     @default(0.30)  // % mínimo del precio como depósito
 
   barbershop Barbershop @relation(fields: [barbershopId], references: [id])
 
@@ -467,6 +590,25 @@ model BarbershopSubscription {
   updatedAt DateTime @updatedAt
 
   @@map("barbershop_subscriptions")
+}
+
+model PlatformTransaction {
+  id             String   @id @default(uuid())
+  barbershopId   String
+  bookingId      String?
+  type           String   // subscription | commission
+  grossAmount    Float
+  platformFee    Float
+  barbershopNet  Float?
+  mpPaymentId    String?
+  mpStatus       String?  // approved | pending | rejected
+  status         String   @default("pending") // pending | confirmed | transferred | failed
+  createdAt      DateTime @default(now())
+
+  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
+  booking    Booking?   @relation(fields: [bookingId], references: [id])
+
+  @@map("platform_transactions")
 }
 
 model RegistrationOrder {

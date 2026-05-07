@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER } from '@nestjs/core';
 import { PrismaModule } from './prisma/prisma.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
@@ -15,6 +16,9 @@ import { StatsModule } from './modules/stats/stats.module.js';
 import { OffersModule } from './modules/offers/offers.module.js';
 import { RegistrationModule } from './modules/registration/registration.module.js';
 import { GeocodingModule } from './modules/geocoding/geocoding.module.js';
+import { UploadModule } from './modules/upload/upload.module.js';
+import { MercadoPagoModule } from './modules/mercadopago/mercadopago.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard.js';
 import { RolesGuard } from './common/guards/roles.guard.js';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor.js';
@@ -23,6 +27,7 @@ import { CloudflareModule } from './common/cloudflare.module.js';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     PrismaModule,
     CloudflareModule,
     AuthModule,
@@ -39,6 +44,9 @@ import { CloudflareModule } from './common/cloudflare.module.js';
     OffersModule,
     RegistrationModule,
     GeocodingModule,
+    UploadModule,
+    MercadoPagoModule,
+    NotificationsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

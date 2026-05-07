@@ -1,0 +1,242 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-button (click)="goBack()">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title>Detalle de reserva</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content pullingText="Soltar para actualizar" refreshingSpinner="crescent"></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="loading" class="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading && booking">
+
+    <!-- Status badge -->
+    <div class="status-header">
+      <ion-chip [color]="getStatusColor(booking.status)" class="status-chip">
+        <ion-label>{{ getStatusLabel(booking.status) }}</ion-label>
+      </ion-chip>
+      <span class="booking-id">#{{ booking.id.slice(-8).toUpperCase() }}</span>
+    </div>
+
+    <!-- Servicio / fecha / hora -->
+    <div class="detail-section">
+      <p class="section-header">Turno</p>
+      <div class="detail-card">
+
+        <div class="detail-row">
+          <div class="detail-icon" style="background: rgba(var(--ion-color-primary-rgb),0.12)">
+            <ion-icon name="cut-outline" color="primary"></ion-icon>
+          </div>
+          <div class="detail-info">
+            <span class="detail-label">Servicio</span>
+            <span class="detail-value">{{ booking.service?.name }}</span>
+          </div>
+          <span class="detail-price" *ngIf="booking.totalPrice">${{ booking.totalPrice }}</span>
+        </div>
+
+        <div class="detail-divider"></div>
+
+        <div class="detail-row">
+          <div class="detail-icon" style="background: rgba(var(--ion-color-secondary-rgb),0.12)">
+            <ion-icon name="person-outline" color="secondary"></ion-icon>
+          </div>
+          <div class="detail-info">
+            <span class="detail-label">Barbero</span>
+            <span class="detail-value">{{ booking.barber?.firstName }} {{ booking.barber?.lastName }}</span>
+          </div>
+        </div>
+
+        <div class="detail-divider"></div>
+
+        <div class="detail-row">
+          <div class="detail-icon" style="background: rgba(var(--ion-color-tertiary-rgb),0.12)">
+            <ion-icon name="calendar-outline" color="tertiary"></ion-icon>
+          </div>
+          <div class="detail-info">
+            <span class="detail-label">Fecha</span>
+            <span class="detail-value">{{ formatDate(booking.date) }}</span>
+          </div>
+        </div>
+
+        <div class="detail-divider"></div>
+
+        <div class="detail-row">
+          <div class="detail-icon" style="background: rgba(var(--ion-color-warning-rgb),0.12)">
+            <ion-icon name="time-outline" color="warning"></ion-icon>
+          </div>
+          <div class="detail-info">
+            <span class="detail-label">Horario</span>
+            <span class="detail-value">{{ booking.startTime }} – {{ booking.endTime }}</span>
+          </div>
+        </div>
+
+        <ng-container *ngIf="booking.depositPrice">
+          <div class="detail-divider"></div>
+          <div class="detail-row">
+            <div class="detail-icon" style="background: rgba(var(--ion-color-success-rgb),0.12)">
+              <ion-icon name="cash-outline" color="success"></ion-icon>
+            </div>
+            <div class="detail-info">
+              <span class="detail-label">Seña</span>
+              <span class="detail-value">${{ booking.depositPrice }}</span>
+            </div>
+          </div>
+        </ng-container>
+
+      </div>
+    </div>
+
+    <!-- Cliente -->
+    <div class="detail-section" *ngIf="booking.user">
+      <p class="section-header">Cliente</p>
+      <div class="detail-card">
+
+        <div class="detail-row">
+          <div class="detail-icon" style="background: rgba(var(--ion-color-primary-rgb),0.12)">
+            <ion-icon name="person-circle-outline" color="primary"></ion-icon>
+          </div>
+          <div class="detail-info">
+            <span class="detail-label">Nombre</span>
+            <span class="detail-value">{{ booking.user.firstName }} {{ booking.user.lastName }}</span>
+          </div>
+        </div>
+
+        <ng-container *ngIf="booking.user.email">
+          <div class="detail-divider"></div>
+          <div class="detail-row">
+            <div class="detail-icon" style="background: rgba(var(--ion-color-medium-rgb),0.12)">
+              <ion-icon name="mail-outline" color="medium"></ion-icon>
+            </div>
+            <div class="detail-info">
+              <span class="detail-label">Email</span>
+              <span class="detail-value">{{ booking.user.email }}</span>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="booking.user.phone">
+          <div class="detail-divider"></div>
+          <div class="detail-row">
+            <div class="detail-icon" style="background: rgba(37,211,102,0.12)">
+              <ion-icon name="logo-whatsapp" style="color:#25d366"></ion-icon>
+            </div>
+            <div class="detail-info">
+              <span class="detail-label">Teléfono</span>
+              <a class="detail-value link" [href]="'https://wa.me/' + booking.user.phone">{{ booking.user.phone }}</a>
+            </div>
+          </div>
+        </ng-container>
+
+      </div>
+    </div>
+
+    <!-- Notas -->
+    <div class="detail-section">
+      <div class="section-header-row">
+        <p class="section-header">Notas</p>
+        <ion-button fill="clear" size="small" (click)="editNotes()" *ngIf="isEditable">
+          <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </div>
+      <div class="detail-card notes-card">
+        <p class="notes-text" *ngIf="booking.notes">{{ booking.notes }}</p>
+        <p class="notes-empty" *ngIf="!booking.notes">Sin notas</p>
+      </div>
+    </div>
+
+    <!-- Acciones STAFF: barbero / admin barbería -->
+    <div class="actions-section" *ngIf="canMarkFinal">
+      <p class="section-header">Acciones</p>
+      <div class="actions-grid">
+
+        <ion-button
+          *ngIf="booking.status === 'PENDIENTE'"
+          expand="block" color="success" fill="solid"
+          [disabled]="saving"
+          (click)="changeStatus('CONFIRMADA')">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          Confirmar
+        </ion-button>
+
+        <ion-button
+          *ngIf="booking.status === 'CONFIRMADA'"
+          expand="block" color="primary" fill="solid"
+          [disabled]="saving"
+          (click)="changeStatus('COMPLETADA')">
+          <ion-icon name="checkmark-done-outline" slot="start"></ion-icon>
+          Completar
+        </ion-button>
+
+        <ion-button
+          *ngIf="booking.status === 'CONFIRMADA'"
+          expand="block" color="warning" fill="outline"
+          [disabled]="saving"
+          (click)="changeStatus('NO_SHOW')">
+          <ion-icon name="person-remove-outline" slot="start"></ion-icon>
+          No se presentó
+        </ion-button>
+
+        <ion-button
+          expand="block" color="danger" fill="outline"
+          [disabled]="saving"
+          (click)="changeStatus('CANCELADA')">
+          <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+          Cancelar turno
+        </ion-button>
+
+      </div>
+    </div>
+
+    <!-- Acción CLIENTE: solo cancelar -->
+    <div class="actions-section" *ngIf="canCancelOnly">
+      <p class="section-header">Acciones</p>
+      <div class="actions-grid">
+        <ion-button
+          expand="block" color="danger" fill="outline"
+          [disabled]="saving"
+          (click)="changeStatus('CANCELADA')">
+          <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+          Cancelar turno
+        </ion-button>
+      </div>
+    </div>
+
+    <!-- Cancelado por (solo cuando aplica) -->
+    <div class="detail-section" *ngIf="booking.status === 'CANCELADA' && booking.cancelledBy">
+      <p class="section-header">Cancelación</p>
+      <div class="detail-card">
+        <div class="detail-row">
+          <div class="detail-icon" style="background: rgba(var(--ion-color-danger-rgb),0.12)">
+            <ion-icon name="close-circle-outline" color="danger"></ion-icon>
+          </div>
+          <div class="detail-info">
+            <span class="detail-label">Cancelado por</span>
+            <span class="detail-value">{{ booking.cancelledBy.firstName }} {{ booking.cancelledBy.lastName }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Estado final (solo lectura) -->
+    <div class="final-state" *ngIf="!isEditable">
+      <ion-icon [name]="booking.status === 'COMPLETADA' ? 'checkmark-done-circle-outline' : 'close-circle-outline'"
+                [color]="getStatusColor(booking.status)" style="font-size:48px"></ion-icon>
+      <p>{{ getStatusLabel(booking.status) }}</p>
+    </div>
+
+    <div style="height: 40px"></div>
+
+  </ng-container>
+
+</ion-content>
