@@ -5,6 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { BarbershopDetailPage } from './barbershop-detail.page';
 import { BarbershopDetailRoutingModule } from './barbershop-detail-routing.module';
+import { SharedComponentsModule } from '../../shared/shared-components.module';
 
 @NgModule({
   imports: [
@@ -13,6 +14,7 @@ import { BarbershopDetailRoutingModule } from './barbershop-detail-routing.modul
     IonicModule,
     RouterModule,
     BarbershopDetailRoutingModule,
+    SharedComponentsModule,
   ],
   declarations: [BarbershopDetailPage],
 })

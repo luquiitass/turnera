@@ -20,8 +20,20 @@ const routes: Routes = [
         loadChildren: () => import('./my-bookings/my-bookings.module').then(m => m.MyBookingsPageModule),
       },
       {
+        path: 'booking/:id',
+        loadChildren: () => import('./booking-detail/booking-detail.module').then(m => m.BookingDetailPageModule),
+      },
+      {
+        path: 'notifications',
+        loadChildren: () => import('../client/tabs/notifications/notifications.module').then(m => m.NotificationsPageModule),
+      },
+      {
         path: 'profile',
         loadChildren: () => import('./profile/profile.module').then(m => m.ProfilePageModule),
+      },
+      {
+        path: 'dashboard',
+        loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardPageModule),
       },
       {
         path: '',

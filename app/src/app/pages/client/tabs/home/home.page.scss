@@ -1,0 +1,886 @@
+// ─── Barbería no encontrada ────────────────────────────────────────────────
+
+.not-found-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  padding: 24px;
+}
+
+.not-found-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 24px;
+  padding: 36px 28px;
+  text-align: center;
+  box-shadow: var(--app-shadow);
+  max-width: 320px;
+  width: 100%;
+
+  .not-found-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 20px;
+    background: var(--app-accent-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+
+    ion-icon {
+      font-size: 36px;
+      color: var(--ion-color-primary);
+    }
+  }
+
+  .not-found-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ion-text-color);
+    margin: 0 0 10px;
+  }
+
+  .not-found-subtitle {
+    font-size: 14px;
+    color: var(--ion-color-medium);
+    line-height: 1.6;
+    margin: 0 0 28px;
+  }
+
+  .not-found-countdown {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 24px;
+
+    .countdown-ring {
+      width: 64px;
+      height: 64px;
+      circle { transition: stroke-dashoffset 0.9s linear; }
+    }
+
+    .countdown-number {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--ion-color-primary);
+    }
+  }
+}
+
+// Schedule editor overlay
+.schedule-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+
+  .schedule-card {
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 16px;
+    margin: 0;
+
+    ion-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      ion-card-title { display: flex; align-items: center; gap: 8px; font-size: 17px; }
+    }
+  }
+}
+
+.schedule-quick-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.schedule-days {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.schedule-day {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    .day-label { font-weight: 600; font-size: 15px; &.disabled { color: var(--ion-color-medium); } }
+  }
+
+  .day-times {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+    padding-left: 52px;
+
+    .time-field {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      ion-label { font-size: 11px; color: var(--ion-color-medium); text-transform: uppercase; }
+      input[type="time"] {
+        border: 1px solid var(--ion-color-medium-tint);
+        border-radius: 8px;
+        padding: 6px 8px;
+        font-size: 15px;
+        font-weight: 600;
+        background: var(--ion-background-color);
+        color: var(--ion-text-color);
+      }
+    }
+  }
+
+  .day-off {
+    padding-left: 52px;
+    margin-top: 4px;
+    span { font-size: 13px; color: var(--ion-color-medium); font-style: italic; }
+  }
+}
+
+.save-schedule-btn { margin-top: 16px; }
+
+// Admin panel
+.admin-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(var(--ion-color-primary-rgb), 0.06);
+  cursor: pointer;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+
+  span { flex: 1; font-weight: 600; font-size: 14px; color: var(--ion-color-primary); }
+}
+
+.admin-panel {
+  padding: 12px 16px;
+  background: var(--app-surface-2);
+  border-bottom: 2px solid var(--ion-color-primary);
+
+  .admin-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+
+    .admin-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 12px 4px;
+      background: var(--app-surface);
+      border: 1px solid var(--app-border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s, box-shadow 0.15s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+
+      &:active {
+        background: var(--app-surface-2);
+        box-shadow: none;
+      }
+
+      ion-icon { font-size: 24px; }
+      span { font-size: 11px; font-weight: 600; text-align: center; color: var(--ion-text-color); }
+    }
+  }
+}
+
+.hero {
+  background: var(--ion-color-dark);
+  color: var(--ion-color-dark-contrast);
+  padding: 24px 16px;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 6px;
+  }
+
+  .hero-address {
+    font-size: 14px;
+    opacity: 0.85;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0 0 8px;
+  }
+
+  .hero-rating {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 8px;
+
+    span { font-weight: 700; margin-left: 4px; }
+    .review-count { font-size: 13px; opacity: 0.7; }
+  }
+
+  .hero-desc {
+    font-size: 14px;
+    opacity: 0.8;
+    margin: 8px 0 0;
+    line-height: 1.5;
+  }
+}
+
+.section {
+  padding: 16px;
+
+  h2 {
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0 0 12px;
+    color: var(--ion-color-dark);
+  }
+}
+
+// Amenidades
+.amenities-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+
+  .amenity-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+
+    ion-icon { font-size: 20px; flex-shrink: 0; }
+    span { font-size: 13px; font-weight: 500; }
+  }
+}
+
+// Ofertas
+.offer-card {
+  margin: 0 0 10px;
+  border-radius: 12px;
+
+  .offer-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+
+    > ion-icon:first-child { font-size: 28px; flex-shrink: 0; margin-top: 2px; }
+    .offer-info { flex: 1; }
+    .offer-info h3 { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+    .offer-info p { margin: 0; font-size: 13px; }
+    h3 { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+    p { margin: 0; font-size: 13px; }
+    .offer-discount { font-weight: 700; font-size: 15px; }
+    .offer-validity { opacity: 0.8; }
+  }
+}
+
+// Servicios
+.services-list {
+  padding: 0;
+
+  h3 { font-weight: 600; }
+
+  .service-price {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+    white-space: nowrap;
+  }
+}
+
+// Barberos
+.barbers-scroll {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scroll-snap-type: x mandatory;
+
+  .barber-card {
+    position: relative;
+
+    .barber-delete {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      z-index: 2;
+      --padding-start: 4px;
+      --padding-end: 4px;
+    }
+    min-width: 160px;
+    flex-shrink: 0;
+    background: var(--app-surface);
+    border: 1px solid var(--app-border);
+    border-radius: 14px;
+    padding: 16px 12px;
+    text-align: center;
+    scroll-snap-align: start;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+
+    .barber-avatar {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 8px;
+
+      img {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .avatar-placeholder {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: var(--ion-color-medium-tint);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        ion-icon { font-size: 32px; color: var(--ion-color-medium); }
+      }
+    }
+
+    h4 { font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+    .barber-bio { font-size: 12px; color: var(--ion-color-medium); margin: 0 0 6px; }
+    .barber-services { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+  }
+}
+
+// Resenas
+.review-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+
+  .review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+
+    strong { font-size: 14px; }
+  }
+
+  .review-text {
+    font-size: 13px;
+    color: var(--ion-color-dark-tint);
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+// ==================== CLIENT HOME (SIN SUBDOMINIO) ====================
+
+// ==================== CLIENT HOME (SIN SUBDOMINIO) — Rediseño ====================
+
+// ── Hero ──────────────────────────────────────────────────────────────────────
+.ch-hero {
+  padding: 20px 16px 16px;
+  background: linear-gradient(160deg, var(--ion-color-primary) 0%, var(--ion-color-primary-shade) 100%);
+  color: white;
+}
+
+.ch-greeting { margin-bottom: 16px; }
+.ch-hello { font-size: 14px; opacity: .8; margin: 0 0 4px; font-weight: 500; }
+.ch-title { font-size: 28px; font-weight: 900; margin: 0; line-height: 1.15; letter-spacing: -.5px; }
+
+.ch-search-wrap {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: 14px;
+  padding: 0 14px;
+  height: 50px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.15);
+  margin-bottom: 12px;
+}
+.ch-search-icon { color: var(--ion-color-medium); font-size: 20px; flex-shrink: 0; margin-right: 10px; }
+.ch-search-input {
+  flex: 1; border: none; outline: none; font-size: 15px;
+  color: var(--ion-color-dark); background: transparent;
+  &::placeholder { color: var(--ion-color-medium); }
+}
+.ch-search-clear { background: none; border: none; padding: 4px; cursor: pointer; color: var(--ion-color-medium); display: flex; }
+
+.ch-location-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
+  border-radius: 100px; padding: 5px 12px; font-size: 13px; font-weight: 500;
+  cursor: pointer; color: white;
+  &:active { background: rgba(255,255,255,.25); }
+}
+
+// ── Próxima reserva ───────────────────────────────────────────────────────────
+.ch-next-booking {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin: 12px 16px 0;
+  background: rgba(var(--ion-color-primary-rgb), .06);
+  border: 1.5px solid rgba(var(--ion-color-primary-rgb), .2);
+  border-radius: 14px; padding: 14px 16px;
+  cursor: pointer;
+  text-decoration: none; color: inherit;
+}
+.ch-nb-left { flex: 1; overflow: hidden; }
+.ch-nb-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--ion-color-primary); margin: 0 0 4px; }
+.ch-nb-date { font-size: 15px; font-weight: 700; margin: 0 0 2px; color: var(--ion-color-dark); text-transform: capitalize; }
+.ch-nb-detail { font-size: 13px; color: var(--ion-color-medium); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-nb-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.ch-nb-chip { height: 24px; font-size: 11px; --border-radius: 100px; }
+
+// ── Filtros rápidos ───────────────────────────────────────────────────────────
+.ch-filters-scroll {
+  display: flex; gap: 8px; overflow-x: auto; padding: 14px 16px 8px;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.ch-chip {
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  padding: 7px 14px; border-radius: 100px; font-size: 13px; font-weight: 600;
+  border: 1.5px solid var(--ion-color-light-shade); background: var(--ion-background-color);
+  color: var(--ion-color-medium); cursor: pointer; transition: all .15s;
+  flex-shrink: 0;
+  ion-icon { font-size: 15px; }
+  &:active { background: var(--ion-color-light); }
+  &.active {
+    background: var(--ion-color-primary); color: white;
+    border-color: var(--ion-color-primary);
+    ion-icon { color: white; }
+  }
+}
+
+// ── Barra de resultados ───────────────────────────────────────────────────────
+.ch-results-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 16px 8px;
+}
+.ch-results-count { font-size: 13px; color: var(--ion-color-medium); font-weight: 500; }
+.ch-sort-select {
+  font-size: 13px; font-weight: 600; color: var(--ion-color-primary);
+  border: none; background: transparent; outline: none; cursor: pointer;
+  padding: 4px 0;
+}
+
+// ── Lista de cards ────────────────────────────────────────────────────────────
+.ch-list { display: flex; flex-direction: column; gap: 16px; padding: 0 16px; }
+
+.ch-card {
+  border-radius: 16px; overflow: hidden;
+  background: var(--ion-color-light);
+  box-shadow: 0 2px 12px rgba(0,0,0,.07);
+  cursor: pointer; transition: transform .15s, box-shadow .15s;
+  &:active { transform: scale(.98); box-shadow: 0 1px 6px rgba(0,0,0,.06); }
+}
+
+// Foto de portada
+.ch-card-cover {
+  height: 160px; position: relative;
+  background-size: cover; background-position: center;
+  background-color: var(--ion-color-light-shade);
+}
+.ch-card-cover-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,.5) 100%);
+}
+
+// Badge rating (top right)
+.ch-rating-badge {
+  position: absolute; top: 10px; right: 10px;
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(0,0,0,.6); color: white;
+  border-radius: 100px; padding: 4px 10px; font-size: 13px; font-weight: 700;
+  backdrop-filter: blur(4px);
+  ion-icon { font-size: 13px; }
+  .ch-rating-count { font-size: 11px; opacity: .8; }
+}
+
+// Badge popularidad (top left)
+.ch-popular-badge {
+  position: absolute; top: 10px; left: 10px;
+  background: linear-gradient(135deg, #FF6B35, #FF3B6B);
+  color: white; border-radius: 100px; padding: 4px 10px;
+  font-size: 11px; font-weight: 700;
+}
+
+// Body de la card
+.ch-card-body { padding: 14px; }
+.ch-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.ch-card-name-wrap { flex: 1; overflow: hidden; }
+.ch-card-name { font-size: 17px; font-weight: 800; margin: 0 0 4px; color: var(--ion-color-dark); }
+.ch-card-address {
+  display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ion-color-medium); margin: 0;
+  ion-icon { font-size: 12px; flex-shrink: 0; }
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ch-card-distance {
+  flex-shrink: 0; font-size: 12px; font-weight: 700; color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), .1);
+  padding: 3px 8px; border-radius: 100px;
+}
+.ch-card-footer { display: flex; align-items: center; justify-content: space-between; }
+.ch-card-slots {
+  display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ion-color-medium);
+  ion-icon { font-size: 15px; }
+}
+.ch-card-btn {
+  display: flex; align-items: center; gap: 4px;
+  background: var(--ion-color-primary); color: white;
+  border: none; border-radius: 10px; padding: 8px 14px;
+  font-size: 13px; font-weight: 700; cursor: pointer;
+  ion-icon { font-size: 14px; }
+  &:active { opacity: .85; }
+}
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+.ch-card.skeleton { pointer-events: none; }
+.sk-box { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200%; animation: sk-shimmer 1.5s infinite; }
+.sk-line { height: 12px; border-radius: 6px; margin-bottom: 8px; @extend .sk-box; &.wide { width: 70%; } &.mid { width: 50%; } &.short { width: 35%; } }
+@keyframes sk-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+.ch-empty {
+  text-align: center; padding: 48px 24px;
+  .ch-empty-icon { font-size: 48px; margin-bottom: 12px; }
+  h3 { font-size: 18px; font-weight: 700; margin: 0 0 8px; color: var(--ion-color-dark); }
+  p { font-size: 14px; color: var(--ion-color-medium); margin: 0 0 20px; }
+}
+
+
+// Cover con img tag (reemplaza background-image)
+.ch-card-cover {
+  position: relative;
+  height: 160px;
+  overflow: hidden;
+  background-color: var(--ion-color-light-shade);
+}
+.ch-card-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+// Logo / ícono de la barbería
+.ch-card-logo-wrap {
+  position: absolute;
+  bottom: -20px;
+  left: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 3px solid var(--ion-background-color, #fff);
+  overflow: hidden;
+  background: var(--ion-color-light);
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+  z-index: 2;
+}
+.ch-card-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+// Cuando hay logo, el body tiene padding-top extra para no solaparse
+.ch-card-body.has-logo {
+  padding-top: 28px;
+}
+
+// Placeholder cuando no hay imagen de portada
+.ch-card-cover::before {
+  content: '✂';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+.ch-card-cover-img:not([src=""]) {
+  position: relative;
+  z-index: 1;
+}
+
+// ── Acciones rápidas ──────────────────────────────────────────────────────────
+.ch-quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 0;
+}
+
+.ch-qa-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--ion-color-light);
+  border: 1.5px solid var(--ion-color-light-shade);
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  transition: transform .15s, box-shadow .15s;
+  &:active { transform: scale(.98); }
+
+  &.primary {
+    background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+    border-color: transparent;
+    .ch-qa-icon { background: rgba(255,255,255,.2); ion-icon { color: white; } }
+    .ch-qa-title { color: white; }
+    .ch-qa-sub { color: rgba(255,255,255,.75); }
+    .ch-qa-arrow { color: rgba(255,255,255,.8); }
+  }
+}
+
+.ch-qa-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  border-radius: 12px;
+  background: rgba(var(--ion-color-primary-rgb), .1);
+  display: flex; align-items: center; justify-content: center;
+  ion-icon { font-size: 22px; color: var(--ion-color-primary); }
+}
+
+.ch-qa-text { flex: 1; overflow: hidden; }
+.ch-qa-title { display: block; font-size: 15px; font-weight: 700; color: var(--ion-color-dark); margin-bottom: 2px; }
+.ch-qa-sub { display: block; font-size: 12px; color: var(--ion-color-medium); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-qa-arrow { font-size: 18px; color: var(--ion-color-medium); flex-shrink: 0; }
+
+// ── Service picker ────────────────────────────────────────────────────────────
+.ch-service-picker {
+  margin: 10px 16px 0;
+  background: var(--ion-color-light);
+  border: 1.5px solid var(--ion-color-light-shade);
+  border-radius: 14px;
+  padding: 12px 14px;
+  animation: picker-in .2s ease;
+}
+
+@keyframes picker-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ch-sp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 10px; font-size: 13px; font-weight: 700; color: var(--ion-color-dark);
+}
+.ch-sp-close {
+  background: none; border: none; padding: 2px; cursor: pointer;
+  color: var(--ion-color-medium); display: flex;
+  ion-icon { font-size: 20px; }
+}
+.ch-sp-chips {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.ch-sp-chip {
+  padding: 6px 14px; border-radius: 100px; font-size: 13px; font-weight: 600;
+  border: 1.5px solid var(--ion-color-light-shade); background: var(--ion-background-color);
+  color: var(--ion-color-medium); cursor: pointer; transition: all .15s;
+  &:active { background: var(--ion-color-light); }
+  &.active {
+    background: var(--ion-color-primary); color: white;
+    border-color: var(--ion-color-primary);
+  }
+}
+
+// ── Servicio activo ───────────────────────────────────────────────────────────
+.ch-active-service {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 16px 0;
+  padding: 8px 12px;
+  background: rgba(var(--ion-color-primary-rgb), .08);
+  border: 1.5px solid rgba(var(--ion-color-primary-rgb), .25);
+  border-radius: 100px;
+  width: fit-content;
+
+  ion-icon:first-child { font-size: 16px; color: var(--ion-color-primary); flex-shrink: 0; }
+
+  span {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+  }
+}
+
+.ch-active-service-remove {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: var(--ion-color-primary);
+  opacity: .7;
+  ion-icon { font-size: 18px; }
+  &:active { opacity: 1; }
+}
+
+// ── Próxima reserva (rediseño completo) ───────────────────────────────────────
+.ch-next-booking {
+  margin: 12px 16px 0;
+  background: var(--ion-color-light);
+  border: 1.5px solid rgba(var(--ion-color-success-rgb), .3);
+  border-radius: 16px;
+  padding: 14px 16px;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform .15s;
+  &:active { transform: scale(.98); }
+}
+
+.ch-nb-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.ch-nb-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ch-nb-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--ion-color-success);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .5; transform: scale(1.3); }
+}
+.ch-nb-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: var(--ion-color-success);
+}
+.ch-nb-chip {
+  height: 22px;
+  font-size: 11px;
+  --border-radius: 100px;
+}
+
+.ch-nb-barbershop {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ion-color-dark);
+  margin: 0 0 10px;
+  ion-icon { font-size: 16px; color: var(--ion-color-primary); }
+}
+
+.ch-nb-datetime {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.ch-nb-date-block,
+.ch-nb-time-block {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--ion-color-dark-tint);
+  ion-icon { font-size: 15px; color: var(--ion-color-medium); flex-shrink: 0; }
+}
+.ch-nb-date-block { font-weight: 600; text-transform: capitalize; }
+
+.ch-nb-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--ion-color-light-shade);
+  border-bottom: 1px solid var(--ion-color-light-shade);
+  margin-bottom: 10px;
+}
+.ch-nb-detail-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  ion-icon { font-size: 14px; flex-shrink: 0; }
+  &.price {
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+}
+
+.ch-nb-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  ion-icon { font-size: 15px; }
+}
+
+// Hero bottom row (location pill + map button)
+.ch-hero-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ch-map-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.35);
+  border-radius: 100px;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  white-space: nowrap;
+  ion-icon { font-size: 15px; }
+  &:active { background: rgba(255,255,255,.25); }
+}

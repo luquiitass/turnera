@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Patch, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { BarbershopsService } from './barbershops.service.js';
 import {
@@ -23,6 +23,18 @@ export class BarbershopsController {
   @Roles(Role.ADMIN_BARBERSHOP, Role.SUB_ADMIN)
   getMyBarbershops(@CurrentUser('id') userId: string) {
     return this.barbershopsService.getMyBarbershops(userId);
+  }
+
+  @Get('admin/all')
+  @Roles(Role.ADMIN_GENERAL)
+  findAllAdmin() {
+    return this.barbershopsService.findAllAdmin();
+  }
+
+  @Put(':id/activate')
+  @Roles(Role.ADMIN_GENERAL)
+  activate(@Param('id') id: string) {
+    return this.barbershopsService.activate(id);
   }
 
   @Public()
@@ -69,10 +81,37 @@ export class BarbershopsController {
     return this.barbershopsService.update(id, dto);
   }
 
+  @Patch(':id/slug')
+  @Roles(Role.ADMIN_GENERAL)
+  updateSlug(@Param('id') id: string, @Body('slug') slug: string | null) {
+    return this.barbershopsService.updateSlug(id, slug ?? null);
+  }
+
   @Delete(':id')
   @Roles(Role.ADMIN_GENERAL)
   deactivate(@Param('id') id: string) {
     return this.barbershopsService.deactivate(id);
+  }
+
+  @Post(':id/images')
+  @Roles(Role.ADMIN_BARBERSHOP)
+  @UseGuards(BarbershopOwnershipGuard)
+  addImage(@Param('id') barbershopId: string, @Body('imageId') imageId: string) {
+    return this.barbershopsService.addImage(barbershopId, imageId);
+  }
+
+  @Delete(':id/images/:imageId')
+  @Roles(Role.ADMIN_BARBERSHOP)
+  @UseGuards(BarbershopOwnershipGuard)
+  removeImage(@Param('id') barbershopId: string, @Param('imageId') imageId: string) {
+    return this.barbershopsService.removeImage(barbershopId, imageId);
+  }
+
+  @Post(':id/subscription/comision')
+  @Roles(Role.ADMIN_BARBERSHOP, Role.ADMIN_GENERAL)
+  @UseGuards(BarbershopOwnershipGuard)
+  activateComision(@Param('id') id: string) {
+    return this.barbershopsService.activateComisionPlan(id);
   }
 
   @Post(':id/admins')

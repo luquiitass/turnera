@@ -76,9 +76,11 @@ export class WhatsAppService {
         text: message,
       }),
     });
+    const body = await res.text();
     if (!res.ok) {
-      const err = await res.text();
-      this.logger.warn(`Evolution API error ${res.status}: ${err}`);
+      this.logger.warn(`Evolution API error ${res.status}: ${body}`);
+    } else {
+      this.logger.log(`Evolution API sent to ${to}: ${res.status} ${body.slice(0, 80)}`);
     }
   }
 

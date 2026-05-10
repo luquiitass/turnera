@@ -1,0 +1,239 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Panel Admin</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadData()" [disabled]="loading">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Hidden file inputs for image upload -->
+  <input id="file-input-PORTADA" type="file" accept="image/*" style="display:none" (change)="onFileSelected($event, 'PORTADA')">
+  <input id="file-input-ICONO"   type="file" accept="image/*" style="display:none" (change)="onFileSelected($event, 'ICONO')">
+  <input id="file-input-GALERIA" type="file" accept="image/*" style="display:none" (change)="onFileSelected($event, 'GALERIA')">
+
+  <div *ngIf="loading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- Alertas de configuración -->
+    <app-alerts-admin-barber
+      [barbershop]="barbershop"
+      [hasSchedules]="hasSchedules"
+      (actionClicked)="handleAlertAction($event)">
+    </app-alerts-admin-barber>
+
+    <!-- Nombre -->
+    <div class="panel-header">
+      <h2>{{ barbershop?.name }}</h2>
+      <p>{{ barbershop?.address }}</p>
+    </div>
+
+    <!-- Grid de acciones (11 items = barbershop-detail + Estadísticas) -->
+    <div class="admin-grid">
+      <div *ngFor="let item of adminMenuItems"
+           class="admin-item"
+           (click)="handleAction(item.action)">
+        <div class="admin-item-icon">
+          <ion-icon [name]="item.icon" color="primary"></ion-icon>
+        </div>
+        <span>{{ item.label }}</span>
+      </div>
+    </div>
+
+    <!-- Agenda de barberos -->
+    <div class="section" *ngIf="barbers.length > 0">
+      <h3 class="section-title">
+        <ion-icon name="people-outline"></ion-icon>
+        Agenda de hoy
+      </h3>
+      <div *ngFor="let barber of barbers" class="barber-agenda-item">
+        <div class="barber-header" (click)="toggleBarberAgenda(barber)">
+          <div class="barber-info">
+            <p class="barber-name">{{ barber.firstName }} {{ barber.lastName }}</p>
+            <p class="barber-bio" *ngIf="barber.bio">{{ barber.bio }}</p>
+          </div>
+          <ion-icon [name]="showBarberAgenda[barber.id] ? 'chevron-up-outline' : 'chevron-down-outline'" color="medium"></ion-icon>
+        </div>
+        <div *ngIf="showBarberAgenda[barber.id]" class="barber-slots">
+          <div *ngIf="barberAgendaSlots.length > 0" class="slots-list">
+            <div *ngFor="let slot of barberAgendaSlots" class="slot-item">
+              <span class="slot-time">{{ slot.startTime }}</span>
+              <span class="slot-service">{{ slot.service?.name }}</span>
+              <ion-chip [color]="slot.status === 'CONFIRMADA' ? 'success' : 'warning'" class="slot-chip">{{ slot.status }}</ion-chip>
+            </div>
+          </div>
+          <p *ngIf="barberAgendaSlots.length === 0" class="empty-slots">Sin turnos para hoy</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 32px"></div>
+
+  </ng-container>
+
+  <!-- SCHEDULE EDITOR OVERLAY -->
+  <div class="overlay" *ngIf="showScheduleEditor">
+    <ion-card class="overlay-card">
+      <ion-card-header>
+        <div class="overlay-header-row">
+          <ion-card-title>
+            <ion-icon name="time-outline"></ion-icon>
+            {{ scheduleBarber?.firstName }} {{ scheduleBarber?.lastName }}
+          </ion-card-title>
+          <ion-button fill="clear" size="small" (click)="closeScheduleEditor()">
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="quick-actions">
+          <ion-button size="small" fill="outline" (click)="applyToWeekdays()">L–V</ion-button>
+          <ion-button size="small" fill="outline" (click)="applyToAllDays()">Todos</ion-button>
+        </div>
+        <div class="schedule-days">
+          <div *ngFor="let day of scheduleData" class="schedule-day">
+            <div class="day-header">
+              <ion-toggle [(ngModel)]="day.enabled"></ion-toggle>
+              <span class="day-label" [class.disabled]="!day.enabled">{{ day.label }}</span>
+            </div>
+            <div *ngIf="day.enabled" class="day-times">
+              <div class="time-field"><ion-label>Desde</ion-label><input type="time" [(ngModel)]="day.openTime"/></div>
+              <div class="time-field"><ion-label>Hasta</ion-label><input type="time" [(ngModel)]="day.closeTime"/></div>
+            </div>
+            <p *ngIf="!day.enabled" class="day-off">No trabaja</p>
+          </div>
+        </div>
+        <ion-button expand="block" color="primary" (click)="saveSchedules()">
+          <ion-icon name="checkmark-outline" slot="start"></ion-icon>Guardar horarios
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- PLAN MANAGER OVERLAY -->
+  <div class="overlay" *ngIf="showPlanManager">
+    <ion-card class="overlay-card">
+      <ion-card-header>
+        <div class="overlay-header-row">
+          <ion-card-title>
+            <ion-icon name="card-outline"></ion-icon>
+            Plan — {{ currentPlan }}
+          </ion-card-title>
+          <ion-button fill="clear" size="small" (click)="closePlanManager()">
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+        <div *ngIf="planLoading" class="ion-text-center ion-padding">
+          <ion-spinner name="crescent"></ion-spinner>
+        </div>
+        <ng-container *ngIf="!planLoading">
+          <div class="plan-option" [class.active]="currentPlan === 'GRATUITO'">
+            <ion-icon name="gift-outline" color="medium"></ion-icon>
+            <div class="plan-info">
+              <p class="plan-name">Gratuito</p>
+              <p class="plan-desc">Sin costo mensual, funciones básicas</p>
+            </div>
+          </div>
+          <div class="plan-option" [class.active]="currentPlan === 'SUSCRIPCION'">
+            <ion-icon name="card-outline" color="primary"></ion-icon>
+            <div class="plan-info">
+              <p class="plan-name">Suscripción</p>
+              <p class="plan-desc">Costo fijo mensual, todas las funciones</p>
+            </div>
+            <ion-button *ngIf="currentPlan !== 'SUSCRIPCION'" size="small" fill="outline" (click)="activarSuscripcion()">Activar</ion-button>
+          </div>
+          <div class="plan-option" [class.active]="currentPlan === 'COMISION'">
+            <ion-icon name="trending-up-outline" color="success"></ion-icon>
+            <div class="plan-info">
+              <p class="plan-name">Comisión</p>
+              <p class="plan-desc">Sin costo fijo, 10% por reserva</p>
+            </div>
+            <ion-button *ngIf="currentPlan !== 'COMISION'" size="small" fill="outline" color="success" (click)="activarComision()">Activar</ion-button>
+          </div>
+          <ion-button *ngIf="currentPlan !== 'GRATUITO'" expand="block" fill="clear" color="danger" (click)="cancelarPlan()">
+            Cancelar plan actual
+          </ion-button>
+        </ng-container>
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+  <!-- IMAGE MANAGER OVERLAY -->
+  <div class="overlay" *ngIf="showImageManager">
+    <ion-card class="overlay-card">
+      <ion-card-header>
+        <div class="overlay-header-row">
+          <ion-card-title>
+            <ion-icon name="images-outline"></ion-icon>
+            Imágenes
+          </ion-card-title>
+          <ion-button fill="clear" size="small" (click)="closeImageManager()">
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+        <div *ngIf="uploadingImage" class="ion-text-center ion-padding">
+          <ion-spinner name="crescent"></ion-spinner><p>Subiendo imagen...</p>
+        </div>
+
+        <!-- Portada -->
+        <div class="img-row">
+          <p class="img-label">Foto de portada</p>
+          <div class="img-preview" *ngIf="getImage('PORTADA')">
+            <img [src]="getImage('PORTADA')!" class="preview-img">
+            <ion-button fill="clear" color="danger" size="small" (click)="deleteImage(getImageId('PORTADA')!)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+          <ion-button fill="outline" size="small" (click)="triggerFileInput('PORTADA')" [disabled]="uploadingImage">
+            <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+            {{ getImage('PORTADA') ? 'Cambiar' : 'Subir' }}
+          </ion-button>
+        </div>
+
+        <!-- Logo / Icono -->
+        <div class="img-row">
+          <p class="img-label">Logo / Ícono</p>
+          <div class="img-preview" *ngIf="getImage('ICONO')">
+            <img [src]="getImage('ICONO')!" class="preview-img preview-logo">
+            <ion-button fill="clear" color="danger" size="small" (click)="deleteImage(getImageId('ICONO')!)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+          <ion-button fill="outline" size="small" (click)="triggerFileInput('ICONO')" [disabled]="uploadingImage">
+            <ion-icon name="cloud-upload-outline" slot="start"></ion-icon>
+            {{ getImage('ICONO') ? 'Cambiar' : 'Subir' }}
+          </ion-button>
+        </div>
+
+        <!-- Galería -->
+        <div class="img-row">
+          <p class="img-label">Galería (fotos adicionales)</p>
+          <ion-button fill="outline" size="small" (click)="triggerFileInput('GALERIA')" [disabled]="uploadingImage">
+            <ion-icon name="add-outline" slot="start"></ion-icon>
+            Agregar foto
+          </ion-button>
+        </div>
+
+      </ion-card-content>
+    </ion-card>
+  </div>
+
+</ion-content>

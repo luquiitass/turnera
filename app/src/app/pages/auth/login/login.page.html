@@ -61,6 +61,20 @@
 
     </form>
 
+    <!-- Separador -->
+    <div class="divider">
+      <span>o continuar con</span>
+    </div>
+
+    <!-- Google Sign In -->
+    <div class="google-btn-wrapper">
+      <div id="google-btn-container"></div>
+      <div *ngIf="googleLoading" class="ion-text-center ion-padding-top">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p style="font-size:13px;color:var(--ion-color-medium);margin-top:6px">Verificando con Google...</p>
+      </div>
+    </div>
+
     <div class="register-link ion-text-center ion-margin-top">
       <ion-text>
         <p>

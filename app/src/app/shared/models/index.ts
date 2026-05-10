@@ -20,29 +20,68 @@ export interface BarbershopAdmin {
   user?: { id: string; email: string; firstName: string; lastName: string; avatarUrl?: string };
 }
 
+export type ImageType = 'ICONO' | 'PORTADA' | 'PERFIL' | 'GALERIA';
+
+export interface Image {
+  id: string;
+  path: string;
+  url: string;
+  name?: string;
+  type: ImageType;
+  mimeType?: string;
+  size?: number;
+  createdAt: string;
+}
+
+export interface BarbershopImage {
+  id: string;
+  barbershopId: string;
+  imageId: string;
+  image: Image;
+  createdAt: string;
+}
+
 export interface Barbershop {
   id: string;
   name: string;
+  slug?: string;
   description?: string;
   address: string;
   latitude?: number;
   longitude?: number;
   phone?: string;
-  coverImage?: string;
-  logoImage?: string;
   depositAmount: number;
   cancellationHours: number;
   maxBarbers: number;
+  maxBarberImages: number;
   isActive: boolean;
+  images?: BarbershopImage[];
   barbers?: Barber[];
   services?: BarbershopServiceLink[];
   amenities?: BarbershopAmenity[];
   reviews?: Review[];
   offers?: Offer[];
   admins?: BarbershopAdmin[];
+  subscription?: {
+    plan: string;
+    isActive: boolean;
+    commissionRate?: number;
+    minDepositRate?: number;
+    nextBillingDate?: string;
+    mpPreapprovalId?: string;
+  };
   avgRating?: number;
   totalReviews?: number;
   _count?: { barbers: number; services: number };
+}
+
+export interface BarberImage {
+  id: string;
+  barberId: string;
+  imageId: string;
+  sortOrder: number;
+  image: Image;
+  createdAt: string;
 }
 
 export interface Barber {
@@ -51,21 +90,12 @@ export interface Barber {
   firstName: string;
   lastName: string;
   bio?: string;
-  avatarUrl?: string;
   phone?: string;
   isActive: boolean;
   services?: BarberService[];
   schedules?: Schedule[];
   images?: BarberImage[];
   barbershop?: { id: string; name: string };
-}
-
-export interface BarberImage {
-  id: string;
-  barberId: string;
-  imageUrl: string;
-  caption?: string;
-  sortOrder: number;
 }
 
 export interface BarberService {
@@ -190,7 +220,7 @@ export interface Offer {
   validFrom: string;
   validUntil: string;
   isActive: boolean;
-  barbershop?: { id: string; name: string; logoImage?: string };
+  barbershop?: { id: string; name: string };
 }
 
 export interface ApiResponse<T> {

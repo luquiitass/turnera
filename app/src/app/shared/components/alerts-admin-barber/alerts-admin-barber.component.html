@@ -1,0 +1,42 @@
+<div class="setup-alerts" *ngIf="barbershop && hasAnyAlert">
+
+  <div class="setup-alert" *ngIf="missingServices">
+    <div class="alert-icon">
+      <ion-icon name="cut-outline" color="warning"></ion-icon>
+    </div>
+    <div class="alert-body">
+      <p class="alert-title">Sin servicios configurados</p>
+      <p class="alert-msg">Agregá servicios para que los clientes puedan reservar.</p>
+    </div>
+    <ion-button size="small" fill="solid" color="warning" (click)="emit('add-service')">
+      Agregar
+    </ion-button>
+  </div>
+
+  <div class="setup-alert" *ngIf="missingBarbers">
+    <div class="alert-icon">
+      <ion-icon name="person-add-outline" color="warning"></ion-icon>
+    </div>
+    <div class="alert-body">
+      <p class="alert-title">Sin barberos registrados</p>
+      <p class="alert-msg">Agregá un barbero para comenzar a recibir reservas.</p>
+    </div>
+    <ion-button size="small" fill="solid" color="warning" (click)="emit('add-barber')">
+      Agregar
+    </ion-button>
+  </div>
+
+  <div class="setup-alert" *ngIf="missingSchedules">
+    <div class="alert-icon">
+      <ion-icon name="time-outline" color="warning"></ion-icon>
+    </div>
+    <div class="alert-body">
+      <p class="alert-title">Sin horarios configurados</p>
+      <p class="alert-msg">Configurá los horarios de tus barberos para habilitar reservas.</p>
+    </div>
+    <ion-button size="small" fill="solid" color="warning" (click)="emit('manage-schedules')">
+      Configurar
+    </ion-button>
+  </div>
+
+</div>

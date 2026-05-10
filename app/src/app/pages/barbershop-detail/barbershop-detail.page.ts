@@ -1,14 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AlertController, ToastController } from '@ionic/angular';
 import { BarbershopsService } from '../../services/barbershops.service';
 import { BarbersService } from '../../services/barbers.service';
 import { ServicesService } from '../../services/services.service';
 import { SchedulesService } from '../../services/schedules.service';
 import { AmenitiesService } from '../../services/amenities.service';
+import { UploadService, UploadEvent } from '../../services/upload.service';
+import { GeocodingService } from '../../core/geocoding.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Barbershop, Amenity } from '../../shared/models';
+import { Barbershop, Amenity, ImageType, Barber } from '../../shared/models';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -23,17 +26,71 @@ export class BarbershopDetailPage implements OnInit {
   error: string | null = null;
 
   isAdmin = false;
+  isSuperAdmin = false;
+  showAdminPanel = false;
+  hasSchedules = true;
   allAmenities: Amenity[] = [];
   barbershopAmenityIds: string[] = [];
 
+  showPlanManager = false;
+  planStatus: any = null;
+  planLoading = false;
+  showImageManager = false;
+  uploadingFor: string | null = null;
+  uploadStatus: 'idle' | 'compressing' | 'uploading' = 'idle';
+  uploadProgress = 0;
+
+  viewerImages: string[] = [];
+  viewerIndex = 0;
+  viewerSlideDir: 'left' | 'right' | null = null;
+  private touchStartX = 0;
+
+  get viewerUrl(): string | null {
+    return this.viewerImages.length ? this.viewerImages[this.viewerIndex] : null;
+  }
+
+  openViewer(images: string | string[], index = 0): void {
+    this.viewerImages = Array.isArray(images) ? images : [images];
+    this.viewerIndex  = index;
+    this.viewerSlideDir = null;
+  }
+
+  closeViewer(): void { this.viewerImages = []; }
+
+  viewerPrev(): void {
+    if (this.viewerIndex === 0) return;
+    this.viewerSlideDir = 'right';
+    setTimeout(() => { this.viewerIndex--; this.viewerSlideDir = null; }, 10);
+  }
+
+  viewerNext(): void {
+    if (this.viewerIndex === this.viewerImages.length - 1) return;
+    this.viewerSlideDir = 'left';
+    setTimeout(() => { this.viewerIndex++; this.viewerSlideDir = null; }, 10);
+  }
+
+  onViewerTouchStart(e: TouchEvent): void {
+    this.touchStartX = e.touches[0].clientX;
+  }
+
+  onViewerTouchEnd(e: TouchEvent): void {
+    const delta = e.changedTouches[0].clientX - this.touchStartX;
+    if (Math.abs(delta) < 50) return;
+    delta < 0 ? this.viewerNext() : this.viewerPrev();
+  }
+
   adminMenuItems = [
-    { icon: 'person-add-outline', label: 'Agregar Barbero', action: 'add-barber' },
-    { icon: 'cut-outline', label: 'Agregar Servicio', action: 'add-service' },
-    { icon: 'link-outline', label: 'Asignar Servicios', action: 'assign-services' },
-    { icon: 'time-outline', label: 'Gestionar Horarios', action: 'manage-schedules' },
-    { icon: 'pricetag-outline', label: 'Ofertas', action: 'manage-offers' },
-    { icon: 'leaf-outline', label: 'Caracteristicas', action: 'manage-amenities' },
-    { icon: 'settings-outline', label: 'Configuracion', action: 'edit-settings' },
+    { icon: 'person-add-outline',  label: 'Agregar Barbero',   action: 'add-barber' },
+    { icon: 'cut-outline',         label: 'Agregar Servicio',  action: 'add-service' },
+    { icon: 'link-outline',        label: 'Asignar Servicios', action: 'assign-services' },
+    { icon: 'time-outline',        label: 'Gestionar Horarios',action: 'manage-schedules' },
+    { icon: 'card-outline',        label: 'Plan',              action: 'manage-plan' },
+    { icon: 'location-outline',    label: 'Ubicacion',         action: 'edit-location' },
+    { icon: 'images-outline',      label: 'Imagenes',          action: 'manage-images' },
+    { icon: 'pricetag-outline',    label: 'Ofertas',           action: 'manage-offers' },
+    { icon: 'leaf-outline',        label: 'Caracteristicas',   action: 'manage-amenities' },
+    { icon: 'settings-outline',    label: 'Configuracion',     action: 'edit-settings' },
+    { icon: 'stats-chart-outline', label: 'Estadisticas',      action: 'stats' },
   ];
 
   constructor(
@@ -48,6 +105,9 @@ export class BarbershopDetailPage implements OnInit {
     private http: HttpClient,
     private alertController: AlertController,
     private toastController: ToastController,
+    private uploadService: UploadService,
+    private geocodingService: GeocodingService,
+    private sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit(): void {
@@ -83,28 +143,39 @@ export class BarbershopDetailPage implements OnInit {
     const role = this.authService.activeRole;
     if (role === 'ADMIN_GENERAL') {
       this.isAdmin = true;
+      this.isSuperAdmin = true;
+      this.checkSetupAlerts();
       return;
     }
     if (role === 'ADMIN_BARBERSHOP' || role === 'SUB_ADMIN') {
-      // Check via API if user is admin of this barbershop
       this.barbershopsService.getMyBarbershops().subscribe({
         next: (res: any) => {
           const myBarbershops = Array.isArray(res.data) ? res.data : [];
           this.isAdmin = myBarbershops.some(
             (bs: any) => bs.id === this.barbershop?.id
           );
+          if (this.isAdmin) this.checkSetupAlerts();
         },
       });
     }
   }
 
+  checkSetupAlerts(): void {
+    const barbers = this.barbershop?.barbers || [];
+    if (!barbers.length) return;
+    this.schedulesService.getByBarber(barbers[0].id).subscribe({
+      next: (res: any) => { this.hasSchedules = (res.data || []).length > 0; },
+      error: () => { this.hasSchedules = false; },
+    });
+  }
+
   goBack(): void {
-    this.router.navigate(['/tabs/home']);
+    this.router.navigate(['/admin/tabs/home']);
   }
 
   navigateToBooking(): void {
     if (this.barbershop) {
-      this.router.navigate(['/booking-flow'], {
+      this.router.navigate(['/admin/booking-flow'], {
         queryParams: { barbershopId: this.barbershop.id },
       });
     }
@@ -120,15 +191,85 @@ export class BarbershopDetailPage implements OnInit {
 
   // ==================== ADMIN ACTIONS ====================
 
+  get currentSlug(): string {
+    const slug = this.barbershop?.slug ?? '';
+    return slug.startsWith('disabled-') ? '' : slug;
+  }
+
+  get subdomainUrl(): string {
+    if (!this.currentSlug) return '';
+    const base = (environment as any).baseDomains?.[0] ?? 'turnera.es';
+    return `https://${this.currentSlug}.${base}`;
+  }
+
+  async manageSlug(): Promise<void> {
+    const currentSlug = this.currentSlug;
+    const alert = await this.alertController.create({
+      header: 'Gestionar subdominio',
+      message: currentSlug
+        ? `Subdominio actual: <strong>${currentSlug}</strong>`
+        : 'Esta barbería no tiene subdominio asignado.',
+      inputs: [
+        {
+          name: 'slug',
+          type: 'text',
+          placeholder: 'ej: barber-alem',
+          value: currentSlug,
+          attributes: { autocapitalize: 'none', autocorrect: 'off' },
+        },
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        ...(currentSlug ? [{
+          text: 'Eliminar',
+          cssClass: 'alert-button-danger',
+          handler: () => { this.setSlug(null); return true; },
+        }] : []),
+        {
+          text: currentSlug ? 'Actualizar' : 'Asignar',
+          handler: (data: any) => {
+            const newSlug = data.slug?.trim().toLowerCase();
+            if (!newSlug) { this.showToast('Ingresá un slug', 'warning'); return false; }
+            if (newSlug === currentSlug) { return true; }
+            this.setSlug(newSlug);
+            return true;
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  setSlugPublic(slug: string | null): void { this.setSlug(slug); }
+
+  private setSlug(slug: string | null): void {
+    if (!this.barbershop) return;
+    this.barbershopsService.updateSlug(this.barbershop.id, slug).subscribe({
+      next: (res: any) => {
+        this.barbershop = { ...this.barbershop!, slug: res.data?.slug ?? slug ?? '' };
+        const msg = slug ? `Subdominio actualizado: ${slug}` : 'Subdominio eliminado';
+        this.showToast(msg, 'success');
+      },
+      error: (err: any) => {
+        const msg = err?.error?.error?.message ?? 'Error al actualizar el subdominio';
+        this.showToast(msg, 'danger');
+      },
+    });
+  }
+
   async handleAdminAction(action: string): Promise<void> {
     switch (action) {
       case 'add-barber': return this.addBarber();
       case 'add-service': return this.addService();
       case 'assign-services': return this.assignServicesToBarber();
       case 'manage-schedules': return this.manageSchedules();
+      case 'manage-plan': return this.openPlanManager();
+      case 'edit-location': return this.editLocation();
+      case 'manage-images': this.showImageManager = true; return;
       case 'manage-offers': return this.manageOffers();
       case 'manage-amenities': return this.manageAmenities();
       case 'edit-settings': return this.editSettings();
+      case 'stats': this.router.navigate(['/admin/tabs/dashboard'], { queryParams: { barbershopId: this.barbershop?.id } }); return;
     }
   }
 
@@ -693,6 +834,238 @@ export class BarbershopDetailPage implements OnInit {
       ],
     });
     await alert.present();
+  }
+
+  // ==================== PLAN MANAGER ====================
+
+  openPlanManager(): void {
+    this.showPlanManager = true;
+    this.planLoading = true;
+    this.http.get<any>(`${environment.apiUrl}/mp/subscriptions/${this.barbershop!.id}/status`).subscribe({
+      next: (res) => { this.planStatus = res.data ?? res; this.planLoading = false; },
+      error: () => { this.planLoading = false; },
+    });
+  }
+
+  closePlanManager(): void { this.showPlanManager = false; }
+
+  getCurrentPlan(): string {
+    return this.barbershop?.subscription?.plan ?? 'GRATUITO';
+  }
+
+  activateSuscripcion(): void {
+    const email = this.authService.currentUser?.email;
+    if (!email) { this.showToast('No se pudo obtener el email', 'danger'); return; }
+
+    this.http.post<any>(
+      `${environment.apiUrl}/mp/subscriptions/${this.barbershop!.id}`,
+      { payerEmail: email },
+    ).subscribe({
+      next: (res) => {
+        const url = res.data?.initPoint ?? res.initPoint;
+        if (url) window.open(url, '_blank');
+        this.closePlanManager();
+      },
+      error: () => this.showToast('Error al iniciar suscripción', 'danger'),
+    });
+  }
+
+  activateComision(): void {
+    this.barbershopsService.update(this.barbershop!.id, { businessModel: 'COMISION' } as any).subscribe({
+      next: () => {
+        this.http.post<any>(`${environment.apiUrl}/barbershops/${this.barbershop!.id}/subscription/comision`, {}).subscribe({
+          next: () => { this.showToast('Plan Comisión activado', 'success'); this.loadBarbershop(this.barbershop!.id); this.closePlanManager(); },
+          error: () => this.showToast('Error al activar plan', 'danger'),
+        });
+      },
+      error: () => this.showToast('Error al actualizar plan', 'danger'),
+    });
+  }
+
+  cancelPlan(): void {
+    this.http.delete<any>(`${environment.apiUrl}/mp/subscriptions/${this.barbershop!.id}`).subscribe({
+      next: () => { this.showToast('Suscripción cancelada', 'success'); this.loadBarbershop(this.barbershop!.id); this.closePlanManager(); },
+      error: () => this.showToast('Error al cancelar', 'danger'),
+    });
+  }
+
+  // ==================== LOCATION ====================
+
+  async editLocation(): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Ubicación',
+      message: 'Ingresa la nueva dirección de la barbería.',
+      inputs: [
+        {
+          name: 'address',
+          type: 'text',
+          placeholder: 'Ej: Av. Corrientes 1234, Buenos Aires',
+          value: this.barbershop?.address || '',
+        },
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Geocodificar y guardar',
+          handler: (data) => {
+            const address = data.address?.trim();
+            if (!address) {
+              this.showToast('Ingresa una dirección', 'warning');
+              return false;
+            }
+            this.geocodingService.validateAddress(address).subscribe({
+              next: (res: any) => {
+                const result = res?.data ?? res;
+                this.barbershopsService.update(this.barbershop!.id, {
+                  address: result.formattedAddress || address,
+                  latitude: result.lat,
+                  longitude: result.lng,
+                } as any).subscribe({
+                  next: () => {
+                    this.showToast('Ubicación actualizada', 'success');
+                    this.loadBarbershop(this.barbershop!.id);
+                  },
+                  error: () => this.showToast('Error al guardar', 'danger'),
+                });
+              },
+              error: () => this.showToast('No se pudo geocodificar la dirección', 'danger'),
+            });
+            return true;
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  getMapUrl(): SafeResourceUrl {
+    const { latitude: lat, longitude: lng } = this.barbershop!;
+    const d = 0.008;
+    const url = `https://www.openstreetmap.org/export/embed.html?bbox=${lng! - d},${lat! - d},${lng! + d},${lat! + d}&layer=mapnik&marker=${lat},${lng}`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  openDirections(): void {
+    const { latitude: lat, longitude: lng, address } = this.barbershop!;
+    const dest = lat && lng ? `${lat},${lng}` : encodeURIComponent(address);
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}`, '_blank');
+  }
+
+  // ==================== IMAGE MANAGER ====================
+
+  closeImageManager(): void {
+    this.showImageManager = false;
+  }
+
+  triggerFileInput(target: string): void {
+    if (this.uploadStatus !== 'idle') return;
+    this.uploadingFor = target;
+    const input = document.getElementById('imageFileInput') as HTMLInputElement;
+    input?.click();
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file || !this.uploadingFor) return;
+    input.value = '';
+
+    const target = this.uploadingFor;
+    this.uploadingFor = null;
+    this.uploadStatus = 'compressing';
+    this.uploadProgress = 0;
+
+    const type = this.getImageTypeForTarget(target);
+
+    this.uploadService.uploadImage(file, type).subscribe({
+      next: (evt: UploadEvent) => {
+        if (evt.progress < 100) {
+          this.uploadStatus = 'uploading';
+          this.uploadProgress = evt.progress;
+        } else {
+          this.uploadProgress = 100;
+          this.uploadStatus = 'idle';
+          this.linkImage(target, evt.image!.id);
+        }
+      },
+      error: () => {
+        this.uploadStatus = 'idle';
+        this.uploadProgress = 0;
+        this.showToast('Error al subir imagen', 'danger');
+      },
+    });
+  }
+
+  private getImageTypeForTarget(target: string): ImageType {
+    if (target === 'logo') return 'ICONO';
+    if (target === 'cover') return 'PORTADA';
+    if (target === 'gallery') return 'GALERIA';
+    return 'PERFIL'; // avatar-{barberId}
+  }
+
+  private linkImage(target: string, imageId: string): void {
+    const reload = () => this.loadBarbershop(this.barbershop!.id);
+
+    if (target === 'logo' || target === 'cover' || target === 'gallery') {
+      this.barbershopsService.addImage(this.barbershop!.id, imageId).subscribe({
+        next: () => { this.showToast('Imagen actualizada', 'success'); reload(); },
+        error: (err: any) => {
+          const msg = err?.error?.error?.message || 'Error al guardar imagen';
+          this.showToast(msg, 'danger');
+        },
+      });
+    } else if (target.startsWith('avatar-')) {
+      const barberId = target.replace('avatar-', '');
+      this.barbersService.addImage(barberId, imageId).subscribe({
+        next: () => { this.showToast('Avatar actualizado', 'success'); reload(); },
+        error: (err: any) => {
+          const msg = err?.error?.error?.message || 'Error al guardar imagen';
+          this.showToast(msg, 'danger');
+        },
+      });
+    }
+  }
+
+  getBarbershopImage(type: ImageType): { url: string } | undefined {
+    return this.barbershop?.images?.find(i => i.image.type === type)?.image;
+  }
+
+  getBarberImage(barber: Barber, type: ImageType): { url: string } | undefined {
+    return barber.images?.find(i => i.image.type === type)?.image;
+  }
+
+  getBarberGallery(barber: Barber) {
+    return barber.images?.filter(i => i.image.type === 'GALERIA') ?? [];
+  }
+
+  getBarberGalleryUrls(barber: Barber): string[] {
+    return this.getBarberGallery(barber).map(r => r.image.url);
+  }
+
+  getBarbershopGallery() {
+    return this.barbershop?.images?.filter(i => i.image.type === 'GALERIA') ?? [];
+  }
+
+  getBarbershopGalleryUrls(): string[] {
+    return this.getBarbershopGallery().map(r => r.image.url);
+  }
+
+  deleteBarberImage(relationId: string): void {
+    this.barbersService.removeImage(relationId).subscribe({
+      next: () => { this.showToast('Imagen eliminada', 'success'); this.loadBarbershop(this.barbershop!.id); },
+      error: () => this.showToast('Error al eliminar imagen', 'danger'),
+    });
+  }
+
+  deleteBarbershopImage(imageId: string): void {
+    this.barbershopsService.removeImage(this.barbershop!.id, imageId).subscribe({
+      next: () => { this.showToast('Imagen eliminada', 'success'); this.loadBarbershop(this.barbershop!.id); },
+      error: () => this.showToast('Error al eliminar imagen', 'danger'),
+    });
+  }
+
+  getMaxImages(): number {
+    return this.barbershop?.maxBarberImages ?? 3;
   }
 
   async showToast(message: string, color: string): Promise<void> {

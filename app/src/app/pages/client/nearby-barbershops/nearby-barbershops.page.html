@@ -1,0 +1,129 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Barberías en el mapa</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadAll()" [disabled]="loading">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="map-page-content" [scrollY]="false">
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="split-container">
+
+    <!-- ── MAPA (mitad superior) ── -->
+    <div class="map-half">
+      <div id="leaflet-map" class="leaflet-map"></div>
+
+      <!-- Loading overlay -->
+      <div class="map-loading" *ngIf="loading">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <span>Cargando barberías...</span>
+      </div>
+
+      <!-- Contador + botón ubicación -->
+      <div class="map-top-bar" *ngIf="!loading">
+        <div class="map-count-badge">
+          {{ allBarbershops.length }} barbería{{ allBarbershops.length !== 1 ? 's' : '' }}
+        </div>
+        <button class="map-location-btn" (click)="requestLocation()"
+                [title]="hasLocation ? 'Actualizar ubicación' : 'Activar ubicación'">
+          <ion-icon [name]="hasLocation ? 'locate-outline' : 'location-outline'"
+                    [color]="hasLocation ? 'primary' : 'medium'"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Slider de radio -->
+      <div class="map-radius-bar" *ngIf="hasLocation && !loading">
+        <ion-icon name="radio-outline" color="primary" style="font-size:16px;flex-shrink:0"></ion-icon>
+        <ion-range
+          [(ngModel)]="radiusKm"
+          [min]="1" [max]="50" [step]="1"
+          (ionChange)="onRadiusChange()"
+          color="primary"
+          class="radius-range">
+        </ion-range>
+        <span class="radius-label">{{ radiusKm }} km</span>
+      </div>
+    </div>
+
+    <!-- ── LISTA (mitad inferior) ── -->
+    <div class="list-half">
+
+      <div class="list-search-wrap">
+        <ion-icon name="search-outline" class="list-search-icon"></ion-icon>
+        <input
+          class="list-search-input"
+          type="search"
+          [(ngModel)]="searchQuery"
+          (input)="onSearch()"
+          placeholder="Filtrar barberías..."/>
+        <button *ngIf="searchQuery" class="list-search-clear" (click)="clearSearch()">
+          <ion-icon name="close-circle"></ion-icon>
+        </button>
+      </div>
+
+      <div class="list-header">
+        <h3>{{ searchQuery ? 'Resultados' : 'Todas las barberías' }}</h3>
+        <span class="list-count" *ngIf="displayList.length">{{ displayList.length }}</span>
+        <span class="list-sorted" *ngIf="hasLocation && !searchQuery">· por distancia</span>
+      </div>
+
+      <div class="bs-list" *ngIf="!loading && displayList.length > 0">
+        <div
+          *ngFor="let bs of displayList"
+          [id]="'bs-item-' + bs.id"
+          class="bs-item"
+          [class.selected]="selectedId === bs.id"
+          (click)="selectBarbershop(bs.id)">
+
+          <div class="bs-item-logo">
+            <img *ngIf="getImage(bs)" [src]="getImage(bs)" [alt]="bs.name"
+                 (error)="$any($event.target).style.display='none'">
+            <ion-icon *ngIf="!getImage(bs)" name="storefront-outline"></ion-icon>
+          </div>
+
+          <div class="bs-item-info">
+            <p class="bs-item-name">{{ bs.name }}</p>
+            <p class="bs-item-address">
+              <ion-icon name="location-outline"></ion-icon>
+              {{ bs.address }}
+            </p>
+            <div class="bs-item-meta">
+              <span class="bs-item-dist" *ngIf="bs._dist != null">
+                <ion-icon name="navigate-outline"></ion-icon>
+                {{ formatDist(bs._dist) }}
+              </span>
+              <span class="bs-item-rating" *ngIf="bs.avgRating">
+                <ion-icon name="star" color="warning"></ion-icon>
+                {{ bs.avgRating | number:'1.1-1' }}
+                <span *ngIf="bs.totalReviews">({{ bs.totalReviews }})</span>
+              </span>
+            </div>
+          </div>
+
+          <ion-button fill="clear" size="small"
+                      (click)="$event.stopPropagation(); goToBarbershop(bs.id)">
+            <ion-icon name="arrow-forward-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </div>
+
+      <div class="list-empty" *ngIf="!loading && displayList.length === 0">
+        <ion-icon name="storefront-outline" color="medium"></ion-icon>
+        <p>No hay barberías disponibles</p>
+      </div>
+
+    </div>
+  </div>
+
+</ion-content>

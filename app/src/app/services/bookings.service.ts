@@ -31,6 +31,10 @@ export class BookingsService {
     return this.http.put<ApiResponse<Booking>>(`${this.url}/${id}/cancel`, {});
   }
 
+  updateStatus(id: string, status: string): Observable<ApiResponse<Booking>> {
+    return this.http.put<ApiResponse<Booking>>(`${this.url}/${id}/status`, { status });
+  }
+
   getByBarbershop(barbershopId: string, filters?: any): Observable<ApiResponse<PaginatedData<Booking>>> {
     let params = new HttpParams();
     if (filters?.status) params = params.set('status', filters.status);

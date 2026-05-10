@@ -1,0 +1,234 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/admin/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="header-title">
+        <span class="title-text">Dashboard</span>
+        <span class="barbershop-name" *ngIf="barbershopName">{{ barbershopName }}</span>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadAll()" [disabled]="loading">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-note slot="end" class="update-note" *ngIf="lastUpdated && !loading">
+      {{ lastUpdated }}
+    </ion-note>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="dashboard-content">
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content pullingText="Soltar para actualizar" refreshingSpinner="crescent"></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando dashboard...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="!loading && error" class="error-state">
+    <ion-icon name="alert-circle-outline" color="danger"></ion-icon>
+    <p>No se pudo cargar el dashboard</p>
+    <ion-button fill="outline" size="small" (click)="loadAll()">Reintentar</ion-button>
+  </div>
+
+  <ng-container *ngIf="!loading && !error">
+
+    <!-- Fecha -->
+    <div class="date-header">
+      <p class="date-label">{{ formatTodayFull() }}</p>
+    </div>
+
+    <!-- ── KPIs ── -->
+    <div class="kpi-grid">
+
+      <div class="kpi-card accent-gold">
+        <div class="kpi-icon">📅</div>
+        <div class="kpi-value">{{ stats?.reservasHoy ?? todayBookings.length }}</div>
+        <div class="kpi-label">Reservas hoy</div>
+        <div class="kpi-sub" *ngIf="upcomingBookings.length > 0">
+          {{ upcomingBookings.length }} próximas
+        </div>
+      </div>
+
+      <div class="kpi-card accent-green">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-value">{{ formatPrice(stats?.ingresosMes) }}</div>
+        <div class="kpi-label">Ingresos del mes</div>
+        <div class="kpi-sub" *ngIf="stats?.ingresosHoy">
+          Hoy: {{ formatPrice(stats?.ingresosHoy) }}
+        </div>
+      </div>
+
+      <div class="kpi-card accent-yellow">
+        <div class="kpi-icon">⭐</div>
+        <div class="kpi-value">{{ stats?.rating ? (stats.rating | number:'1.1-1') : '—' }}</div>
+        <div class="kpi-label">Calificación</div>
+        <div class="kpi-sub">promedio general</div>
+      </div>
+
+      <div class="kpi-card accent-blue">
+        <div class="kpi-icon">✂️</div>
+        <div class="kpi-value">{{ barbers.length }}</div>
+        <div class="kpi-label">Barberos activos</div>
+        <div class="kpi-sub">{{ stats?.cancelaciones ?? 0 }} cancel. mes</div>
+      </div>
+
+    </div>
+
+    <!-- ── AGENDA BARBEROS ── -->
+    <div class="section-header">
+      <h3 class="section-title">
+        <ion-icon name="people-outline"></ion-icon>
+        Barberos — hoy
+      </h3>
+    </div>
+
+    <div class="barbers-row" *ngIf="barbers.length > 0">
+      <div *ngFor="let barber of barbers" class="barber-card"
+           [class.busy]="isCurrentlyBusy(barber)">
+
+        <div class="barber-card-top">
+          <div class="barber-avatar" [class.has-photo]="barber.images?.[0]?.image?.url">
+            <img *ngIf="barber.images?.[0]?.image?.url"
+                 [src]="barber.images[0].image.url"
+                 class="avatar-img">
+            <span *ngIf="!barber.images?.[0]?.image?.url">
+              {{ getInitials(barber.firstName, barber.lastName) }}
+            </span>
+            <span class="status-dot" [class.online]="isCurrentlyBusy(barber)"></span>
+          </div>
+          <div class="barber-meta">
+            <p class="barber-name">{{ barber.firstName }} {{ barber.lastName }}</p>
+            <p class="barber-status" [class.busy-text]="isCurrentlyBusy(barber)">
+              {{ isCurrentlyBusy(barber) ? 'En turno' : 'Disponible' }}
+            </p>
+          </div>
+        </div>
+
+        <div class="barber-stats-row">
+          <div class="barber-stat">
+            <span class="stat-val">{{ getBarberConfirmedCount(barber.id) }}</span>
+            <span class="stat-lab">turnos</span>
+          </div>
+          <div class="barber-divider"></div>
+          <div class="barber-stat">
+            <span class="stat-val">{{ getBarberOccupancy(barber.id) }}%</span>
+            <span class="stat-lab">ocupado</span>
+          </div>
+        </div>
+
+        <div class="occupancy-bar">
+          <div class="occupancy-fill" [style.width.%]="getBarberOccupancy(barber.id)"></div>
+        </div>
+
+        <div class="barber-next" *ngIf="getBarberNextBooking(barber.id) as next">
+          <ion-icon name="time-outline" class="next-icon"></ion-icon>
+          <span>{{ formatTime(next.startTime) }} · {{ next.user?.firstName }} {{ next.user?.lastName }}</span>
+        </div>
+        <div class="barber-next no-more" *ngIf="!getBarberNextBooking(barber.id)">
+          <ion-icon name="checkmark-circle-outline" class="next-icon"></ion-icon>
+          <span>Sin turnos pendientes</span>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="empty-barbers" *ngIf="barbers.length === 0">
+      <p>No hay barberos activos</p>
+    </div>
+
+    <!-- ── PRÓXIMAS RESERVAS ── -->
+    <div class="section-header">
+      <h3 class="section-title">
+        <ion-icon name="calendar-outline"></ion-icon>
+        Próximas reservas
+      </h3>
+      <span class="section-badge" *ngIf="upcomingBookings.length > 0">
+        {{ upcomingBookings.length }}
+      </span>
+    </div>
+
+    <div *ngIf="upcomingBookings.length === 0 && !loading" class="empty-state">
+      <ion-icon name="calendar-outline" color="medium"></ion-icon>
+      <p>No hay más reservas para hoy</p>
+    </div>
+
+    <div class="bookings-list" *ngIf="upcomingBookings.length > 0">
+      <div *ngFor="let b of upcomingBookings" class="booking-row"
+           [routerLink]="['/tabs/booking', b.id]">
+
+        <div class="booking-time-col">
+          <span class="booking-time">{{ formatTime(b.startTime) }}</span>
+          <span class="booking-end">→ {{ formatTime(b.endTime) }}</span>
+        </div>
+
+        <div class="booking-barber-badge"
+             [style.background]="getBarberColor(b.barber?.id)">
+          {{ getInitials(b.barber?.firstName, b.barber?.lastName) }}
+        </div>
+
+        <div class="booking-info">
+          <p class="booking-client">
+            {{ b.user?.firstName }} {{ b.user?.lastName }}
+          </p>
+          <p class="booking-service">
+            {{ b.service?.name }}
+            <span class="barber-tag">· {{ b.barber?.firstName }}</span>
+          </p>
+        </div>
+
+        <div class="booking-right">
+          <span class="booking-price" *ngIf="b.totalPrice">
+            {{ formatPrice(b.totalPrice) }}
+          </span>
+          <ion-chip [color]="getStatusColor(b.status)" outline class="status-chip">
+            {{ getStatusLabel(b.status) }}
+          </ion-chip>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── PASADAS (colapsado) ── -->
+    <div class="section-header" *ngIf="pastBookings.length > 0" style="margin-top: 8px">
+      <h3 class="section-title past-title">
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+        Anteriores de hoy
+        <span class="section-badge muted">{{ pastBookings.length }}</span>
+      </h3>
+    </div>
+
+    <div class="bookings-list past-list" *ngIf="pastBookings.length > 0">
+      <div *ngFor="let b of pastBookings" class="booking-row past"
+           [routerLink]="['/tabs/booking', b.id]">
+        <div class="booking-time-col">
+          <span class="booking-time muted">{{ formatTime(b.startTime) }}</span>
+        </div>
+        <div class="booking-barber-badge muted">
+          {{ getInitials(b.barber?.firstName, b.barber?.lastName) }}
+        </div>
+        <div class="booking-info">
+          <p class="booking-client muted">{{ b.user?.firstName }} {{ b.user?.lastName }}</p>
+          <p class="booking-service muted">{{ b.service?.name }} · {{ b.barber?.firstName }}</p>
+        </div>
+        <div class="booking-right">
+          <ion-chip [color]="getStatusColor(b.status)" outline class="status-chip small">
+            {{ getStatusLabel(b.status) }}
+          </ion-chip>
+        </div>
+      </div>
+    </div>
+
+    <div style="height: 24px"></div>
+
+  </ng-container>
+
+</ion-content>

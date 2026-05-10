@@ -1,14 +1,3 @@
-/*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
- */
-
 /* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 
@@ -18,20 +7,293 @@
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
 
-/* Optional CSS utils that can be commented out */
+/* Optional CSS utils */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
+/* Theme variables */
+@import "theme/variables";
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import "@ionic/angular/css/palettes/dark.system.css";
+// ─── Responsive max-width (tablet / desktop) ─────────────────────────────────
+
+@media (min-width: 600px) {
+  html, body {
+    height: 100%;
+    background: var(--app-desktop-bg, #0d0d14);
+  }
+
+  ion-app {
+    max-width: 480px;
+    margin: 0 auto;
+    height: 100%;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.05),
+      0 8px 32px rgba(0,0,0,0.6),
+      0 32px 80px rgba(0,0,0,0.4);
+    border-radius: 0 0 16px 16px;
+    overflow: hidden;
+  }
+}
+
+// ─── Global token defaults (antes de que cargue el tema) ─────────────────────
+
+:root {
+  --app-surface:       #1a1a2e;
+  --app-surface-2:     #16213e;
+  --app-border:        rgba(255,255,255,0.07);
+  --app-shadow:        0 8px 32px rgba(0,0,0,0.4);
+  --app-gradient:      linear-gradient(145deg, #0f0f1a 0%, #1a1a2e 55%, #0d2137 100%);
+  --app-hero-gradient: linear-gradient(160deg, #0d0d14 0%, #1a1a2e 40%, #16213e 70%, #0d2137 100%);
+  --app-accent-glow:   rgba(79,142,247,0.18);
+}
+
+// ─── ion-content ─────────────────────────────────────────────────────────────
+
+ion-content {
+  --background: var(--ion-background-color);
+}
+
+// ─── ion-toolbar ─────────────────────────────────────────────────────────────
+
+ion-toolbar {
+  --background: var(--ion-toolbar-background);
+  --color: var(--ion-text-color);
+  --border-color: var(--app-border);
+  --border-width: 0 0 1px 0;
+}
+
+ion-header ion-toolbar:last-child {
+  --border-width: 0 0 1px 0;
+  box-shadow: 0 1px 0 var(--app-border);
+}
+
+// ─── ion-card ────────────────────────────────────────────────────────────────
+
+ion-card {
+  --background: var(--ion-card-background);
+  --color: var(--ion-text-color);
+  border-radius: 16px !important;
+  box-shadow: var(--app-shadow) !important;
+  margin: 10px 16px;
+  border: 1px solid var(--app-border);
+}
+
+ion-card-title {
+  color: var(--ion-text-color);
+}
+
+ion-card-subtitle {
+  color: var(--ion-color-medium);
+}
+
+// ─── ion-list / ion-item ─────────────────────────────────────────────────────
+
+ion-list {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+ion-item {
+  --background: var(--app-surface);
+  --background-activated: var(--app-surface-2);
+  --background-hover: var(--app-surface-2);
+  --color: var(--ion-text-color);
+  --border-color: var(--app-border);
+  --padding-start: 16px;
+  --min-height: 52px;
+}
+
+// ─── ion-tab-bar ─────────────────────────────────────────────────────────────
+
+ion-tab-bar {
+  --background: var(--ion-tab-bar-background);
+  --border: 1px solid var(--ion-tab-bar-border-color);
+  --color: var(--ion-tab-bar-color, var(--ion-color-medium));
+  --color-selected: var(--ion-tab-bar-color-selected, var(--ion-color-primary));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+ion-tab-button {
+  --color: var(--ion-tab-bar-color, var(--ion-color-medium));
+  --color-selected: var(--ion-tab-bar-color-selected, var(--ion-color-primary));
+  --background: transparent;
+
+  ion-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+}
+
+// ─── ion-button ──────────────────────────────────────────────────────────────
+
+ion-button {
+  --border-radius: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: none;
+
+  &[expand="block"] {
+    height: 48px;
+  }
+}
+
+// ─── ion-searchbar ───────────────────────────────────────────────────────────
+
+ion-searchbar {
+  --background: var(--app-surface);
+  --color: var(--ion-text-color);
+  --placeholder-color: var(--ion-color-medium);
+  --icon-color: var(--ion-color-medium);
+  --border-radius: 12px;
+  --box-shadow: none;
+  --border: 1px solid var(--app-border);
+  padding-inline: 0 !important;
+}
+
+// ─── ion-segment ─────────────────────────────────────────────────────────────
+
+ion-segment {
+  --background: var(--app-surface);
+  border-radius: 10px;
+  margin: 6px 12px;
+  border: 1px solid var(--app-border);
+}
+
+ion-segment-button {
+  --color: var(--ion-color-medium);
+  --color-checked: var(--ion-color-primary);
+  --indicator-color: var(--app-surface-2);
+  --border-radius: 8px;
+  min-height: 36px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+// ─── ion-chip ────────────────────────────────────────────────────────────────
+
+ion-chip {
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+// ─── ion-input / ion-textarea ────────────────────────────────────────────────
+
+ion-input, ion-textarea {
+  --background: var(--app-surface);
+  --color: var(--ion-text-color);
+  --placeholder-color: var(--ion-color-medium);
+  --border-radius: 10px;
+}
+
+// ─── ion-select ──────────────────────────────────────────────────────────────
+
+ion-select {
+  --background: var(--app-surface);
+  --color: var(--ion-text-color);
+}
+
+// ─── ion-toggle ──────────────────────────────────────────────────────────────
+
+ion-toggle {
+  --track-background: var(--app-surface-2);
+  --track-background-checked: var(--ion-color-primary);
+}
+
+// ─── ion-spinner ─────────────────────────────────────────────────────────────
+
+ion-spinner {
+  color: var(--ion-color-primary);
+}
+
+// ─── Scrollbar (webkit) ──────────────────────────────────────────────────────
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--app-border);
+  border-radius: 4px;
+}
+
+// ─── Tab badge de notificaciones ─────────────────────────────────────────────
+
+.notif-tab {
+  position: relative;
+
+  ion-badge {
+    position: absolute;
+    top: 4px;
+    right: calc(50% - 18px);
+    font-size: 9px;
+    font-weight: 700;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    line-height: 16px;
+    z-index: 10;
+  }
+}
+
+// ─── Global utility classes ──────────────────────────────────────────────────
+
+.surface-card {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.surface-card-2 {
+  background: var(--app-surface-2);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.section-header {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--ion-color-medium);
+  padding: 20px 16px 10px;
+  margin: 0;
+}
+
+.page-padding-bottom {
+  height: 80px;
+}
+
+/* ── Marcadores Leaflet para barberías ── */
+.map-bs-pin {
+  width: 34px; height: 34px;
+  background: var(--ion-color-primary, #3880ff);
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; cursor: pointer;
+  transition: transform .15s, background .15s;
+  &:hover { transform: rotate(-45deg) scale(1.15); }
+}
+
+.map-user-pin {
+  width: 16px; height: 16px;
+  background: #007aff; border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 0 4px rgba(0,122,255,.25);
+  animation: user-location-pulse 2s infinite;
+}
+
+@keyframes user-location-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(0,122,255,.25); }
+  50%       { box-shadow: 0 0 0 8px rgba(0,122,255,.05); }
+}

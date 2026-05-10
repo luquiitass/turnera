@@ -10,6 +10,18 @@ export class BarbershopsService {
 
   constructor(private http: HttpClient) {}
 
+  getAllAdmin(): Observable<ApiResponse<Barbershop[]>> {
+    return this.http.get<ApiResponse<Barbershop[]>>(`${this.url}/admin/all`);
+  }
+
+  deactivate(id: string): Observable<ApiResponse<Barbershop>> {
+    return this.http.delete<ApiResponse<Barbershop>>(`${this.url}/${id}`);
+  }
+
+  activate(id: string): Observable<ApiResponse<Barbershop>> {
+    return this.http.put<ApiResponse<Barbershop>>(`${this.url}/${id}/activate`, {});
+  }
+
   getAll(params?: { search?: string; page?: number; limit?: number }): Observable<ApiResponse<PaginatedData<Barbershop>>> {
     let httpParams = new HttpParams();
     if (params?.search) httpParams = httpParams.set('search', params.search);
@@ -32,5 +44,17 @@ export class BarbershopsService {
 
   update(id: string, data: Partial<Barbershop>): Observable<ApiResponse<Barbershop>> {
     return this.http.put<ApiResponse<Barbershop>>(`${this.url}/${id}`, data);
+  }
+
+  updateSlug(id: string, slug: string | null): Observable<ApiResponse<Barbershop>> {
+    return this.http.patch<ApiResponse<Barbershop>>(`${this.url}/${id}/slug`, { slug });
+  }
+
+  addImage(barbershopId: string, imageId: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.url}/${barbershopId}/images`, { imageId });
+  }
+
+  removeImage(barbershopId: string, imageId: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.url}/${barbershopId}/images/${imageId}`);
   }
 }

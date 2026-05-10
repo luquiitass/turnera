@@ -1,9 +1,14 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/home" text="Volver"></ion-back-button>
+      <ion-back-button defaultHref="/admin/tabs/home" text="Volver"></ion-back-button>
     </ion-buttons>
     <ion-title>Detalle de Barberia</ion-title>
+    <ion-buttons slot="end" *ngIf="isAdmin">
+      <ion-button (click)="showAdminPanel = true">
+        <ion-icon name="settings-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -25,18 +30,31 @@
   <!-- Content -->
   <div *ngIf="!isLoading && !error && barbershop">
 
+    <!-- Setup Alerts (admin only) -->
+    <app-alerts-admin-barber
+      *ngIf="isAdmin"
+      [barbershop]="barbershop"
+      [hasSchedules]="hasSchedules"
+      (actionClicked)="handleAdminAction($event)">
+    </app-alerts-admin-barber>
+
     <!-- Hero Section -->
     <div class="hero-section">
-      <div class="hero-image-placeholder" [style.backgroundImage]="barbershop.coverImage ? 'url(' + barbershop.coverImage + ')' : 'none'">
-        <div *ngIf="!barbershop.coverImage" class="hero-placeholder-content">
+      <div class="hero-image-placeholder" [style.backgroundImage]="getBarbershopImage('PORTADA') ? 'url(' + getBarbershopImage('PORTADA')!.url + ')' : 'none'" [class.clickable]="getBarbershopImage('PORTADA')" (click)="getBarbershopImage('PORTADA') && openViewer([getBarbershopImage('PORTADA')!.url])">
+        <div *ngIf="!getBarbershopImage('PORTADA')" class="hero-placeholder-content">
           <ion-icon name="business-outline"></ion-icon>
         </div>
         <div class="hero-overlay">
           <div class="hero-info">
-            <h1 class="hero-name">{{ barbershop.name }}</h1>
-            <div class="hero-address">
-              <ion-icon name="location-outline"></ion-icon>
-              <span>{{ barbershop.address }}</span>
+            <div class="hero-top-row">
+              <!-- Avatar de la barbería -->
+              <div class="hero-avatar">
+                <img *ngIf="getBarbershopImage('ICONO')" [src]="getBarbershopImage('ICONO')!.url" alt="Logo" />
+                <ion-icon *ngIf="!getBarbershopImage('ICONO')" name="storefront-outline"></ion-icon>
+              </div>
+              <div class="hero-text">
+                <h1 class="hero-name">{{ barbershop.name }}</h1>
+              </div>
             </div>
             <div class="hero-rating" *ngIf="barbershop.avgRating !== undefined">
               <span class="star" *ngFor="let filled of getStarArray(barbershop.avgRating)" [class.filled]="filled">
@@ -78,26 +96,63 @@
       </div>
     </div>
 
-    <!-- ADMIN PANEL -->
-    <div class="section admin-panel" *ngIf="isAdmin">
-      <ion-card class="admin-card">
+    <!-- Location Map -->
+    <div class="section" *ngIf="barbershop.latitude && barbershop.longitude">
+      <ion-card class="info-card location-card">
         <ion-card-header>
           <ion-card-title>
-            <ion-icon name="shield-outline" color="primary"></ion-icon>
-            Panel de Administracion
+            <ion-icon name="location-outline"></ion-icon>
+            Ubicación
           </ion-card-title>
-          <ion-card-subtitle>Gestiona esta barberia</ion-card-subtitle>
         </ion-card-header>
         <ion-card-content>
-          <div class="admin-grid">
-            <div class="admin-item" *ngFor="let item of adminMenuItems" (click)="handleAdminAction(item.action)">
-              <ion-icon [name]="item.icon" color="primary"></ion-icon>
-              <span>{{ item.label }}</span>
-            </div>
-          </div>
+          <iframe
+            class="location-map"
+            [src]="getMapUrl()"
+            frameborder="0"
+            scrolling="no"
+            marginheight="0"
+            marginwidth="0"
+            allowfullscreen>
+          </iframe>
+          <p class="location-address">{{ barbershop.address }}</p>
+          <ion-button expand="block" color="primary" fill="outline" (click)="openDirections()">
+            <ion-icon name="navigate-outline" slot="start"></ion-icon>
+            Cómo llegar
+          </ion-button>
         </ion-card-content>
       </ion-card>
     </div>
+
+    <!-- ADMIN PANEL OVERLAY (se abre con el ícono ⚙️ del header) -->
+    <div class="admin-panel-overlay" *ngIf="showAdminPanel" (click)="showAdminPanel = false">
+      <div class="admin-panel-sheet" (click)="$event.stopPropagation()">
+        <div class="admin-panel-header">
+          <span>Panel de Administración</span>
+          <ion-button fill="clear" size="small" (click)="showAdminPanel = false">
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+        <div class="admin-grid">
+          <div class="admin-item" *ngFor="let item of adminMenuItems"
+               (click)="handleAdminAction(item.action); showAdminPanel = false">
+            <div class="admin-item-icon">
+              <ion-icon [name]="item.icon" color="primary"></ion-icon>
+            </div>
+            <span>{{ item.label }}</span>
+          </div>
+          <!-- Subdominio — solo super admin -->
+          <div class="admin-item" *ngIf="isSuperAdmin"
+               (click)="manageSlug(); showAdminPanel = false">
+            <div class="admin-item-icon">
+              <ion-icon name="globe-outline" color="tertiary"></ion-icon>
+            </div>
+            <span>Subdominio</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
 
     <!-- Description -->
     <div class="section" *ngIf="barbershop.description">
@@ -113,31 +168,30 @@
 
     <!-- Services Section -->
     <div class="section" *ngIf="barbershop.services && barbershop.services.length > 0">
-      <ion-card class="info-card">
-        <ion-card-header>
-          <ion-card-title>
-            <ion-icon name="cut-outline"></ion-icon>
-            Servicios
-          </ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <ion-list lines="full" class="service-list">
-            <ion-item *ngFor="let bs of barbershop.services" class="service-item">
-              <ion-label>
-                <h3>{{ $any(bs).service?.name || $any(bs).name }}</h3>
-                <p *ngIf="$any(bs).service?.description">{{ $any(bs).service.description }}</p>
-                <p class="service-meta">
-                  <ion-icon name="time-outline"></ion-icon>
-                  {{ bs.durationMin }} min
-                </p>
-              </ion-label>
-              <div slot="end" class="service-price">
-                {{ formatPrice(bs.price) }}
-              </div>
-            </ion-item>
-          </ion-list>
-        </ion-card-content>
-      </ion-card>
+      <h2 class="section-title">
+        <ion-icon name="cut-outline"></ion-icon>
+        Servicios
+      </h2>
+      <div class="services-grid">
+        <div class="service-card" *ngFor="let bs of barbershop.services">
+          <div class="service-card-top">
+            <div class="service-icon-wrap">
+              <ion-icon name="cut-outline"></ion-icon>
+            </div>
+            <span class="service-price-tag">{{ formatPrice(bs.price) }}</span>
+          </div>
+          <p class="service-name">{{ $any(bs).service?.name || $any(bs).name }}</p>
+          <p class="service-desc" *ngIf="$any(bs).service?.description">
+            {{ $any(bs).service.description }}
+          </p>
+          <div class="service-footer">
+            <span class="service-duration">
+              <ion-icon name="time-outline"></ion-icon>
+              {{ bs.durationMin }} min
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Barbers Section -->
@@ -150,12 +204,13 @@
         <ion-card class="barber-card" *ngFor="let barber of barbershop.barbers">
           <div class="barber-avatar-container">
             <img
-              *ngIf="barber.avatarUrl"
-              [src]="barber.avatarUrl"
+              *ngIf="getBarberImage(barber, 'PERFIL')"
+              [src]="getBarberImage(barber, 'PERFIL')!.url"
               [alt]="barber.firstName + ' ' + barber.lastName"
               class="barber-avatar"
+              (click)="openViewer([getBarberImage(barber, 'PERFIL')!.url])"
             />
-            <div *ngIf="!barber.avatarUrl" class="barber-avatar-placeholder">
+            <div *ngIf="!getBarberImage(barber, 'PERFIL')" class="barber-avatar-placeholder">
               <ion-icon name="person-outline"></ion-icon>
             </div>
           </div>
@@ -163,12 +218,14 @@
             <ion-card-title>{{ barber.firstName }} {{ barber.lastName }}</ion-card-title>
             <ion-card-subtitle *ngIf="barber.bio">{{ barber.bio }}</ion-card-subtitle>
           </ion-card-header>
-          <ion-card-content *ngIf="barber.services && barber.services.length > 0">
-            <p class="barber-services-label">Servicios:</p>
-            <div class="barber-services-chips">
-              <ion-chip *ngFor="let bs of barber.services" size="small" color="primary" outline="true">
-                <ion-label>{{ bs.service?.name }}</ion-label>
-              </ion-chip>
+          <ion-card-content>
+            <div *ngIf="barber.services && barber.services.length > 0">
+              <p class="barber-services-label">Servicios:</p>
+              <div class="barber-services-chips">
+                <ion-chip *ngFor="let bs of barber.services" size="small" color="primary" outline="true">
+                  <ion-label>{{ bs.service?.name }}</ion-label>
+                </ion-chip>
+              </div>
             </div>
           </ion-card-content>
         </ion-card>
@@ -210,6 +267,23 @@
           </div>
         </ion-card-content>
       </ion-card>
+    </div>
+
+    <!-- Gallery Section (al final) -->
+    <div class="section" *ngIf="getBarbershopGallery().length > 0">
+      <h2 class="section-title">
+        <ion-icon name="images-outline"></ion-icon>
+        Galería
+      </h2>
+      <div class="barbershop-gallery">
+        <img
+          *ngFor="let rel of getBarbershopGallery(); let i = index"
+          [src]="rel.image.url"
+          alt="Galería"
+          class="gallery-thumb"
+          (click)="openViewer(getBarbershopGalleryUrls(), i)"
+        />
+      </div>
     </div>
 
     <!-- Bottom padding for FAB -->
@@ -273,6 +347,259 @@
         </ion-button>
       </ion-card-content>
     </ion-card>
+  </div>
+
+  <!-- ==================== PLAN MANAGER OVERLAY ==================== -->
+  <div class="img-manager-overlay" *ngIf="showPlanManager">
+    <div class="img-manager-panel">
+      <div class="img-manager-header">
+        <div class="img-manager-title">
+          <ion-icon name="card-outline"></ion-icon>
+          Gestionar Plan
+        </div>
+        <button class="img-manager-close-btn" (click)="closePlanManager()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+      <div class="img-manager-body">
+
+        <div *ngIf="planLoading" class="plan-loading">
+          <ion-spinner name="crescent" color="primary"></ion-spinner>
+        </div>
+
+        <div *ngIf="!planLoading">
+
+          <!-- Estado actual -->
+          <div class="plan-current">
+            <p class="plan-current-label">Plan activo</p>
+            <div class="plan-badge" [ngClass]="{
+              'plan-free':     getCurrentPlan() === 'GRATUITO',
+              'plan-sub':      getCurrentPlan() === 'SUSCRIPCION',
+              'plan-comision': getCurrentPlan() === 'COMISION'
+            }">
+              <ion-icon [name]="getCurrentPlan() === 'GRATUITO' ? 'gift-outline' : getCurrentPlan() === 'SUSCRIPCION' ? 'repeat-outline' : 'flash-outline'"></ion-icon>
+              {{ getCurrentPlan() }}
+            </div>
+            <p class="plan-next-billing" *ngIf="planStatus?.nextBillingDate">
+              Próximo cobro: {{ planStatus.nextBillingDate | date:'dd/MM/yyyy' }}
+            </p>
+          </div>
+
+          <!-- Opciones de plan -->
+          <div class="plan-options">
+
+            <!-- Gratuito -->
+            <div class="plan-option" [class.active]="getCurrentPlan() === 'GRATUITO'">
+              <div class="plan-option-header">
+                <ion-icon name="gift-outline" color="medium"></ion-icon>
+                <div>
+                  <p class="plan-option-name">Gratuito</p>
+                  <p class="plan-option-desc">Hasta 3 barberos · 3 fotos · sin pagos online</p>
+                </div>
+                <span class="plan-option-price">$0</span>
+              </div>
+            </div>
+
+            <!-- Suscripción -->
+            <div class="plan-option" [class.active]="getCurrentPlan() === 'SUSCRIPCION'">
+              <div class="plan-option-header">
+                <ion-icon name="repeat-outline" color="primary"></ion-icon>
+                <div>
+                  <p class="plan-option-name">Suscripción mensual</p>
+                  <p class="plan-option-desc">Barberos ilimitados · galería ilimitada · estadísticas</p>
+                </div>
+                <span class="plan-option-price">$10.000/mes</span>
+              </div>
+              <ion-button *ngIf="getCurrentPlan() !== 'SUSCRIPCION'"
+                          expand="block" size="small" color="primary"
+                          (click)="activateSuscripcion()">
+                Suscribirse con MercadoPago
+              </ion-button>
+              <ion-button *ngIf="getCurrentPlan() === 'SUSCRIPCION'"
+                          expand="block" size="small" fill="outline" color="danger"
+                          (click)="cancelPlan()">
+                Cancelar suscripción
+              </ion-button>
+            </div>
+
+            <!-- Comisión -->
+            <div class="plan-option" [class.active]="getCurrentPlan() === 'COMISION'">
+              <div class="plan-option-header">
+                <ion-icon name="flash-outline" color="warning"></ion-icon>
+                <div>
+                  <p class="plan-option-name">Comisión por reserva</p>
+                  <p class="plan-option-desc">10% de la seña · pago online al reservar · sin mensualidad</p>
+                </div>
+                <span class="plan-option-price">10%</span>
+              </div>
+              <ion-button *ngIf="getCurrentPlan() !== 'COMISION'"
+                          expand="block" size="small" color="warning"
+                          (click)="activateComision()">
+                Activar plan Comisión
+              </ion-button>
+              <ion-button *ngIf="getCurrentPlan() === 'COMISION'"
+                          expand="block" size="small" fill="outline" color="danger"
+                          (click)="cancelPlan()">
+                Volver a plan gratuito
+              </ion-button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== IMAGE MANAGER OVERLAY ==================== -->
+  <input type="file" id="imageFileInput" accept="image/*" style="display:none" (change)="onFileSelected($event)" [disabled]="uploadStatus !== 'idle'" />
+
+  <div class="img-manager-overlay" *ngIf="showImageManager">
+    <div class="img-manager-panel">
+
+      <!-- Header fijo -->
+      <div class="img-manager-header">
+        <div class="img-manager-title">
+          <ion-icon name="images-outline"></ion-icon>
+          Gestor de Imágenes
+        </div>
+        <button class="img-manager-close-btn" (click)="closeImageManager()">
+          <ion-icon name="close-outline"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Cuerpo scrolleable -->
+      <div class="img-manager-body">
+
+        <!-- Upload progress -->
+        <div class="upload-progress-box" *ngIf="uploadStatus !== 'idle'">
+          <div class="upload-progress-header">
+            <ion-icon name="cloud-upload-outline" color="primary"></ion-icon>
+            <span *ngIf="uploadStatus === 'compressing'">Comprimiendo imagen...</span>
+            <span *ngIf="uploadStatus === 'uploading'">Subiendo... {{ uploadProgress }}%</span>
+          </div>
+          <ion-progress-bar
+            [value]="uploadStatus === 'compressing' ? null : uploadProgress / 100"
+            [type]="uploadStatus === 'compressing' ? 'indeterminate' : 'determinate'"
+            color="primary">
+          </ion-progress-bar>
+        </div>
+
+        <!-- Barbería: Logo + Portada -->
+        <div class="img-section">
+          <p class="img-section-title">
+            <ion-icon name="business-outline"></ion-icon>
+            Barbería
+          </p>
+          <div class="img-row">
+            <div class="img-slot">
+              <p class="img-slot-label">Logo / Icono</p>
+              <div class="img-preview" (click)="triggerFileInput('logo')">
+                <img *ngIf="getBarbershopImage('ICONO')" [src]="getBarbershopImage('ICONO')!.url" alt="Logo" />
+                <div *ngIf="!getBarbershopImage('ICONO')" class="img-placeholder">
+                  <ion-icon name="storefront-outline"></ion-icon>
+                </div>
+                <div class="img-upload-badge"><ion-icon name="camera-outline"></ion-icon></div>
+              </div>
+            </div>
+            <div class="img-slot img-slot-wide">
+              <p class="img-slot-label">Foto de Portada</p>
+              <div class="img-preview img-preview-wide" (click)="triggerFileInput('cover')">
+                <img *ngIf="getBarbershopImage('PORTADA')" [src]="getBarbershopImage('PORTADA')!.url" alt="Portada" />
+                <div *ngIf="!getBarbershopImage('PORTADA')" class="img-placeholder">
+                  <ion-icon name="image-outline"></ion-icon>
+                </div>
+                <div class="img-upload-badge"><ion-icon name="camera-outline"></ion-icon></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Galería -->
+          <div class="img-slot" style="margin-top:12px;width:100%">
+            <p class="img-slot-label">Galería ({{ getBarbershopGallery().length }}/{{ getMaxImages() }})</p>
+            <div class="img-gallery-row">
+              <div class="img-gallery-item" *ngFor="let rel of getBarbershopGallery()">
+                <img [src]="rel.image.url" alt="Galería" />
+                <button class="img-delete-btn" (click)="deleteBarbershopImage(rel.imageId)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+              </div>
+              <div class="img-gallery-add"
+                   *ngIf="getBarbershopGallery().length < getMaxImages()"
+                   (click)="triggerFileInput('gallery')">
+                <ion-icon name="add-outline"></ion-icon>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barberos: solo avatar -->
+        <div class="img-section" *ngFor="let barber of barbershop?.barbers">
+          <p class="img-section-title">
+            <ion-icon name="person-outline"></ion-icon>
+            {{ barber.firstName }} {{ barber.lastName }}
+          </p>
+          <div class="img-slot">
+            <p class="img-slot-label">Avatar</p>
+            <div class="img-preview" (click)="triggerFileInput('avatar-' + barber.id)">
+              <img *ngIf="getBarberImage(barber, 'PERFIL')" [src]="getBarberImage(barber, 'PERFIL')!.url" alt="Avatar" />
+              <div *ngIf="!getBarberImage(barber, 'PERFIL')" class="img-placeholder">
+                <ion-icon name="person-circle-outline"></ion-icon>
+              </div>
+              <div class="img-upload-badge"><ion-icon name="camera-outline"></ion-icon></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- fin img-manager-body -->
+    </div><!-- fin img-manager-panel -->
+  </div>
+
+  <!-- ==================== IMAGE VIEWER ==================== -->
+  <div class="img-viewer-overlay"
+       *ngIf="viewerUrl"
+       (click)="closeViewer()"
+       (touchstart)="onViewerTouchStart($event)"
+       (touchend)="onViewerTouchEnd($event)">
+
+    <!-- Cerrar -->
+    <button class="img-viewer-close" (click)="closeViewer()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+
+    <!-- Contador -->
+    <div class="img-viewer-counter" *ngIf="viewerImages.length > 1">
+      {{ viewerIndex + 1 }} / {{ viewerImages.length }}
+    </div>
+
+    <!-- Imagen -->
+    <img class="img-viewer-img"
+         [src]="viewerUrl"
+         [class.slide-left]="viewerSlideDir === 'left'"
+         [class.slide-right]="viewerSlideDir === 'right'"
+         (click)="$event.stopPropagation()" />
+
+    <!-- Prev / Next -->
+    <button class="img-viewer-nav img-viewer-prev"
+            *ngIf="viewerImages.length > 1 && viewerIndex > 0"
+            (click)="$event.stopPropagation(); viewerPrev()">
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </button>
+
+    <button class="img-viewer-nav img-viewer-next"
+            *ngIf="viewerImages.length > 1 && viewerIndex < viewerImages.length - 1"
+            (click)="$event.stopPropagation(); viewerNext()">
+      <ion-icon name="chevron-forward-outline"></ion-icon>
+    </button>
+
+    <!-- Dots -->
+    <div class="img-viewer-dots" *ngIf="viewerImages.length > 1" (click)="$event.stopPropagation()">
+      <span *ngFor="let _ of viewerImages; let i = index"
+            class="img-viewer-dot"
+            [class.active]="i === viewerIndex"
+            (click)="viewerIndex = i">
+      </span>
+    </div>
+
   </div>
 
   <!-- Reservar FAB -->

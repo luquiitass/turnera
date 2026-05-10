@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turnera — El sistema de turnos para barberías modernas</title>
+  <meta name="description" content="Digitalizá tu barbería con reservas online, notificaciones automáticas por WhatsApp, agenda para barberos y pagos con MercadoPago. Gratis para empezar.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #C9A84C;
+      --gold-light: #E8C96A;
+      --gold-dark: #9C7A2E;
+      --dark: #0D0D0D;
+      --dark2: #141414;
+      --dark3: #1C1C1C;
+      --dark4: #242424;
+      --dark5: #2E2E2E;
+      --white: #FFFFFF;
+      --gray: #888888;
+      --gray2: #555555;
+      --text: #E8E8E8;
+      --radius: 12px;
+      --radius-lg: 20px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 5%;
+      background: rgba(13,13,13,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201,168,76,0.15);
+    }
+    .nav-logo {
+      font-size: 22px; font-weight: 800;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links a {
+      color: var(--gray); text-decoration: none; font-size: 14px; font-weight: 500;
+      transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--white); }
+    .btn-nav {
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: var(--dark); padding: 10px 22px; border-radius: 8px;
+      font-weight: 700; font-size: 14px; text-decoration: none;
+      transition: opacity .2s; white-space: nowrap;
+    }
+    .btn-nav:hover { opacity: .85; color: var(--dark); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 120px 5% 80px;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; top: -200px; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(ellipse, rgba(201,168,76,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3);
+      padding: 6px 16px; border-radius: 100px; font-size: 13px;
+      color: var(--gold-light); margin-bottom: 28px; font-weight: 500;
+    }
+    .hero-badge span { width: 6px; height: 6px; background: var(--gold); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+
+    h1 {
+      font-size: clamp(40px, 6vw, 76px);
+      font-weight: 900; line-height: 1.05;
+      letter-spacing: -2px; margin-bottom: 24px;
+      max-width: 900px;
+    }
+    h1 .gold { background: linear-gradient(135deg, var(--gold-light), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 20px); color: var(--gray);
+      max-width: 580px; margin-bottom: 44px; font-weight: 400; line-height: 1.7;
+    }
+
+    .hero-ctas { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: var(--dark); padding: 16px 36px; border-radius: var(--radius);
+      font-weight: 700; font-size: 16px; text-decoration: none;
+      box-shadow: 0 8px 32px rgba(201,168,76,0.3);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,168,76,0.4); }
+    .btn-secondary {
+      border: 1px solid var(--dark5); color: var(--text);
+      padding: 16px 32px; border-radius: var(--radius);
+      font-weight: 600; font-size: 16px; text-decoration: none;
+      background: var(--dark3); transition: border-color .2s, background .2s;
+    }
+    .btn-secondary:hover { border-color: var(--gold); background: var(--dark4); }
+
+    /* mockup */
+    .hero-mockup {
+      margin-top: 64px; position: relative;
+      width: 100%; max-width: 900px;
+    }
+    .mockup-window {
+      background: var(--dark3); border: 1px solid var(--dark5);
+      border-radius: var(--radius-lg); overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.7);
+    }
+    .mockup-bar {
+      background: var(--dark4); padding: 12px 20px;
+      display: flex; align-items: center; gap: 8px;
+      border-bottom: 1px solid var(--dark5);
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.r { background: #FF5F57; }
+    .dot.y { background: #FEBC2E; }
+    .dot.g { background: #28C840; }
+    .mockup-url { flex: 1; background: var(--dark5); border-radius: 6px; padding: 4px 12px; font-size: 12px; color: var(--gray); margin: 0 12px; text-align: center; }
+    .mockup-content { padding: 32px; }
+
+    /* dashboard preview */
+    .dash-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+    .dash-card {
+      background: var(--dark4); border-radius: 10px; padding: 16px;
+      border: 1px solid var(--dark5);
+    }
+    .dash-card .label { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .dash-card .value { font-size: 24px; font-weight: 800; color: var(--white); }
+    .dash-card .value.gold { color: var(--gold-light); }
+    .dash-card .delta { font-size: 11px; color: #4CAF50; margin-top: 4px; }
+
+    .dash-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .agenda-preview, .bookings-preview {
+      background: var(--dark4); border-radius: 10px; padding: 16px;
+      border: 1px solid var(--dark5);
+    }
+    .preview-title { font-size: 12px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+    .booking-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid var(--dark5);
+    }
+    .booking-item:last-child { border-bottom: none; }
+    .booking-avatar { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--dark); flex-shrink: 0; }
+    .booking-info .name { font-size: 12px; font-weight: 600; color: var(--text); }
+    .booking-info .time { font-size: 11px; color: var(--gray); }
+    .booking-badge { margin-left: auto; font-size: 10px; padding: 2px 8px; border-radius: 100px; font-weight: 600; }
+    .badge-ok { background: rgba(76,175,80,0.15); color: #4CAF50; }
+    .badge-pend { background: rgba(255,193,7,0.15); color: #FFC107; }
+    .slot-item { display: flex; gap: 8px; padding: 6px 0; align-items: center; }
+    .slot-time { font-size: 11px; color: var(--gray); width: 36px; flex-shrink: 0; }
+    .slot-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--dark5); }
+    .slot-bar.busy { background: linear-gradient(90deg, var(--gold), var(--gold-dark)); }
+    .slot-bar.free { background: var(--dark5); }
+
+    /* ── LOGO BAND ── */
+    .logo-band {
+      padding: 40px 5%; border-top: 1px solid var(--dark4); border-bottom: 1px solid var(--dark4);
+      background: var(--dark2);
+    }
+    .logo-band p { text-align: center; font-size: 13px; color: var(--gray2); margin-bottom: 24px; text-transform: uppercase; letter-spacing: 1px; }
+    .logos { display: flex; justify-content: center; align-items: center; gap: 48px; flex-wrap: wrap; }
+    .logo-item { font-size: 18px; font-weight: 700; color: var(--dark5); letter-spacing: -0.5px; }
+
+    /* ── SECTIONS ── */
+    section { padding: 96px 5%; }
+
+    .section-label {
+      display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 16px;
+    }
+    h2 {
+      font-size: clamp(28px, 4vw, 48px); font-weight: 800; letter-spacing: -1px;
+      line-height: 1.1; margin-bottom: 16px;
+    }
+    .section-sub {
+      font-size: 18px; color: var(--gray); max-width: 520px; line-height: 1.7;
+    }
+    .text-center { text-align: center; }
+    .text-center .section-sub { margin: 0 auto; }
+
+    /* ── FEATURES ── */
+    .features-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 24px; margin-top: 64px;
+    }
+    .feature-card {
+      background: var(--dark2); border: 1px solid var(--dark4);
+      border-radius: var(--radius-lg); padding: 32px;
+      transition: border-color .3s, transform .3s;
+      position: relative; overflow: hidden;
+    }
+    .feature-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      opacity: 0; transition: opacity .3s;
+    }
+    .feature-card:hover { border-color: var(--dark5); transform: translateY(-4px); }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-icon {
+      width: 52px; height: 52px; border-radius: 12px;
+      background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; margin-bottom: 20px;
+    }
+    .feature-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; color: var(--white); }
+    .feature-card p { font-size: 15px; color: var(--gray); line-height: 1.65; }
+
+    /* ── HOW IT WORKS ── */
+    .how-bg { background: var(--dark2); }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 64px; position: relative; }
+    .steps::before {
+      content: '';
+      position: absolute; top: 36px; left: calc(50% / 3 + 6%); right: calc(50% / 3 + 6%);
+      height: 1px; background: linear-gradient(90deg, var(--gold), transparent);
+    }
+    .step { text-align: center; }
+    .step-num {
+      width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 24px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 900; color: var(--dark);
+      box-shadow: 0 8px 24px rgba(201,168,76,0.3);
+    }
+    .step h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+    .step p { font-size: 15px; color: var(--gray); line-height: 1.65; }
+
+    /* ── NOTIF FEATURE ── */
+    .notif-section {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
+    }
+    .notif-visual {
+      position: relative;
+    }
+    .phone-frame {
+      background: var(--dark3); border: 1px solid var(--dark5);
+      border-radius: 28px; padding: 12px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    }
+    .phone-screen {
+      background: var(--dark4); border-radius: 20px; padding: 20px;
+      min-height: 320px;
+    }
+    .whatsapp-bubble {
+      background: #1C3D2B; border: 1px solid rgba(37,211,102,0.2);
+      border-radius: 12px 12px 12px 2px; padding: 14px 16px;
+      margin-bottom: 12px; max-width: 280px;
+    }
+    .whatsapp-bubble .sender { font-size: 11px; font-weight: 700; color: #25D366; margin-bottom: 6px; }
+    .whatsapp-bubble .msg { font-size: 13px; color: var(--text); line-height: 1.5; }
+    .whatsapp-bubble .time { font-size: 10px; color: var(--gray); text-align: right; margin-top: 6px; }
+    .notif-info h2 { margin-bottom: 20px; }
+    .notif-list { list-style: none; margin-top: 32px; display: flex; flex-direction: column; gap: 16px; }
+    .notif-list li {
+      display: flex; gap: 12px; align-items: flex-start;
+      font-size: 15px; color: var(--gray); line-height: 1.5;
+    }
+    .notif-list li .icon {
+      width: 32px; height: 32px; flex-shrink: 0;
+      background: rgba(201,168,76,0.1); border-radius: 8px;
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+    }
+
+    /* ── PLANES ── */
+    .plans-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 24px; margin-top: 64px;
+    }
+    .plan-card {
+      background: var(--dark2); border: 1px solid var(--dark4);
+      border-radius: var(--radius-lg); padding: 36px;
+      position: relative; overflow: hidden;
+      transition: transform .3s;
+    }
+    .plan-card:hover { transform: translateY(-4px); }
+    .plan-card.featured {
+      border-color: var(--gold);
+      background: linear-gradient(135deg, rgba(201,168,76,0.07) 0%, var(--dark2) 60%);
+    }
+    .plan-badge {
+      position: absolute; top: -1px; right: 24px;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      color: var(--dark); font-size: 11px; font-weight: 800;
+      padding: 4px 12px; border-radius: 0 0 8px 8px;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .plan-name { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gray); margin-bottom: 12px; }
+    .plan-price { font-size: 44px; font-weight: 900; color: var(--white); letter-spacing: -2px; margin-bottom: 4px; }
+    .plan-price span { font-size: 18px; color: var(--gray); font-weight: 400; }
+    .plan-desc { font-size: 14px; color: var(--gray); margin-bottom: 28px; }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-bottom: 36px; }
+    .plan-features li { display: flex; gap: 10px; font-size: 14px; color: var(--text); align-items: center; }
+    .plan-features li .check { color: var(--gold); font-size: 16px; flex-shrink: 0; }
+    .plan-features li .x { color: var(--gray2); font-size: 16px; flex-shrink: 0; }
+    .btn-plan {
+      display: block; text-align: center; padding: 14px;
+      border-radius: var(--radius); font-weight: 700; font-size: 15px;
+      text-decoration: none; transition: opacity .2s;
+    }
+    .btn-plan.primary { background: linear-gradient(135deg, var(--gold-light), var(--gold)); color: var(--dark); }
+    .btn-plan.outline { border: 1px solid var(--dark5); color: var(--text); background: transparent; }
+    .btn-plan.outline:hover { border-color: var(--gold); }
+    .btn-plan:hover { opacity: .85; }
+
+    /* ── STATS ── */
+    .stats-bg { background: var(--dark2); }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 2px; border: 1px solid var(--dark4); border-radius: var(--radius-lg);
+      overflow: hidden; margin-top: 64px;
+    }
+    .stat-cell {
+      background: var(--dark3); padding: 40px 32px; text-align: center;
+      border-right: 1px solid var(--dark4);
+    }
+    .stat-cell:last-child { border-right: none; }
+    .stat-num { font-size: 52px; font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
+    .stat-num.gold { background: linear-gradient(135deg, var(--gold-light), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-label { font-size: 14px; color: var(--gray); }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 24px; margin-top: 64px;
+    }
+    .testimonial {
+      background: var(--dark2); border: 1px solid var(--dark4);
+      border-radius: var(--radius-lg); padding: 32px;
+    }
+    .stars { color: var(--gold); font-size: 14px; letter-spacing: 2px; margin-bottom: 16px; }
+    .testimonial blockquote { font-size: 15px; color: var(--text); line-height: 1.7; margin-bottom: 24px; font-style: italic; }
+    .testimonial-author { display: flex; gap: 12px; align-items: center; }
+    .author-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 800; color: var(--dark); flex-shrink: 0;
+    }
+    .author-name { font-size: 14px; font-weight: 700; color: var(--white); }
+    .author-biz { font-size: 12px; color: var(--gray); }
+
+    /* ── FAQ ── */
+    .faq-bg { background: var(--dark2); }
+    .faq-list { max-width: 760px; margin: 64px auto 0; display: flex; flex-direction: column; gap: 2px; }
+    .faq-item {
+      background: var(--dark3); border: 1px solid var(--dark4);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .faq-q {
+      padding: 20px 24px; font-size: 16px; font-weight: 600; cursor: pointer;
+      display: flex; justify-content: space-between; align-items: center;
+      user-select: none; transition: background .2s;
+    }
+    .faq-q:hover { background: var(--dark4); }
+    .faq-q .arrow { color: var(--gold); font-size: 18px; transition: transform .3s; flex-shrink: 0; margin-left: 16px; }
+    .faq-a { padding: 0 24px; max-height: 0; overflow: hidden; transition: max-height .35s ease, padding .35s; font-size: 15px; color: var(--gray); line-height: 1.7; }
+    .faq-item.open .faq-a { max-height: 300px; padding: 0 24px 20px; }
+    .faq-item.open .arrow { transform: rotate(180deg); }
+
+    /* ── FINAL CTA ── */
+    .final-cta {
+      text-align: center; padding: 120px 5%;
+      background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.1) 0%, transparent 60%);
+      border-top: 1px solid var(--dark4);
+    }
+    .final-cta h2 { font-size: clamp(32px, 5vw, 60px); margin-bottom: 20px; }
+    .final-cta p { font-size: 18px; color: var(--gray); margin-bottom: 44px; }
+    .final-cta .btn-primary { font-size: 18px; padding: 18px 48px; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark2); padding: 60px 5% 32px;
+      border-top: 1px solid var(--dark4);
+    }
+    .footer-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px; margin-bottom: 48px;
+    }
+    .footer-brand .logo { font-size: 22px; font-weight: 800; background: linear-gradient(135deg, var(--gold-light), var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 12px; }
+    .footer-brand p { font-size: 14px; color: var(--gray); line-height: 1.7; max-width: 260px; }
+    .footer-col h4 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--gray2); margin-bottom: 16px; }
+    .footer-col a { display: block; font-size: 14px; color: var(--gray); text-decoration: none; margin-bottom: 10px; transition: color .2s; }
+    .footer-col a:hover { color: var(--gold-light); }
+    .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 24px; border-top: 1px solid var(--dark4); font-size: 13px; color: var(--gray2); flex-wrap: wrap; gap: 8px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .plans-grid { grid-template-columns: 1fr 1fr; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .stats-grid .stat-cell:nth-child(2) { border-right: none; }
+      .stats-grid .stat-cell:nth-child(3) { border-top: 1px solid var(--dark4); }
+      .footer-grid { grid-template-columns: 1fr 1fr; }
+      .notif-section { grid-template-columns: 1fr; gap: 48px; }
+      .dash-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      nav { padding: 14px 4%; }
+      .nav-links { display: none; }
+      .features-grid { grid-template-columns: 1fr; }
+      .plans-grid { grid-template-columns: 1fr; }
+      .steps { grid-template-columns: 1fr; }
+      .steps::before { display: none; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .footer-grid { grid-template-columns: 1fr; gap: 32px; }
+      .dash-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">✂ Turnera</div>
+  <div class="nav-links">
+    <a href="#features">Funciones</a>
+    <a href="#como-funciona">Cómo funciona</a>
+    <a href="#planes">Planes</a>
+    <a href="#faq">FAQ</a>
+    <a href="#planes" class="btn-nav">Empezar gratis</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge"><span></span> Sistema de turnos para barberías</div>
+  <h1>Tu barbería online,<br><span class="gold">lista en minutos</span></h1>
+  <p class="hero-sub">
+    Reservas automáticas, recordatorios por WhatsApp, agenda digital para barberos y pagos con MercadoPago. Todo en un solo lugar.
+  </p>
+  <div class="hero-ctas">
+    <a href="#planes" class="btn-primary">Empezar gratis →</a>
+    <a href="#como-funciona" class="btn-secondary">Ver cómo funciona</a>
+  </div>
+
+  <div class="hero-mockup">
+    <div class="mockup-window">
+      <div class="mockup-bar">
+        <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+        <div class="mockup-url">💇 barberia-alem.turnera.es</div>
+      </div>
+      <div class="mockup-content">
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="label">Reservas hoy</div>
+            <div class="value gold">12</div>
+            <div class="delta">↑ 3 más que ayer</div>
+          </div>
+          <div class="dash-card">
+            <div class="label">Ingresos del mes</div>
+            <div class="value">$284k</div>
+            <div class="delta">↑ +18% vs mes ant.</div>
+          </div>
+          <div class="dash-card">
+            <div class="label">Barberos activos</div>
+            <div class="value">3</div>
+          </div>
+          <div class="dash-card">
+            <div class="label">Calificación</div>
+            <div class="value gold">4.9 ⭐</div>
+          </div>
+        </div>
+        <div class="dash-row">
+          <div class="agenda-preview">
+            <div class="preview-title">Agenda — Lucas (hoy)</div>
+            <div class="slot-item"><span class="slot-time">09:00</span><div class="slot-bar busy"></div></div>
+            <div class="slot-item"><span class="slot-time">09:30</span><div class="slot-bar busy"></div></div>
+            <div class="slot-item"><span class="slot-time">10:00</span><div class="slot-bar free"></div></div>
+            <div class="slot-item"><span class="slot-time">10:30</span><div class="slot-bar busy"></div></div>
+            <div class="slot-item"><span class="slot-time">11:00</span><div class="slot-bar busy"></div></div>
+          </div>
+          <div class="bookings-preview">
+            <div class="preview-title">Próximas reservas</div>
+            <div class="booking-item">
+              <div class="booking-avatar">JG</div>
+              <div class="booking-info"><div class="name">Juan García</div><div class="time">10:30 · Corte + Barba</div></div>
+              <span class="booking-badge badge-ok">Confirmada</span>
+            </div>
+            <div class="booking-item">
+              <div class="booking-avatar">ML</div>
+              <div class="booking-info"><div class="name">Mario López</div><div class="time">11:30 · Barba</div></div>
+              <span class="booking-badge badge-pend">Pendiente</span>
+            </div>
+            <div class="booking-item">
+              <div class="booking-avatar">CR</div>
+              <div class="booking-info"><div class="name">Carlos Ruiz</div><div class="time">12:00 · Corte</div></div>
+              <span class="booking-badge badge-ok">Confirmada</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGO BAND -->
+<div class="logo-band">
+  <p>Usado por barberías en toda Argentina</p>
+  <div class="logos">
+    <span class="logo-item">Barber Alemán</span>
+    <span class="logo-item">UrbanCut</span>
+    <span class="logo-item">The Blade</span>
+    <span class="logo-item">EliteCuts</span>
+    <span class="logo-item">Barber & Co.</span>
+    <span class="logo-item">NeoBarber</span>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="text-center">
+    <span class="section-label">Funcionalidades</span>
+    <h2>Todo lo que tu barbería<br>necesita para crecer</h2>
+    <p class="section-sub">De la libreta de anotaciones a un sistema profesional. Sin complicaciones, sin técnicos.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <h3>Tu propio subdominio</h3>
+      <p>Cada barbería tiene su web exclusiva en <strong style="color:var(--gold-light)">tu-barber.turnera.es</strong>. Los clientes acceden directo, sin buscar entre miles de negocios.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📅</div>
+      <h3>Reservas online 24/7</h3>
+      <p>Tus clientes reservan desde el teléfono a cualquier hora. El sistema valida disponibilidad en tiempo real y evita superposiciones automáticamente.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💬</div>
+      <h3>WhatsApp automático</h3>
+      <p>El sistema envía mensajes de confirmación, recordatorios 24h antes y avisos de cancelación. Sin que tengas que hacer nada.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💳</div>
+      <h3>Pagos con MercadoPago</h3>
+      <p>Aceptá señas y pagos completos con tarjeta. El cliente paga desde la app y el dinero llega directo a tu cuenta de MercadoPago.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>Dashboard y estadísticas</h3>
+      <p>Ingresos del mes, barbero más pedido, horarios pico, clientes frecuentes. Toda la info de tu negocio en una sola pantalla.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">👥</div>
+      <h3>Multi-barbero</h3>
+      <p>Cada barbero tiene su agenda propia, puede ver sus turnos del día, bloquear horarios y gestionar su perfil con fotos y bio.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⭐</div>
+      <h3>Reseñas verificadas</h3>
+      <p>Solo clientes que reservaron pueden dejar reseñas. Construí tu reputación con calificaciones reales y comentarios auténticos.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎁</div>
+      <h3>Ofertas y descuentos</h3>
+      <p>Creá promociones por porcentaje o monto fijo. Configurá horarios especiales, días de descuento o servicios en oferta.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔔</div>
+      <h3>Notificaciones push</h3>
+      <p>Además del WhatsApp, los clientes reciben notificaciones en el navegador para que nunca pierdan un recordatorio importante.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="como-funciona" class="how-bg">
+  <div class="text-center">
+    <span class="section-label">Proceso</span>
+    <h2>Tres pasos para empezar</h2>
+    <p class="section-sub">Sin instalaciones, sin técnicos. Desde el registro hasta la primera reserva en menos de 10 minutos.</p>
+  </div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Registrá tu barbería</h3>
+      <p>Cargá el nombre, dirección, fotos y los servicios que ofrecés. Te asignamos tu subdominio exclusivo al instante.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Configurá tus barberos</h3>
+      <p>Agregá cada barbero con su horario de trabajo, los servicios que brinda y sus fotos. Cada uno tiene su propia agenda.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Compartí el link</h3>
+      <p>Enviá tu link por Instagram, WhatsApp o donde quieras. Los clientes reservan solos, vos solo administrás.</p>
+    </div>
+  </div>
+</section>
+
+<!-- NOTIF FEATURE -->
+<section>
+  <div class="notif-section">
+    <div class="notif-visual">
+      <div class="phone-frame">
+        <div class="phone-screen">
+          <div class="whatsapp-bubble">
+            <div class="sender">Turnera — Barber Alemán</div>
+            <div class="msg">📅 <strong>Nueva reserva</strong><br>👤 Cliente: Juan García<br>✂️ Servicio: Corte + Barba<br>📆 Fecha: 15 de mayo a las 10:30<br>💰 Precio: $18.000<br>🏠 Barbería: Barber Alemán</div>
+            <div class="time">10:02 ✓✓</div>
+          </div>
+          <div class="whatsapp-bubble" style="margin-left:auto; border-radius: 12px 12px 2px 12px; background: #1A3A2A;">
+            <div class="sender" style="color:#4CAF50">Turnera — Recordatorio</div>
+            <div class="msg">⏰ <strong>Recordatorio de turno</strong><br>📆 Mañana: 15 de mayo a las 10:30<br>✂️ Servicio: Corte + Barba<br>💈 Barbero: Lucas Pérez<br>🏠 Barber Alemán<br>📍 Av. Alem 1234, Posadas</div>
+            <div class="time">09:00 ✓✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notif-info">
+      <span class="section-label">Notificaciones</span>
+      <h2>Tus clientes siempre informados, <span class="gold">automáticamente</span></h2>
+      <p style="color:var(--gray); font-size:16px; line-height:1.7">
+        Olvidate de mandar mensajes a mano. El sistema notifica a cada persona lo que necesita saber, en el momento justo.
+      </p>
+      <ul class="notif-list">
+        <li><span class="icon">✅</span><span>Confirmación inmediata al crear una reserva — al cliente y al barbero</span></li>
+        <li><span class="icon">⏰</span><span>Recordatorio automático 24 horas antes del turno</span></li>
+        <li><span class="icon">❌</span><span>Aviso de cancelación con quién canceló y el motivo</span></li>
+        <li><span class="icon">💰</span><span>Confirmación de pago de seña recibida</span></li>
+        <li><span class="icon">🔔</span><span>Push notifications en el navegador además de WhatsApp</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- PLANS -->
+<section id="planes" class="how-bg">
+  <div class="text-center">
+    <span class="section-label">Planes</span>
+    <h2>Empezá gratis,<br>crecé cuando quieras</h2>
+    <p class="section-sub">Sin permanencia, sin letra chica. Cambiá de plan cuando lo necesites.</p>
+  </div>
+  <div class="plans-grid">
+
+    <div class="plan-card">
+      <div class="plan-name">Gratuito</div>
+      <div class="plan-price">$0<span> /mes</span></div>
+      <div class="plan-desc">Para probar el sistema sin compromiso.</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Subdominio propio</li>
+        <li><span class="check">✓</span> Reservas online 24/7</li>
+        <li><span class="check">✓</span> Hasta 2 barberos</li>
+        <li><span class="check">✓</span> Gestión de agenda</li>
+        <li><span class="check">✓</span> Notificaciones in-app</li>
+        <li><span class="x">✗</span> WhatsApp automático</li>
+        <li><span class="x">✗</span> Pagos con MercadoPago</li>
+        <li><span class="x">✗</span> Estadísticas avanzadas</li>
+      </ul>
+      <a href="#" class="btn-plan outline">Empezar gratis</a>
+    </div>
+
+    <div class="plan-card featured">
+      <div class="plan-badge">Más popular</div>
+      <div class="plan-name">Suscripción</div>
+      <div class="plan-price">$10k<span> /mes</span></div>
+      <div class="plan-desc">Todo lo que necesitás para profesionalizarte.</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Todo del plan Gratuito</li>
+        <li><span class="check">✓</span> Barberos ilimitados</li>
+        <li><span class="check">✓</span> WhatsApp automático</li>
+        <li><span class="check">✓</span> Notificaciones push</li>
+        <li><span class="check">✓</span> Pagos con MercadoPago</li>
+        <li><span class="check">✓</span> Estadísticas completas</li>
+        <li><span class="check">✓</span> Reseñas verificadas</li>
+        <li><span class="check">✓</span> Soporte prioritario</li>
+      </ul>
+      <a href="#" class="btn-plan primary">Activar suscripción</a>
+    </div>
+
+    <div class="plan-card">
+      <div class="plan-name">Comisión</div>
+      <div class="plan-price">10%<span> por reserva</span></div>
+      <div class="plan-desc">Sin costo fijo mensual. Pagás solo cuando cobrás.</div>
+      <ul class="plan-features">
+        <li><span class="check">✓</span> Todo del plan Suscripción</li>
+        <li><span class="check">✓</span> Sin costo fijo</li>
+        <li><span class="check">✓</span> Seña del 30% al reservar</li>
+        <li><span class="check">✓</span> Gestión de pagos automática</li>
+        <li><span class="check">✓</span> Reporte de transacciones</li>
+        <li><span class="check">✓</span> Soporte premium</li>
+        <li><span class="check">✓</span> Comisión configurable</li>
+      </ul>
+      <a href="#" class="btn-plan outline">Activar por comisión</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-bg">
+  <div class="text-center">
+    <span class="section-label">Números</span>
+    <h2>Resultados reales</h2>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-cell">
+      <div class="stat-num gold">+2000</div>
+      <div class="stat-label">Reservas procesadas</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num gold">98%</div>
+      <div class="stat-label">Tasa de satisfacción</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num gold">-70%</div>
+      <div class="stat-label">Menos no-shows con recordatorios</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num gold">3x</div>
+      <div class="stat-label">Más reservas que con libreta</div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section>
+  <div class="text-center">
+    <span class="section-label">Testimonios</span>
+    <h2>Lo que dicen los dueños<br>de barbería</h2>
+  </div>
+  <div class="testimonials-grid">
+    <div class="testimonial">
+      <div class="stars">★★★★★</div>
+      <blockquote>"Antes perdía reservas porque no siempre tenía el teléfono a mano. Ahora los clientes reservan solos y yo solo aparezco a trabajar. Los WhatsApp automáticos son una genialidad."</blockquote>
+      <div class="testimonial-author">
+        <div class="author-avatar">ML</div>
+        <div>
+          <div class="author-name">Marcos Leiva</div>
+          <div class="author-biz">Barber Alemán, Posadas</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <div class="stars">★★★★★</div>
+      <blockquote>"Tengo 3 barberos y antes era un caos coordinar. Con Turnera cada uno tiene su agenda y yo veo todo desde el dashboard. Las estadísticas me ayudaron a saber qué días necesito más gente."</blockquote>
+      <div class="testimonial-author">
+        <div class="author-avatar">GR</div>
+        <div>
+          <div class="author-name">Gastón Romero</div>
+          <div class="author-biz">The Blade, Córdoba</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial">
+      <div class="stars">★★★★★</div>
+      <blockquote>"El plan de comisión fue perfecto para empezar. Pagamos solo cuando trabajamos y los pagos con MercadoPago nos redujo la cantidad de no-shows a casi cero. Recomendado al 100%."</blockquote>
+      <div class="testimonial-author">
+        <div class="author-avatar">PV</div>
+        <div>
+          <div class="author-name">Pablo Vega</div>
+          <div class="author-biz">UrbanCut, Buenos Aires</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="faq-bg">
+  <div class="text-center">
+    <span class="section-label">Preguntas frecuentes</span>
+    <h2>Todo lo que querés saber</h2>
+  </div>
+  <div class="faq-list">
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        ¿Necesito conocimientos técnicos para configurar Turnera?
+        <span class="arrow">⌄</span>
+      </div>
+      <div class="faq-a">No. El proceso de alta está diseñado para que cualquier persona pueda hacerlo en minutos. Cargás la información de tu barbería, agregás los barberos con sus horarios y listo. Nada que instalar.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        ¿Los clientes necesitan descargar una app?
+        <span class="arrow">⌄</span>
+      </div>
+      <div class="faq-a">No. Tu barbería tiene una web que funciona en cualquier celular o computadora. Los clientes entran desde el link, se registran con Google o email en segundos, y reservan. Sin descargas.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        ¿Cómo funcionan los pagos con MercadoPago?
+        <span class="arrow">⌄</span>
+      </div>
+      <div class="faq-a">El cliente paga una seña (por defecto el 30% del precio) al confirmar la reserva. El dinero va directo a tu cuenta de MercadoPago. El resto lo cobrás en el local. Si el cliente no aparece, ya tenés la seña.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        ¿Puedo cambiar de plan cuando quiera?
+        <span class="arrow">⌄</span>
+      </div>
+      <div class="faq-a">Sí. Podés pasar del plan Gratuito a Suscripción o Comisión en cualquier momento. No hay permanencia mínima ni penalidades. Si ya no lo querés usar, simplemente no renovás.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        ¿Cómo funcionan los recordatorios por WhatsApp?
+        <span class="arrow">⌄</span>
+      </div>
+      <div class="faq-a">El sistema envía automáticamente un mensaje al cliente y al barbero cuando se crea una reserva, un recordatorio 24 horas antes del turno, y un aviso cuando se cancela. Los mensajes incluyen todos los datos del turno. No tenés que hacer nada.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="toggleFaq(this)">
+        ¿Cuántos barberos puedo agregar?
+        <span class="arrow">⌄</span>
+      </div>
+      <div class="faq-a">En el plan Gratuito podés agregar hasta 2 barberos. En los planes de Suscripción y Comisión no hay límite. Cada barbero tiene su perfil, fotos, bio y agenda independiente.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <span class="section-label">Empezá hoy</span>
+  <h2>Tu barbería merece<br><span class="gold">un sistema profesional</span></h2>
+  <p>Registrate gratis en menos de 5 minutos.<br>Sin tarjeta, sin compromiso.</p>
+  <a href="#" class="btn-primary">Crear mi barbería gratis →</a>
+  <p style="margin-top:20px; font-size:13px; color:var(--gray2)">✓ Sin período de prueba · ✓ Plan gratuito para siempre · ✓ Actualización cuando quieras</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo">✂ Turnera</div>
+      <p>El sistema de reservas que las barberías argentinas necesitaban. Simple, rápido y profesional.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Producto</h4>
+      <a href="#features">Funciones</a>
+      <a href="#planes">Planes</a>
+      <a href="#como-funciona">Cómo funciona</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="footer-col">
+      <h4>Empresa</h4>
+      <a href="#">Sobre Turnera</a>
+      <a href="#">Blog</a>
+      <a href="#">Contacto</a>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <a href="#">Términos de uso</a>
+      <a href="#">Privacidad</a>
+      <a href="#">Cookies</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Turnera. Todos los derechos reservados.</span>
+    <span>Hecho con ❤️ en Argentina</span>
+  </div>
+</footer>
+
+<script>
+  function toggleFaq(el) {
+    const item = el.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  // Scroll animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.feature-card, .step, .plan-card, .testimonial, .stat-cell').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+</script>
+
+</body>
+</html>
