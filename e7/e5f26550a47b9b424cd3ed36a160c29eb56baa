@@ -1,0 +1,93 @@
+api/prisma/schema.prisma
+  s_83987cc04e5e90::t_d4aff2fe3074a6 26-27
+app/src/app/pages/auth/forgot-password/forgot-password.page.scss
+  s_83987cc04e5e90::t_86b53f1ae1791a 1-66
+api/package.json
+  s_83987cc04e5e90::t_57b9399fb301a6 33,41
+app/src/app/pages/client/tabs/profile/profile.page.html
+  s_83987cc04e5e90::t_d7c379ebc00cd9 146-155
+api/src/modules/auth/auth.module.ts
+  s_83987cc04e5e90::t_2f70186db7ad00 7,18-19
+app/src/app/pages/auth/reset-password/reset-password.page.ts
+  s_83987cc04e5e90::t_1605876a3c039f 1-70
+app/src/app/pages/auth/forgot-password/forgot-password.page.ts
+  s_83987cc04e5e90::t_4f30222f4feea0 1-49
+app/src/app/pages/auth/reset-password/reset-password.module.ts
+  s_83987cc04e5e90::t_a583f57476f685 1-14
+app/src/app/core/interceptors/auth.interceptor.ts
+  s_83987cc04e5e90::t_e493a570fa6a10 62-66
+app/src/app/pages/client/tabs/home/home.page.ts
+  s_83987cc04e5e90::t_678e45b52bb9b5 478-480
+  s_83987cc04e5e90::t_65bf53ac2a7626 120
+  s_83987cc04e5e90::t_dcd4722a76f982 2
+  s_83987cc04e5e90::t_af1e593dfaa2f2 130-135
+app/src/app/pages/barbershop-detail/barbershop-detail.page.ts
+  s_950ca848759ba6::t_1911d6d5f8a067 153-158
+  s_950ca848759ba6::t_574df0eab351c5 14
+app/src/app/pages/auth/forgot-password/forgot-password.page.html
+  s_83987cc04e5e90::t_637887544dc6f6 1-70
+app/src/app/pages/auth/login/login.page.scss
+  s_83987cc04e5e90::t_c3a987a9c32bce 67-80
+app/src/app/pages/auth/forgot-password/forgot-password.module.ts
+  s_83987cc04e5e90::t_abaa5ee2dea82c 1-14
+app/src/app/pages/auth/login/login.page.html
+  s_83987cc04e5e90::t_4b70cd3ecc76b1 43-49
+api/src/modules/barbershops/barbershops.service.ts
+  s_950ca848759ba6::t_8eea0dbb231d4a 91
+  s_950ca848759ba6::t_ac99e022c14b82 110
+app/src/app/pages/tabs/profile/profile.page.ts
+  s_09b8acc6c28757::t_bb427c6a39bd05 69-72
+api/src/modules/auth/email.service.ts
+  s_83987cc04e5e90::t_d03f505f6a20a0 1-118
+api/src/modules/auth/auth.service.ts
+  s_83987cc04e5e90::t_8e8be33bc0e9d7 164-180,184-210
+  s_83987cc04e5e90::t_ce413c017593ac 6,10,14
+  s_83987cc04e5e90::t_bebb4d59c4dbac 21
+app/src/app/pages/tabs/profile/profile.page.html
+  s_09b8acc6c28757::t_e912542bd1e493 69-83
+app/src/app/pages/auth/reset-password/reset-password.page.html
+  s_83987cc04e5e90::t_8f937f0f68c29b 1-91
+app/src/app/core/services/auth.service.ts
+  s_83987cc04e5e90::t_3919df04334bc0 84-99
+app/src/app/pages/auth/reset-password/reset-password.page.scss
+  s_83987cc04e5e90::t_3225654b95c935 1-65
+app/src/app/app-routing.module.ts
+  s_83987cc04e5e90::t_5ca0e70d668dcb 14-17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "e7e5f26550a47b9b424cd3ed36a160c29eb56baa",
+  "prompts": {},
+  "humans": {
+    "h_700c6c6044b41d": {
+      "author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  },
+  "sessions": {
+    "s_09b8acc6c28757": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6df7882e-9256-44e9-ae91-ef7867ab30d5",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    },
+    "s_83987cc04e5e90": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3141bd6b-b682-4964-bb8d-5f895573e3dc",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    },
+    "s_950ca848759ba6": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "096136a9-d11a-4f83-be3e-12097a7bf7e7",
+        "model": "claude-haiku-4-5-20251001"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
