@@ -1,0 +1,142 @@
+.payments-content { --overflow: hidden; }
+
+// ── Navegación de meses ───────────────────────────────────────────────────────
+.month-nav-toolbar { --min-height: 42px; }
+.month-nav {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 4px;
+}
+.month-label {
+  font-size: 15px; font-weight: 700; color: white;
+  text-transform: capitalize;
+}
+
+// ── Scroll horizontal ─────────────────────────────────────────────────────────
+.months-scroll-container {
+  display: flex;
+  overflow-x: scroll;
+  scroll-snap-type: x mandatory;
+  height: 100%;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.month-panel {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  overflow-y: auto;
+  padding-bottom: 24px;
+}
+
+// ── Resumen del mes ───────────────────────────────────────────────────────────
+.month-summary {
+  display: flex; gap: 2px;
+  background: var(--ion-color-dark);
+  padding: 12px 16px;
+}
+.ms-stat { flex: 1; text-align: center; }
+.ms-val {
+  display: block; font-size: 16px; font-weight: 900;
+  &.green  { color: #4ade80; }
+  &.red    { color: #f87171; }
+  &.yellow { color: #fbbf24; }
+  &.gray   { color: rgba(255,255,255,.5); }
+}
+.ms-lab { display: block; font-size: 10px; color: rgba(255,255,255,.5); margin-top: 2px; }
+
+// ── Lista de días ─────────────────────────────────────────────────────────────
+.days-list { padding: 0; }
+
+.day-section { margin-bottom: 4px; }
+
+.day-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px 6px;
+  background: var(--ion-color-light);
+  border-bottom: 1px solid var(--ion-color-light-shade);
+}
+.day-title {
+  font-size: 13px; font-weight: 700; text-transform: capitalize;
+  color: var(--ion-color-dark);
+}
+.day-total {
+  font-size: 13px; font-weight: 800; color: var(--ion-color-success);
+}
+
+// ── Pagos del día ─────────────────────────────────────────────────────────────
+.day-payments { background: var(--ion-background-color); }
+
+.payment-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 16px; border-bottom: 1px solid var(--ion-color-light-shade);
+  &:last-child { border-bottom: none; }
+  &.is-debt    { background: rgba(var(--ion-color-danger-rgb),  .04); }
+  &.is-pending { background: rgba(var(--ion-color-warning-rgb), .04); }
+}
+
+.pr-left { flex: 1; display: flex; gap: 10px; min-width: 0; }
+.pr-type-badge {
+  flex-shrink: 0; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 800;
+  align-self: flex-start; margin-top: 2px;
+  &[data-type="SENA"]  { background: rgba(var(--ion-color-primary-rgb),.15); color: var(--ion-color-primary); }
+  &[data-type="SALDO"] { background: rgba(var(--ion-color-success-rgb),.15); color: var(--ion-color-success); }
+  &[data-type="AJUSTE"]{ background: rgba(var(--ion-color-medium-rgb),.15);  color: var(--ion-color-medium); }
+}
+.pr-info { flex: 1; overflow: hidden; }
+.pr-client { font-size: 13px; font-weight: 700; margin: 0 0 2px; color: var(--ion-color-dark); }
+.pr-detail { font-size: 11px; color: var(--ion-color-medium); margin: 0 0 2px; }
+.pr-time   {
+  display: flex; align-items: center; gap: 3px;
+  font-size: 11px; color: var(--ion-color-medium); margin: 0;
+  ion-icon { font-size: 11px; }
+}
+.pr-fees {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px;
+  span { font-size: 10px; color: var(--ion-color-medium); }
+}
+.pr-notes { font-size: 11px; color: var(--ion-color-medium); margin: 2px 0 0; font-style: italic; }
+
+.pr-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+.pr-amount {
+  font-size: 15px; font-weight: 800; color: var(--ion-color-dark);
+  &.net { color: var(--ion-color-success); }
+}
+.pr-status { --border-radius: 100px; height: 20px; font-size: 10px; }
+.pr-actions { display: flex; gap: 0; }
+
+// ── Footer del día ────────────────────────────────────────────────────────────
+.day-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px;
+  background: rgba(var(--ion-color-success-rgb), .06);
+  border-top: 1px solid rgba(var(--ion-color-success-rgb), .2);
+  font-size: 13px; font-weight: 600; color: var(--ion-color-dark);
+}
+.day-footer-total { font-weight: 900; color: var(--ion-color-success); }
+
+// ── Total del mes ─────────────────────────────────────────────────────────────
+.month-footer {
+  margin: 8px 16px;
+  background: var(--ion-color-light);
+  border: 1.5px solid var(--ion-color-light-shade);
+  border-radius: 14px; padding: 14px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.mf-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 14px; color: var(--ion-color-dark-tint);
+}
+.mf-val {
+  font-weight: 800; font-size: 15px;
+  &.green { color: var(--ion-color-success); }
+  &.red   { color: var(--ion-color-danger); }
+  &.gray  { color: var(--ion-color-medium); }
+}
+
+// ── Estados vacíos ────────────────────────────────────────────────────────────
+.panel-loading, .panel-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 300px; gap: 10px;
+  ion-icon { font-size: 40px; }
+  p { font-size: 14px; color: var(--ion-color-medium); margin: 0; }
+}

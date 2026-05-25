@@ -79,7 +79,7 @@ export class RegisterPage implements OnInit {
             position: 'top',
           });
           await toast.present();
-          await this.router.navigateByUrl('/tabs/home', { replaceUrl: true });
+          await this.router.navigateByUrl('/admin/tabs/home', { replaceUrl: true });
         },
         error: async (err) => {
           await loading.dismiss();

@@ -45,9 +45,7 @@ export class HomePage implements OnInit, OnDestroy {
     });
     this.roleSub = this.authService.activeRole$.subscribe(role => {
       this.activeRole = role;
-      if (role === 'USUARIO') {
-        this.loadUpcomingBookings();
-      }
+      this.loadDataForRole(role);
     });
   }
 
@@ -57,11 +55,15 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   ionViewWillEnter(): void {
-    if (this.activeRole === 'USUARIO') {
+    this.loadDataForRole(this.activeRole);
+  }
+
+  loadDataForRole(role: string): void {
+    if (role === 'USUARIO') {
       this.loadUpcomingBookings();
-    } else if (this.activeRole === 'ADMIN_GENERAL') {
+    } else if (role === 'ADMIN_GENERAL') {
       this.loadPlatformDashboard();
-    } else if (this.activeRole === 'ADMIN_BARBERSHOP' || this.activeRole === 'SUB_ADMIN') {
+    } else if (role === 'ADMIN_BARBERSHOP' || role === 'SUB_ADMIN') {
       this.loadBarbershopDashboard();
     }
   }
@@ -89,7 +91,7 @@ export class HomePage implements OnInit, OnDestroy {
     this.isLoading = true;
     const today = new Date().toISOString().split('T')[0];
     this.bookingsService
-      .getMyBookings({ status: 'CONFIRMED', from: today, page: 1 })
+      .getMyBookings({ status: 'CONFIRMADA', from: today, page: 1 })
       .subscribe({
         next: res => {
           this.upcomingBookings = res.data.data.slice(0, 3);
@@ -124,11 +126,11 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   goToSearch(): void {
-    this.router.navigate(['/tabs/search']);
+    this.router.navigate(['/admin/tabs/search']);
   }
 
   goToNewBooking(): void {
-    this.router.navigate(['/booking-flow']);
+    this.router.navigate(['/admin/booking-flow']);
   }
 
   async generateRegistrationOrder(): Promise<void> {
@@ -161,7 +163,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   goToAdminPanel(): void {
-    this.router.navigate(['/admin/barbershop']);
+    this.router.navigate(['/admin/barbershop-panel']);
   }
 
   goToPlatformPanel(): void {
@@ -191,7 +193,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   formatDate(dateStr: string): string {
-    const date = new Date(dateStr + 'T00:00:00');
+    const date = new Date(dateStr.split('T')[0] + 'T00:00:00');
     return date.toLocaleDateString('es-ES', {
       weekday: 'long',
       day: 'numeric',

@@ -57,12 +57,27 @@
       <ion-label>Editar perfil</ion-label>
     </ion-item>
 
-    <ion-item button detail="true" routerLink="/barber-profile">
+    <ion-item button detail="true" routerLink="/admin/barber-profile">
       <ion-icon name="cut-outline" slot="start" color="tertiary"></ion-icon>
       <ion-label>
         <h3>Mi perfil de barbero</h3>
         <p>Gestiona tu foto, portfolio y resenas</p>
       </ion-label>
+    </ion-item>
+  </ion-list>
+
+  <!-- Barberias administradas -->
+  <ion-list class="info-list" *ngIf="hasRole('ADMIN_BARBERSHOP') && currentUser?.barbershopAdmins?.length">
+    <ion-list-header>
+      <ion-label>Barberias que administras</ion-label>
+    </ion-list-header>
+    <ion-item
+      *ngFor="let admin of currentUser!.barbershopAdmins"
+      button
+      detail="true"
+      [routerLink]="['/admin/barbershop', admin.barbershopId]">
+      <ion-icon name="storefront-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>{{ admin.barbershop?.name }}</ion-label>
     </ion-item>
   </ion-list>
 
@@ -88,6 +103,29 @@
       <ion-icon *ngIf="role === activeRole" name="checkmark-outline" slot="end" color="primary"></ion-icon>
     </ion-item>
   </ion-list>
+
+  <!-- Apariencia -->
+  <ion-list-header class="theme-list-header">
+    <ion-label>Apariencia</ion-label>
+  </ion-list-header>
+  <div class="theme-grid">
+    <button
+      *ngFor="let t of themes"
+      class="theme-card"
+      [class.active]="activeTheme === t.id"
+      (click)="selectTheme(t.id)">
+      <div class="theme-preview">
+        <div class="preview-bg"     [style.background]="t.colors[0]"></div>
+        <div class="preview-card"   [style.background]="t.colors[1]"></div>
+        <div class="preview-accent" [style.background]="t.colors[2]"></div>
+      </div>
+      <div class="theme-info">
+        <span class="theme-name">{{ t.name }}</span>
+        <span class="theme-desc">{{ t.description }}</span>
+      </div>
+      <ion-icon *ngIf="activeTheme === t.id" name="checkmark-circle" color="primary" class="theme-check"></ion-icon>
+    </button>
+  </div>
 
   <!-- Cerrar sesion -->
   <div class="logout-section">

@@ -3,10 +3,43 @@
     <ion-title>Mis Turnos</ion-title>
   </ion-toolbar>
 
-  <!-- Client segment filter (only for non-barbers) -->
-  <ion-toolbar *ngIf="!isBarber">
+  <!-- Switcher barbero / cliente (solo si es barbero) -->
+  <ion-toolbar *ngIf="isBarber" color="dark" class="role-switcher-toolbar">
+    <div class="role-switcher">
+      <button class="role-btn"
+              [class.active]="mainTab === 'barber'"
+              (click)="onMainTabChange('barber')">
+        <ion-icon name="cut-outline"></ion-icon>
+        Mi agenda
+      </button>
+      <button class="role-btn"
+              [class.active]="mainTab === 'client'"
+              (click)="onMainTabChange('client')">
+        <ion-icon name="person-outline"></ion-icon>
+        Mis reservas
+      </button>
+    </div>
+  </ion-toolbar>
+
+  <!-- Selector de barbería (base domain + múltiples perfiles + vista barbero) -->
+  <ion-toolbar *ngIf="isBarber && mainTab === 'barber' && barberProfiles.length > 1" color="dark">
+    <div class="barbershop-selector-wrap">
+      <ion-icon name="storefront-outline" style="color:rgba(255,255,255,.6);font-size:16px;flex-shrink:0"></ion-icon>
+      <select class="barbershop-select"
+              [(ngModel)]="selectedBarbershopId"
+              (ngModelChange)="onBarbershopChange($event)">
+        <option *ngFor="let p of barberProfiles" [value]="p.barbershopId">
+          {{ p.barbershop?.name || p.barbershopId }}
+        </option>
+      </select>
+      <ion-icon name="chevron-down-outline" style="color:rgba(255,255,255,.6);font-size:14px;flex-shrink:0"></ion-icon>
+    </div>
+  </ion-toolbar>
+
+  <!-- Filtro cliente (no barberos o cuando está en tab cliente) -->
+  <ion-toolbar *ngIf="!isBarber || mainTab === 'client'">
     <ion-segment [value]="segment" (ionChange)="onSegmentChange($event)">
-      <ion-segment-button value="upcoming"><ion-label>Proximos</ion-label></ion-segment-button>
+      <ion-segment-button value="upcoming"><ion-label>Próximos</ion-label></ion-segment-button>
       <ion-segment-button value="past"><ion-label>Pasados</ion-label></ion-segment-button>
       <ion-segment-button value="all"><ion-label>Todos</ion-label></ion-segment-button>
     </ion-segment>
@@ -20,7 +53,7 @@
   </ion-refresher>
 
   <!-- ==================== CLIENT VIEW ==================== -->
-  <ng-container *ngIf="!isBarber">
+  <ng-container *ngIf="!isBarber || mainTab === 'client'">
 
     <div *ngIf="loading" class="ion-text-center ion-padding">
       <ion-spinner name="crescent" color="primary"></ion-spinner>
@@ -87,7 +120,7 @@
   </ng-container>
 
   <!-- ==================== BARBER AGENDA VIEW ==================== -->
-  <ng-container *ngIf="isBarber">
+  <ng-container *ngIf="isBarber && mainTab === 'barber'">
 
     <!-- Date navigation -->
     <div class="agenda-date-nav">

@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -8,6 +8,11 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { BarbershopResolverService } from './core/barbershop-resolver.service';
+
+function initApp(resolver: BarbershopResolverService) {
+  return () => resolver.resolve();
+}
 
 @NgModule({
   declarations: [AppComponent],
@@ -15,6 +20,7 @@ import { AuthInterceptor } from './core/interceptors/auth.interceptor';
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    { provide: APP_INITIALIZER, useFactory: initApp, deps: [BarbershopResolverService], multi: true },
   ],
   bootstrap: [AppComponent],
 })

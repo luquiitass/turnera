@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { AlertController, ToastController } from '@ionic/angular';
+import { ToastController } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { BookingsService } from '../../../services/bookings.service';
 import { Booking } from '../../../shared/models';
@@ -16,12 +16,9 @@ export class MyBookingsPage implements OnInit {
   bookings: Booking[] = [];
   isLoading = false;
   selectedSegment: FilterSegment = 'upcoming';
-  selectedBooking: Booking | null = null;
-  showDetail = false;
 
   constructor(
     private bookingsService: BookingsService,
-    private alertController: AlertController,
     private toastController: ToastController,
     private router: Router,
   ) {}
@@ -62,63 +59,8 @@ export class MyBookingsPage implements OnInit {
     });
   }
 
-  openDetail(booking: Booking): void {
-    this.selectedBooking = booking;
-    this.showDetail = true;
-    // Load full detail
-    this.bookingsService.getOne(booking.id).subscribe({
-      next: (res) => {
-        this.selectedBooking = res.data;
-      },
-    });
-  }
-
-  closeDetail(): void {
-    this.showDetail = false;
-    this.selectedBooking = null;
-  }
-
-  get canCancel(): boolean {
-    if (!this.selectedBooking) return false;
-    return ['PENDIENTE', 'CONFIRMADA'].includes(this.selectedBooking.status);
-  }
-
-  async confirmCancel(): Promise<void> {
-    if (!this.selectedBooking) return;
-    const alert = await this.alertController.create({
-      header: 'Cancelar reserva',
-      message: 'Estas seguro de que quieres cancelar esta reserva?',
-      buttons: [
-        { text: 'No', role: 'cancel' },
-        {
-          text: 'Si, cancelar',
-          cssClass: 'danger',
-          handler: () => {
-            this.cancelBooking();
-          },
-        },
-      ],
-    });
-    await alert.present();
-  }
-
-  cancelBooking(): void {
-    if (!this.selectedBooking) return;
-    this.bookingsService.cancel(this.selectedBooking.id).subscribe({
-      next: () => {
-        this.showToast('Reserva cancelada', 'success');
-        this.closeDetail();
-        this.loadBookings();
-      },
-      error: (err: any) => {
-        const msg = err?.error?.error?.message || 'No se pudo cancelar la reserva';
-        this.showToast(msg, 'danger');
-      },
-    });
-  }
-
   goToNewBooking(): void {
-    this.router.navigate(['/booking-flow']);
+    this.router.navigate(['/admin/booking-flow']);
   }
 
   getStatusLabel(status: string): string {

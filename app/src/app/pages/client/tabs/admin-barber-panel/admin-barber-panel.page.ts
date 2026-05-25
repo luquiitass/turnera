@@ -67,6 +67,7 @@ export class AdminBarberPanelPage implements OnInit {
     { icon: 'leaf-outline',        label: 'Características',   action: 'manage-amenities' },
     { icon: 'settings-outline',    label: 'Configuración',     action: 'edit-settings' },
     { icon: 'stats-chart-outline', label: 'Estadísticas',      action: 'dashboard' },
+    { icon: 'wallet-outline',      label: 'Pagos y deudas',    action: 'payments' },
     { icon: 'globe-outline',       label: 'Subdominio',        action: 'manage-subdomain' },
   ];
 
@@ -131,6 +132,7 @@ export class AdminBarberPanelPage implements OnInit {
       case 'manage-amenities': return this.manageAmenities();
       case 'edit-settings':    return this.editSettings();
       case 'dashboard':        this.router.navigate(['/tabs/dashboard']); return;
+      case 'payments':         this.router.navigate(['/tabs/payments']);  return;
       case 'manage-subdomain': return this.manageSubdomain();
     }
   }

@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, DestroyRef } from '@angular/core';
 import { ActionSheetController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationsService } from '../../services/notifications.service';
 
 @Component({
   standalone: false,
@@ -14,9 +15,14 @@ export class TabsPage implements OnInit, OnDestroy {
   availableRoles: string[] = [];
   private roleSub!: Subscription;
 
+  // DestroyRef bound to this component's lifecycle; passed to startPolling so
+  // the interval is cancelled automatically when this component is destroyed.
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor(
     private authService: AuthService,
     private actionSheetController: ActionSheetController,
+    public notificationsService: NotificationsService,
   ) {}
 
   ngOnInit(): void {
@@ -24,6 +30,7 @@ export class TabsPage implements OnInit, OnDestroy {
       this.activeRole = role;
       this.availableRoles = this.authService.getAvailableRoles();
     });
+    this.notificationsService.startSse(this.destroyRef);
   }
 
   ngOnDestroy(): void {

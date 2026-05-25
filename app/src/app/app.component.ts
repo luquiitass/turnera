@@ -1,4 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { ThemeService } from './core/theme.service';
+import { PushService } from './core/push.service';
 
 @Component({
   selector: 'app-root',
@@ -6,6 +8,14 @@ import { Component } from '@angular/core';
   styleUrls: ['app.component.scss'],
   standalone: false,
 })
-export class AppComponent {
-  constructor() {}
+export class AppComponent implements OnInit {
+  constructor(
+    private themeService: ThemeService,
+    private pushService: PushService,
+  ) {}
+
+  ngOnInit(): void {
+    this.themeService.load();
+    this.pushService.init();
+  }
 }

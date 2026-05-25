@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/home" text="Volver"></ion-back-button>
+      <ion-back-button defaultHref="/admin/tabs/home" text="Volver"></ion-back-button>
     </ion-buttons>
     <ion-title>Mi Perfil de Barbero</ion-title>
   </ion-toolbar>
@@ -34,8 +34,8 @@
     <!-- Header del perfil -->
     <div class="profile-header">
       <div class="avatar-container" (click)="editAvatar()">
-        <img *ngIf="selectedProfile.avatarUrl" [src]="selectedProfile.avatarUrl" class="avatar-img" />
-        <div *ngIf="!selectedProfile.avatarUrl" class="avatar-placeholder">
+        <img *ngIf="selectedProfile.images?.[0]?.image?.url" [src]="selectedProfile.images![0].image.url" class="avatar-img" />
+        <div *ngIf="!selectedProfile.images?.length" class="avatar-placeholder">
           <ion-icon name="person-outline"></ion-icon>
         </div>
         <div class="avatar-edit-badge">

@@ -19,13 +19,23 @@
   </div>
 
   <ion-list *ngIf="!isLoading">
-    <ion-item *ngFor="let bs of barbershops" button detail (click)="goToDetail(bs)">
-      <ion-icon name="storefront-outline" slot="start" color="primary"></ion-icon>
+    <ion-item
+      *ngFor="let bs of barbershops"
+      button
+      detail
+      (click)="goToDetail(bs)"
+      [class.inactive-item]="!bs.isActive">
+
+      <ion-icon
+        [name]="bs.isActive ? 'storefront-outline' : 'storefront-outline'"
+        slot="start"
+        [color]="bs.isActive ? 'primary' : 'medium'">
+      </ion-icon>
+
       <ion-label>
-        <h2>{{ bs.name }}</h2>
+        <h2 [style.opacity]="bs.isActive ? 1 : 0.5">{{ bs.name }}</h2>
         <p>{{ bs.address }}</p>
         <p *ngIf="bs.phone">{{ bs.phone }}</p>
-        <!-- Administrador/es -->
         <p *ngIf="bs.admins && bs.admins.length > 0" class="admins-list">
           <ion-icon name="shield-checkmark-outline" size="small" color="primary"></ion-icon>
           <span class="admin-names">
@@ -35,9 +45,28 @@
           </span>
         </p>
       </ion-label>
-      <ion-chip slot="end" [color]="bs.isActive ? 'success' : 'danger'" outline>
-        <ion-label>{{ bs.isActive ? 'Activa' : 'Inactiva' }}</ion-label>
-      </ion-chip>
+
+      <div slot="end" class="end-slot">
+        <ion-chip [color]="bs.isActive ? 'success' : 'danger'" outline class="status-chip">
+          <ion-label>{{ bs.isActive ? 'Activa' : 'Inactiva' }}</ion-label>
+        </ion-chip>
+
+        <ion-button
+          fill="clear"
+          [color]="bs.isActive ? 'danger' : 'success'"
+          size="small"
+          class="toggle-btn"
+          [disabled]="togglingId === bs.id"
+          (click)="toggleActive($event, bs)">
+          <ion-spinner *ngIf="togglingId === bs.id" name="crescent" slot="icon-only" style="width:18px;height:18px"></ion-spinner>
+          <ion-icon
+            *ngIf="togglingId !== bs.id"
+            [name]="bs.isActive ? 'eye-off-outline' : 'eye-outline'"
+            slot="icon-only">
+          </ion-icon>
+        </ion-button>
+      </div>
+
     </ion-item>
   </ion-list>
 

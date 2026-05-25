@@ -7,7 +7,476 @@ datasource db {
   provider = "postgresql"
 }
 
-// ==================== ENUMS ====================
+model User {
+  id                      String                   @id @default(uuid())
+  email                   String                   @unique
+  password                String?
+  firstName               String
+  lastName                String
+  phone                   String?
+  address                 String?
+  avatarUrl               String?
+  googleId                String?                  @unique
+  roles                   Role[]                   @default([USUARIO])
+  isActive                Boolean                  @default(true)
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  refreshToken            String?
+  pushTokens              String[]                 @default([])
+  resetPasswordToken      String?
+  resetPasswordTokenExpiry DateTime?
+  barberProfiles          Barber[]
+  barbershopAdmins        BarbershopAdmin[]
+  cancelledBookings       Booking[]                @relation("BookingCancelledBy")
+  bookings                Booking[]
+  notificationPreferences NotificationPreference[]
+  notificationRecipients  NotificationUser[]
+  sentNotifications       Notification[]           @relation("SentNotifications")
+  payments                Payment[]                @relation("RegisteredBy")
+  reviews                 Review[]
+
+  @@map("users")
+}
+
+model Image {
+  id               String            @id @default(uuid())
+  path             String
+  url              String
+  name             String?
+  type             ImageType
+  mimeType         String?
+  size             Int?
+  createdAt        DateTime          @default(now())
+  barberImages     BarberImage[]
+  barbershopImages BarbershopImage[]
+
+  @@map("images")
+}
+
+model BarbershopImage {
+  id           String     @id @default(uuid())
+  barbershopId String
+  imageId      String
+  createdAt    DateTime   @default(now())
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  image        Image      @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  @@unique([barbershopId, imageId])
+  @@map("barbershop_images")
+}
+
+model Barbershop {
+  id                   String                    @id @default(uuid())
+  name                 String                    @unique
+  slug                 String                    @unique @default("")
+  description          String?
+  address              String
+  latitude             Float?
+  longitude            Float?
+  phone                String?
+  depositAmount        Float                     @default(0)
+  cancellationHours    Int                       @default(12)
+  minAdvanceHours      Int                       @default(1)
+  maxAdvanceDays       Int                       @default(30)
+  businessModel        BusinessModel             @default(GRATUITO)
+  maxBarbers           Int                       @default(10)
+  isActive             Boolean                   @default(true)
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+  maxBarberImages      Int                       @default(3)
+  barbers              Barber[]
+  admins               BarbershopAdmin[]
+  amenities            BarbershopAmenity[]
+  images               BarbershopImage[]
+  paymentMethods       BarbershopPaymentMethod[]
+  services             BarbershopService[]
+  subscription         BarbershopSubscription?
+  offers               Offer[]
+  platformTransactions PlatformTransaction[]
+  reviews              Review[]
+
+  @@map("barbershops")
+}
+
+model BarbershopAdmin {
+  id           String     @id @default(uuid())
+  userId       String
+  barbershopId String
+  role         Role       @default(SUB_ADMIN)
+  createdAt    DateTime   @default(now())
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+
+  @@unique([userId, barbershopId])
+  @@map("barbershop_admins")
+}
+
+model Barber {
+  id           String          @id @default(uuid())
+  barbershopId String
+  userId       String?
+  firstName    String
+  lastName     String
+  bio          String?
+  phone        String?
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  images       BarberImage[]
+  services     BarberService[]
+  barbershop   Barbershop      @relation(fields: [barbershopId], references: [id])
+  user         User?           @relation(fields: [userId], references: [id])
+  blockedSlots BlockedSlot[]
+  bookings     Booking[]
+  reviews      Review[]
+  schedules    Schedule[]
+
+  @@map("barbers")
+}
+
+model BarberImage {
+  id        String   @id @default(uuid())
+  barberId  String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  imageId   String
+  barber    Barber   @relation(fields: [barberId], references: [id], onDelete: Cascade)
+  image     Image    @relation(fields: [imageId], references: [id], onDelete: Cascade)
+
+  @@unique([barberId, imageId])
+  @@map("barber_images")
+}
+
+model Service {
+  id             String              @id @default(uuid())
+  name           String
+  nameNormalized String              @unique
+  description    String?
+  category       String?
+  imageUrl       String?
+  isActive       Boolean             @default(true)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  barbers        BarberService[]
+  barbershops    BarbershopService[]
+  bookings       Booking[]
+
+  @@map("services")
+}
+
+model BarbershopService {
+  id           String     @id @default(uuid())
+  barbershopId String
+  serviceId    String
+  price        Float
+  durationMin  Int
+  isActive     Boolean    @default(true)
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  service      Service    @relation(fields: [serviceId], references: [id])
+
+  @@unique([barbershopId, serviceId])
+  @@map("barbershop_services")
+}
+
+model BarberService {
+  id        String  @id @default(uuid())
+  barberId  String
+  serviceId String
+  price     Float?
+  barber    Barber  @relation(fields: [barberId], references: [id])
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  @@unique([barberId, serviceId])
+  @@map("barber_services")
+}
+
+model Amenity {
+  id          String              @id @default(uuid())
+  name        String              @unique
+  icon        String?
+  category    String?
+  isDefault   Boolean             @default(false)
+  barbershops BarbershopAmenity[]
+
+  @@map("amenities")
+}
+
+model BarbershopAmenity {
+  id           String     @id @default(uuid())
+  barbershopId String
+  amenityId    String
+  amenity      Amenity    @relation(fields: [amenityId], references: [id])
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+
+  @@unique([barbershopId, amenityId])
+  @@map("barbershop_amenities")
+}
+
+model Schedule {
+  id                  String    @id @default(uuid())
+  barberId            String
+  dayOfWeek           DayOfWeek
+  openTime            String
+  closeTime           String
+  slotDurationMinutes Int       @default(30)
+  barber              Barber    @relation(fields: [barberId], references: [id])
+
+  @@unique([barberId, dayOfWeek])
+  @@map("schedules")
+}
+
+model BlockedSlot {
+  id        String   @id @default(uuid())
+  barberId  String
+  date      DateTime
+  startTime String
+  endTime   String
+  reason    String?
+  createdAt DateTime @default(now())
+  barber    Barber   @relation(fields: [barberId], references: [id])
+
+  @@map("blocked_slots")
+}
+
+model Booking {
+  id                   String                @id @default(uuid())
+  userId               String
+  barberId             String
+  serviceId            String
+  date                 DateTime
+  startTime            String
+  endTime              String
+  totalPrice           Float
+  depositPrice         Float                 @default(0)
+  status               BookingStatus         @default(PENDIENTE)
+  notes                String?
+  recurringBookingId   String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  depositPaid          Boolean               @default(false)
+  mpPaymentId          String?
+  mpPreferenceId       String?
+  cancelledById        String?
+  barber               Barber                @relation(fields: [barberId], references: [id])
+  cancelledBy          User?                 @relation("BookingCancelledBy", fields: [cancelledById], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  recurringBooking     RecurringBooking?     @relation(fields: [recurringBookingId], references: [id])
+  service              Service               @relation(fields: [serviceId], references: [id])
+  user                 User                  @relation(fields: [userId], references: [id])
+  payments             Payment[]
+  platformTransactions PlatformTransaction[]
+
+  @@map("bookings")
+}
+
+model RecurringBooking {
+  id         String             @id @default(uuid())
+  userId     String
+  barberId   String
+  serviceId  String
+  dayOfWeek  DayOfWeek
+  startTime  String
+  endTime    String
+  isActive   Boolean            @default(true)
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  exceptions BookingException[]
+  bookings   Booking[]
+
+  @@map("recurring_bookings")
+}
+
+model BookingException {
+  id                 String           @id @default(uuid())
+  recurringBookingId String
+  excludedDate       DateTime
+  recurringBooking   RecurringBooking @relation(fields: [recurringBookingId], references: [id])
+
+  @@unique([recurringBookingId, excludedDate])
+  @@map("booking_exceptions")
+}
+
+model Payment {
+  id           String            @id @default(uuid())
+  bookingId    String
+  amount       Float
+  method       PaymentMethodType
+  type         PaymentType
+  status       PaymentStatus     @default(PENDIENTE)
+  registeredBy String?
+  createdAt    DateTime          @default(now())
+  grossAmount  Float?
+  mpFee        Float?            @default(0)
+  platformFee  Float?            @default(0)
+  netAmount    Float?
+  paidAt       DateTime?         @db.Timestamp(6)
+  notes        String?
+  mpPaymentId  String?
+  booking      Booking           @relation(fields: [bookingId], references: [id])
+  register     User?             @relation("RegisteredBy", fields: [registeredBy], references: [id])
+
+  @@map("payments")
+}
+
+model BarbershopPaymentMethod {
+  id           String            @id @default(uuid())
+  barbershopId String
+  method       PaymentMethodType
+  isActive     Boolean           @default(true)
+  barbershop   Barbershop        @relation(fields: [barbershopId], references: [id])
+
+  @@unique([barbershopId, method])
+  @@map("barbershop_payment_methods")
+}
+
+model Offer {
+  id            String       @id @default(uuid())
+  barbershopId  String
+  name          String
+  description   String?
+  discountType  DiscountType
+  discountValue Float
+  validFrom     DateTime
+  validUntil    DateTime
+  startTime     String?
+  endTime       String?
+  serviceIds    String[]     @default([])
+  barberIds     String[]     @default([])
+  appliesToAll  Boolean      @default(true)
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  barbershop    Barbershop   @relation(fields: [barbershopId], references: [id])
+
+  @@map("offers")
+}
+
+model Review {
+  id           String     @id @default(uuid())
+  userId       String
+  barbershopId String
+  barberId     String?
+  rating       Int
+  comment      String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  barber       Barber?    @relation(fields: [barberId], references: [id])
+  barbershop   Barbershop @relation(fields: [barbershopId], references: [id])
+  user         User       @relation(fields: [userId], references: [id])
+
+  @@unique([userId, barbershopId])
+  @@map("reviews")
+}
+
+model Notification {
+  id         String                  @id @default(uuid())
+  title      String
+  body       String
+  createdAt  DateTime                @default(now())
+  actionUrl  String?
+  channels   String[]                @default([])
+  entityId   String?
+  entityType NotificationEntityType?
+  expiresAt  DateTime?
+  metadata   Json?
+  priority   String                  @default("NORMAL")
+  senderId   String?
+  updatedAt  DateTime                @updatedAt
+  type       NotificationType
+  recipients NotificationUser[]
+  sender     User?                   @relation("SentNotifications", fields: [senderId], references: [id])
+
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+model NotificationUser {
+  id             String       @id @default(uuid())
+  notificationId String
+  userId         String
+  isRead         Boolean      @default(false)
+  readAt         DateTime?
+  extraData      Json?
+  deliveredAt    Json?
+  createdAt      DateTime     @default(now())
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@unique([notificationId, userId])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+  @@map("notification_users")
+}
+
+model NotificationPreference {
+  id       String           @id @default(uuid())
+  userId   String
+  type     NotificationType
+  inApp    Boolean          @default(true)
+  push     Boolean          @default(true)
+  whatsapp Boolean          @default(true)
+  email    Boolean          @default(false)
+  user     User             @relation(fields: [userId], references: [id])
+
+  @@unique([userId, type])
+  @@map("notification_preferences")
+}
+
+model PlatformConfig {
+  id    String @id @default(uuid())
+  key   String @unique
+  value String
+
+  @@map("platform_config")
+}
+
+model BarbershopSubscription {
+  id              String     @id @default(uuid())
+  barbershopId    String     @unique
+  plan            String
+  startDate       DateTime
+  endDate         DateTime?
+  isActive        Boolean    @default(true)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  commissionRate  Float      @default(0.10)
+  minDepositRate  Float      @default(0.30)
+  mpPlanId        String?
+  mpPreapprovalId String?
+  nextBillingDate DateTime?
+  barbershop      Barbershop @relation(fields: [barbershopId], references: [id])
+
+  @@map("barbershop_subscriptions")
+}
+
+model PlatformTransaction {
+  id            String     @id @default(uuid())
+  barbershopId  String
+  bookingId     String?
+  type          String
+  grossAmount   Float
+  platformFee   Float
+  barbershopNet Float?
+  mpPaymentId   String?
+  mpStatus      String?
+  status        String     @default("pending")
+  createdAt     DateTime   @default(now())
+  barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
+  booking       Booking?   @relation(fields: [bookingId], references: [id])
+
+  @@map("platform_transactions")
+}
+
+model RegistrationOrder {
+  id        String    @id @default(uuid())
+  code      String    @unique
+  usedBy    String?
+  usedAt    DateTime?
+  expiresAt DateTime
+  isUsed    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  @@map("registration_orders")
+}
 
 enum Role {
   ADMIN_GENERAL
@@ -41,6 +510,7 @@ enum PaymentStatus {
   APROBADO
   RECHAZADO
   REEMBOLSADO
+  DEUDA
 }
 
 enum BusinessModel {
@@ -87,538 +557,9 @@ enum NotificationEntityType {
   USER
 }
 
-// ==================== USERS ====================
-
-model User {
-  id         String   @id @default(uuid())
-  email      String   @unique
-  password   String?
-  firstName  String
-  lastName   String
-  phone      String?
-  address    String?
-  avatarUrl  String?
-  googleId   String?  @unique
-  roles      Role[]   @default([USUARIO])
-  isActive   Boolean  @default(true)
-  pushTokens String[] @default([])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  barbershopAdmins          BarbershopAdmin[]
-  barberProfiles            Barber[]
-  bookings                  Booking[]
-  cancelledBookings         Booking[]              @relation("BookingCancelledBy")
-  reviews                   Review[]
-  payments                  Payment[]              @relation("RegisteredBy")
-  sentNotifications         Notification[]         @relation("SentNotifications")
-  notificationRecipients    NotificationUser[]
-  notificationPreferences   NotificationPreference[]
-  refreshToken              String?
-
-  @@map("users")
-}
-
-// ==================== IMAGES ====================
-
 enum ImageType {
   ICONO
   PORTADA
   PERFIL
   GALERIA
-}
-
-model Image {
-  id        String    @id @default(uuid())
-  path      String
-  url       String
-  name      String?
-  type      ImageType
-  mimeType  String?
-  size      Int?
-  createdAt DateTime  @default(now())
-
-  barbershopImages BarbershopImage[]
-  barberImages     BarberImage[]
-
-  @@map("images")
-}
-
-model BarbershopImage {
-  id           String @id @default(uuid())
-  barbershopId String
-  imageId      String
-
-  barbershop Barbershop @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
-  image      Image      @relation(fields: [imageId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([barbershopId, imageId])
-  @@map("barbershop_images")
-}
-
-// ==================== BARBERSHOPS ====================
-
-model Barbershop {
-  id                String        @id @default(uuid())
-  name              String        @unique
-  slug              String        @unique @default("")
-  description       String?
-  address           String
-  latitude          Float?
-  longitude         Float?
-  phone             String?
-  depositAmount     Float         @default(0)
-  cancellationHours Int           @default(12)
-  minAdvanceHours   Int           @default(1)
-  maxAdvanceDays    Int           @default(30)
-  businessModel     BusinessModel @default(GRATUITO)
-  maxBarbers        Int           @default(10)
-  maxBarberImages   Int           @default(3)
-  isActive          Boolean       @default(true)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-
-  admins         BarbershopAdmin[]
-  barbers        Barber[]
-  images         BarbershopImage[]
-  services       BarbershopService[]
-  amenities      BarbershopAmenity[]
-  paymentMethods BarbershopPaymentMethod[]
-  reviews        Review[]
-  offers         Offer[]
-  subscription         BarbershopSubscription?
-  platformTransactions PlatformTransaction[]
-
-  @@map("barbershops")
-}
-
-model BarbershopAdmin {
-  id           String @id @default(uuid())
-  userId       String
-  barbershopId String
-  role         Role   @default(SUB_ADMIN)
-
-  user       User       @relation(fields: [userId], references: [id])
-  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
-
-  createdAt DateTime @default(now())
-
-  @@unique([userId, barbershopId])
-  @@map("barbershop_admins")
-}
-
-// ==================== BARBERS ====================
-
-model Barber {
-  id           String  @id @default(uuid())
-  barbershopId String
-  userId       String?
-  firstName    String
-  lastName     String
-  bio          String?
-  phone        String?
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  barbershop   Barbershop     @relation(fields: [barbershopId], references: [id])
-  user         User?          @relation(fields: [userId], references: [id])
-  services     BarberService[]
-  schedules    Schedule[]
-  blockedSlots BlockedSlot[]
-  bookings     Booking[]
-  images       BarberImage[]
-  reviews      Review[]
-
-  @@map("barbers")
-}
-
-model BarberImage {
-  id        String @id @default(uuid())
-  barberId  String
-  imageId   String
-  sortOrder Int    @default(0)
-
-  barber Barber @relation(fields: [barberId], references: [id], onDelete: Cascade)
-  image  Image  @relation(fields: [imageId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@unique([barberId, imageId])
-  @@map("barber_images")
-}
-
-// ==================== SERVICES (GLOBAL CATALOG) ====================
-
-model Service {
-  id             String  @id @default(uuid())
-  name           String
-  nameNormalized String  @unique
-  description    String?
-  category       String?
-  imageUrl       String?
-  isActive       Boolean  @default(true)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  barbershops BarbershopService[]
-  barbers     BarberService[]
-  bookings    Booking[]
-
-  @@map("services")
-}
-
-model BarbershopService {
-  id           String @id @default(uuid())
-  barbershopId String
-  serviceId    String
-  price        Float
-  durationMin  Int
-  isActive     Boolean @default(true)
-
-  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
-  service    Service    @relation(fields: [serviceId], references: [id])
-
-  @@unique([barbershopId, serviceId])
-  @@map("barbershop_services")
-}
-
-model BarberService {
-  id        String @id @default(uuid())
-  barberId  String
-  serviceId String
-  price     Float?
-
-  barber  Barber  @relation(fields: [barberId], references: [id])
-  service Service @relation(fields: [serviceId], references: [id])
-
-  @@unique([barberId, serviceId])
-  @@map("barber_services")
-}
-
-// ==================== AMENITIES ====================
-
-model Amenity {
-  id        String  @id @default(uuid())
-  name      String  @unique
-  icon      String?
-  category  String?
-  isDefault Boolean @default(false)
-
-  barbershops BarbershopAmenity[]
-
-  @@map("amenities")
-}
-
-model BarbershopAmenity {
-  id           String @id @default(uuid())
-  barbershopId String
-  amenityId    String
-
-  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
-  amenity    Amenity    @relation(fields: [amenityId], references: [id])
-
-  @@unique([barbershopId, amenityId])
-  @@map("barbershop_amenities")
-}
-
-// ==================== SCHEDULES ====================
-
-model Schedule {
-  id                  String    @id @default(uuid())
-  barberId            String
-  dayOfWeek           DayOfWeek
-  openTime            String
-  closeTime           String
-  slotDurationMinutes Int       @default(30)
-
-  barber Barber @relation(fields: [barberId], references: [id])
-
-  @@unique([barberId, dayOfWeek])
-  @@map("schedules")
-}
-
-model BlockedSlot {
-  id        String   @id @default(uuid())
-  barberId  String
-  date      DateTime
-  startTime String
-  endTime   String
-  reason    String?
-
-  barber Barber @relation(fields: [barberId], references: [id])
-
-  createdAt DateTime @default(now())
-
-  @@map("blocked_slots")
-}
-
-// ==================== BOOKINGS ====================
-
-model Booking {
-  id           String        @id @default(uuid())
-  userId       String
-  barberId     String
-  serviceId    String
-  date         DateTime
-  startTime    String
-  endTime      String
-  totalPrice   Float
-  depositPrice Float         @default(0)
-  status           BookingStatus @default(PENDIENTE)
-  notes            String?
-  mpPreferenceId   String?
-  mpPaymentId      String?
-  depositPaid      Boolean  @default(false)
-
-  recurringBookingId String?
-  cancelledById      String?
-
-  user             User              @relation(fields: [userId], references: [id])
-  barber           Barber            @relation(fields: [barberId], references: [id])
-  service          Service           @relation(fields: [serviceId], references: [id])
-  recurringBooking RecurringBooking? @relation(fields: [recurringBookingId], references: [id])
-  cancelledBy      User?             @relation("BookingCancelledBy", fields: [cancelledById], references: [id])
-  payments             Payment[]
-  platformTransactions PlatformTransaction[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("bookings")
-}
-
-model RecurringBooking {
-  id        String    @id @default(uuid())
-  userId    String
-  barberId  String
-  serviceId String
-  dayOfWeek DayOfWeek
-  startTime String
-  endTime   String
-  isActive  Boolean   @default(true)
-
-  bookings   Booking[]
-  exceptions BookingException[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("recurring_bookings")
-}
-
-model BookingException {
-  id                 String   @id @default(uuid())
-  recurringBookingId String
-  excludedDate       DateTime
-
-  recurringBooking RecurringBooking @relation(fields: [recurringBookingId], references: [id])
-
-  @@unique([recurringBookingId, excludedDate])
-  @@map("booking_exceptions")
-}
-
-// ==================== PAYMENTS ====================
-
-model Payment {
-  id           String            @id @default(uuid())
-  bookingId    String
-  amount       Float
-  method       PaymentMethodType
-  type         PaymentType
-  status       PaymentStatus     @default(PENDIENTE)
-  registeredBy String?
-
-  booking  Booking @relation(fields: [bookingId], references: [id])
-  register User?   @relation("RegisteredBy", fields: [registeredBy], references: [id])
-
-  createdAt DateTime @default(now())
-
-  @@map("payments")
-}
-
-model BarbershopPaymentMethod {
-  id           String            @id @default(uuid())
-  barbershopId String
-  method       PaymentMethodType
-  isActive     Boolean           @default(true)
-
-  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
-
-  @@unique([barbershopId, method])
-  @@map("barbershop_payment_methods")
-}
-
-// ==================== OFFERS ====================
-
-model Offer {
-  id            String       @id @default(uuid())
-  barbershopId  String
-  name          String
-  description   String?
-  discountType  DiscountType
-  discountValue Float
-  validFrom     DateTime
-  validUntil    DateTime
-  startTime     String?
-  endTime       String?
-  serviceIds    String[]     @default([])
-  barberIds     String[]     @default([])
-  appliesToAll  Boolean      @default(true)
-  isActive      Boolean      @default(true)
-
-  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("offers")
-}
-
-// ==================== REVIEWS ====================
-
-model Review {
-  id           String  @id @default(uuid())
-  userId       String
-  barbershopId String
-  barberId     String?
-  rating       Int
-  comment      String?
-
-  user       User       @relation(fields: [userId], references: [id])
-  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
-  barber     Barber?    @relation(fields: [barberId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, barbershopId])
-  @@map("reviews")
-}
-
-// ==================== NOTIFICATIONS ====================
-
-model Notification {
-  id         String                  @id @default(uuid())
-  senderId   String?
-  title      String
-  body       String
-  type       NotificationType
-  entityType NotificationEntityType?
-  entityId   String?
-  actionUrl  String?
-  channels   String[]                @default([])
-  priority   String                  @default("NORMAL")
-  expiresAt  DateTime?
-  metadata   Json?
-  createdAt  DateTime                @default(now())
-  updatedAt  DateTime                @updatedAt
-
-  sender     User?              @relation("SentNotifications", fields: [senderId], references: [id])
-  recipients NotificationUser[]
-
-  @@index([createdAt])
-  @@map("notifications")
-}
-
-model NotificationUser {
-  id             String    @id @default(uuid())
-  notificationId String
-  userId         String
-  isRead         Boolean   @default(false)
-  readAt         DateTime?
-  extraData      Json?
-  deliveredAt    Json?
-  createdAt      DateTime  @default(now())
-
-  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id])
-
-  @@unique([notificationId, userId])
-  @@index([userId, isRead])
-  @@index([userId, createdAt])
-  @@map("notification_users")
-}
-
-model NotificationPreference {
-  id       String           @id @default(uuid())
-  userId   String
-  type     NotificationType
-  inApp    Boolean          @default(true)
-  push     Boolean          @default(true)
-  whatsapp Boolean          @default(true)
-  email    Boolean          @default(false)
-
-  user User @relation(fields: [userId], references: [id])
-
-  @@unique([userId, type])
-  @@map("notification_preferences")
-}
-
-// ==================== PLATFORM ====================
-
-model PlatformConfig {
-  id    String @id @default(uuid())
-  key   String @unique
-  value String
-
-  @@map("platform_config")
-}
-
-model BarbershopSubscription {
-  id              String    @id @default(uuid())
-  barbershopId    String    @unique
-  plan            String    // GRATUITO | SUSCRIPCION | COMISION
-  startDate       DateTime
-  endDate         DateTime?
-  isActive        Boolean   @default(true)
-
-  // MercadoPago — modelo 2 (suscripción)
-  mpPreapprovalId String?   // ID del preapproval en MP
-  mpPlanId        String?   // ID del plan en MP (reutilizable)
-  nextBillingDate DateTime?
-
-  // Modelo 3 (comisión)
-  commissionRate  Float     @default(0.10)  // % que cobra la plataforma
-  minDepositRate  Float     @default(0.30)  // % mínimo del precio como depósito
-
-  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("barbershop_subscriptions")
-}
-
-model PlatformTransaction {
-  id             String   @id @default(uuid())
-  barbershopId   String
-  bookingId      String?
-  type           String   // subscription | commission
-  grossAmount    Float
-  platformFee    Float
-  barbershopNet  Float?
-  mpPaymentId    String?
-  mpStatus       String?  // approved | pending | rejected
-  status         String   @default("pending") // pending | confirmed | transferred | failed
-  createdAt      DateTime @default(now())
-
-  barbershop Barbershop @relation(fields: [barbershopId], references: [id])
-  booking    Booking?   @relation(fields: [bookingId], references: [id])
-
-  @@map("platform_transactions")
-}
-
-model RegistrationOrder {
-  id        String   @id @default(uuid())
-  code      String   @unique
-  usedBy    String?
-  usedAt    DateTime?
-  expiresAt DateTime
-  isUsed    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@map("registration_orders")
 }

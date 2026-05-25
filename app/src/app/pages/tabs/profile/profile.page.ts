@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { ThemeService, AppTheme, THEME_OPTIONS, ThemeOption } from '../../../core/theme.service';
 import { User } from '../../../shared/models';
 
 @Component({
@@ -15,6 +16,8 @@ export class ProfilePage implements OnInit, OnDestroy {
   currentUser: User | null = null;
   activeRole = 'USUARIO';
   availableRoles: string[] = [];
+  themes: ThemeOption[] = THEME_OPTIONS;
+  activeTheme: AppTheme = 'theme-light';
 
   private userSub!: Subscription;
   private roleSub!: Subscription;
@@ -23,6 +26,7 @@ export class ProfilePage implements OnInit, OnDestroy {
     private authService: AuthService,
     private router: Router,
     private alertController: AlertController,
+    private themeService: ThemeService,
   ) {}
 
   ngOnInit(): void {
@@ -33,6 +37,12 @@ export class ProfilePage implements OnInit, OnDestroy {
     this.roleSub = this.authService.activeRole$.subscribe(role => {
       this.activeRole = role;
     });
+    this.activeTheme = this.themeService.current();
+  }
+
+  selectTheme(theme: AppTheme): void {
+    this.activeTheme = theme;
+    this.themeService.apply(theme);
   }
 
   ngOnDestroy(): void {
@@ -54,6 +64,10 @@ export class ProfilePage implements OnInit, OnDestroy {
 
   get hasMultipleRoles(): boolean {
     return this.availableRoles.length > 1;
+  }
+
+  hasRole(role: string): boolean {
+    return this.authService.hasRole(role);
   }
 
   getRoleLabel(role: string): string {

@@ -28,7 +28,11 @@
     <ion-list-header><ion-label>Proximas reservas</ion-label></ion-list-header>
 
     <ng-container *ngIf="upcomingBookings.length > 0; else noBookings">
-      <ion-card *ngFor="let booking of upcomingBookings" class="booking-card">
+      <ion-card
+        *ngFor="let booking of upcomingBookings"
+        class="booking-card"
+        button
+        [routerLink]="['/admin/tabs/booking', booking.id]">
         <ion-card-header>
           <ion-chip [color]="getStatusColor(booking.status)" outline>
             <ion-label>{{ getStatusLabel(booking.status) }}</ion-label>
@@ -44,6 +48,9 @@
             <ion-icon name="person-outline" slot="start" color="primary"></ion-icon>
             <ion-label>{{ booking.barber?.firstName }} {{ booking.barber?.lastName }}</ion-label>
           </ion-item>
+          <div class="ion-text-right" style="padding: 4px 0 0">
+            <ion-note color="primary" style="font-size:12px">Ver detalle →</ion-note>
+          </div>
         </ion-card-content>
       </ion-card>
     </ng-container>
@@ -148,7 +155,7 @@
     </div>
 
     <ion-list *ngIf="myBarbershops.length > 0">
-      <ion-item *ngFor="let bs of myBarbershops" button detail [routerLink]="'/barbershop/' + bs.id">
+      <ion-item *ngFor="let bs of myBarbershops" button detail [routerLink]="'/admin/barbershop/' + bs.id">
         <ion-icon name="storefront-outline" slot="start" color="primary"></ion-icon>
         <ion-label>
           <h2>{{ bs.name }}</h2>

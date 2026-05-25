@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { NotificationType, NotificationEntityType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { SseManagerService } from './sse-manager.service.js';
 
 export interface CreateNotificationInput {
   recipientIds: string[];
@@ -21,7 +22,11 @@ export interface CreateNotificationInput {
 
 @Injectable()
 export class NotificationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject(forwardRef(() => SseManagerService))
+    private sseMgr: SseManagerService,
+  ) {}
 
   // ── Crear notificación con múltiples destinatarios ────────────────────────
   async create(input: CreateNotificationInput) {
@@ -49,6 +54,39 @@ export class NotificationsService {
       },
       include: { recipients: true },
     });
+
+    // Push SSE en tiempo real a cada destinatario conectado
+    const uniqueRecipients = [...new Set(recipientIds)];
+    for (const userId of uniqueRecipients) {
+      if (this.sseMgr.isConnected(userId)) {
+        // Payload que espera el frontend: un NotificationUser aplanado
+        const recipient = notification.recipients.find(r => r.userId === userId);
+        const ssePayload = {
+          id:             recipient?.id ?? '',
+          notificationId: notification.id,
+          userId,
+          isRead:         false,
+          readAt:         null,
+          extraData:      recipient?.extraData ?? {},
+          createdAt:      recipient?.createdAt ?? new Date(),
+          title:          notification.title,
+          body:           notification.body,
+          type:           notification.type,
+          entityType:     notification.entityType,
+          entityId:       notification.entityId,
+          actionUrl:      (recipient?.extraData as any)?.actionUrl ?? notification.actionUrl,
+          channels:       notification.channels,
+          priority:       notification.priority,
+          metadata:       notification.metadata,
+        };
+        this.sseMgr.pushNotification(userId, ssePayload);
+
+        // También actualizar el contador de no leídas
+        this.countUnread(userId).then(count => {
+          this.sseMgr.pushUnreadCount(userId, count);
+        });
+      }
+    }
 
     return notification;
   }

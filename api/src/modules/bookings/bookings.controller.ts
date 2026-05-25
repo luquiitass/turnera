@@ -40,6 +40,16 @@ export class BookingsController {
     return this.bookingsService.cancel(id, user.id, user.roles);
   }
 
+  @Put(':id/status')
+  @Roles(Role.ADMIN_BARBERSHOP, Role.SUB_ADMIN, Role.ADMIN_GENERAL)
+  updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: string,
+    @CurrentUser() user: any,
+  ) {
+    return this.bookingsService.updateStatus(id, status, user.id);
+  }
+
   @Post('recurring')
   createRecurring(@CurrentUser('id') userId: string, @Body() dto: CreateRecurringBookingDto) {
     return this.bookingsService.createRecurring(userId, dto);

@@ -47,6 +47,14 @@ export class BarbersService {
     return this.http.delete<ApiResponse<any>>(`${this.url}/my-profile/images/${imageId}`);
   }
 
+  addImage(barberId: string, imageId: string): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.url}/${barberId}/images`, { imageId });
+  }
+
+  removeImage(relationId: string): Observable<ApiResponse<any>> {
+    return this.http.delete<ApiResponse<any>>(`${this.url}/images/${relationId}`);
+  }
+
   // Barber reviews
   getBarberReviews(barberId: string): Observable<ApiResponse<any[]>> {
     return this.http.get<ApiResponse<any[]>>(`${this.url}/${barberId}/reviews`);

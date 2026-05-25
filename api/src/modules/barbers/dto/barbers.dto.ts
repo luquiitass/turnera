@@ -24,10 +24,6 @@ export class UpdateBarberDto {
 
   @IsOptional()
   @IsString()
-  avatarUrl?: string;
-
-  @IsOptional()
-  @IsString()
   phone?: string;
 
   @IsOptional()

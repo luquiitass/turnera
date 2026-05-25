@@ -4,6 +4,7 @@ import {
 import { DayOfWeek } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { NotificationDispatcher } from '../notifications/notification-dispatcher.service.js';
+import { PaymentsService } from '../payments/payments.service.js';
 import { CreateBookingDto, CreateRecurringBookingDto, BookingFiltersDto } from './dto/bookings.dto.js';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class BookingsService {
   constructor(
     private prisma: PrismaService,
     private dispatcher: NotificationDispatcher,
+    private paymentsService: PaymentsService,
   ) {}
 
   async create(userId: string, dto: CreateBookingDto) {
@@ -180,7 +182,7 @@ export class BookingsService {
       where: { id },
       include: {
         user: { select: { id: true, firstName: true, lastName: true, phone: true, email: true } },
-        barber: { include: { barbershop: { select: { id: true, name: true, cancellationHours: true } } } },
+        barber: { include: { barbershop: { select: { id: true, name: true, address: true, latitude: true, longitude: true, phone: true, cancellationHours: true } } } },
         service: true,
         payments: true,
         cancelledBy: { select: { id: true, firstName: true, lastName: true } },
@@ -246,6 +248,12 @@ export class BookingsService {
         id: booking.id, userId: booking.userId,
         date: booking.date, startTime: booking.startTime,
       }).catch(e => this.logger.error('Error en notificación de confirmación', e));
+    }
+
+    // Al completar: crear movimiento SALDO pendiente automáticamente
+    if (status === 'COMPLETADA') {
+      this.paymentsService.createPendingSaldo(id, _userId)
+        .catch(e => this.logger.error('Error creando saldo pendiente', e));
     }
 
     return updated;

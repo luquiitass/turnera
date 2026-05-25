@@ -43,6 +43,11 @@ const routes: Routes = [
         loadChildren: () => import('./admin-barber-panel/admin-barber-panel.module').then(m => m.AdminBarberPanelPageModule),
       },
       {
+        path: 'payments',
+        canActivate: [AuthGuard],
+        loadChildren: () => import('./payments/payments.module').then(m => m.PaymentsPageModule),
+      },
+      {
         path: '',
         redirectTo: 'home',
         pathMatch: 'full',

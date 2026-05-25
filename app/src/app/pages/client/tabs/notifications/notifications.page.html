@@ -1,0 +1,63 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Notificaciones</ion-title>
+    <ion-buttons slot="end">
+      <ion-button *ngIf="unread > 0" (click)="markAllRead()" [disabled]="markingAll" fill="clear" size="small">
+        <ion-icon name="checkmark-done-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content pullingText="Soltar para actualizar" refreshingSpinner="crescent"></ion-refresher-content>
+  </ion-refresher>
+
+  <div *ngIf="loading && notifications.length === 0" class="loading-state">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <div *ngIf="!loading && notifications.length === 0" class="empty-state">
+    <div class="empty-icon">
+      <ion-icon name="notifications-off-outline"></ion-icon>
+    </div>
+    <p class="empty-title">Sin notificaciones</p>
+    <p class="empty-sub">Aquí aparecerán tus reservas, avisos y novedades.</p>
+  </div>
+
+  <div *ngIf="notifications.length > 0" class="notifications-list">
+
+    <div
+      *ngFor="let n of notifications"
+      class="notif-item"
+      [class.unread]="!n.isRead"
+      (click)="onTap(n)">
+
+      <div class="notif-icon-wrap" [attr.data-color]="getColor(n.type)">
+        <ion-icon [name]="getIcon(n.type)" [color]="getColor(n.type)"></ion-icon>
+      </div>
+
+      <div class="notif-content">
+        <div class="notif-top">
+          <span class="notif-title">{{ n.title }}</span>
+          <span class="notif-time">{{ formatDate(n.createdAt) }}</span>
+        </div>
+        <p class="notif-body">{{ n.body }}</p>
+      </div>
+
+      <div class="unread-dot" *ngIf="!n.isRead"></div>
+
+    </div>
+
+    <div class="load-more" *ngIf="page < totalPages">
+      <ion-button fill="clear" size="small" (click)="loadMore()" [disabled]="loading">
+        <ion-spinner *ngIf="loading" name="crescent" slot="start" style="width:16px;height:16px"></ion-spinner>
+        Ver más
+      </ion-button>
+    </div>
+
+  </div>
+
+</ion-content>

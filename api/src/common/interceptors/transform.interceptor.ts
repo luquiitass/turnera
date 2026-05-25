@@ -11,6 +11,12 @@ export interface ApiResponse<T> {
 @Injectable()
 export class TransformInterceptor<T> implements NestInterceptor<T, ApiResponse<T>> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<ApiResponse<T>> {
+    // SSE endpoints deben bypassear el wrapper — devuelven MessageEvent[], no JSON plano
+    const res = context.switchToHttp().getResponse();
+    const req = context.switchToHttp().getRequest();
+    if (req?.url?.includes('/stream') || res?.getHeader?.('Content-Type') === 'text/event-stream') {
+      return next.handle() as any;
+    }
     return next.handle().pipe(
       map((data) => ({
         success: true,

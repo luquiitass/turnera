@@ -88,6 +88,7 @@ export class BarbershopsService {
         paymentMethods: true,
         offers: { where: { isActive: true } },
         subscription: true,
+        admins: { include: { user: { select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true } } } },
       },
     });
     if (!barbershop || !barbershop.isActive) throw new NotFoundException('Barberia no encontrada');
@@ -106,6 +107,7 @@ export class BarbershopsService {
         paymentMethods: true,
         offers: { where: { isActive: true } },
         subscription: true,
+        admins: { include: { user: { select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true } } } },
       },
     });
     if (!barbershop || !barbershop.isActive) throw new NotFoundException('Barberia no encontrada');
@@ -165,6 +167,63 @@ export class BarbershopsService {
     this.cloudflare.registerSubdomain(finalSlug).catch(() => {});
 
     return barbershop;
+  }
+
+  async selfRegister(
+    userId: string,
+    _userEmail: string,
+    body: { name: string; address: string; phone?: string; description?: string; plan?: string },
+  ) {
+    const existing = await this.prisma.barbershop.findUnique({ where: { name: body.name } });
+    if (existing) throw new ConflictException('Ya existe una barbería con ese nombre');
+
+    const slug = body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const slugExists = await this.prisma.barbershop.findUnique({ where: { slug } });
+    const finalSlug = slugExists ? `${slug}-${Date.now().toString(36)}` : slug;
+
+    const barbershop = await this.prisma.barbershop.create({
+      data: {
+        name: body.name,
+        address: body.address,
+        phone: body.phone,
+        description: body.description,
+        slug: finalSlug,
+      },
+    });
+
+    // Asignar el usuario actual como admin de la barbería
+    await this.prisma.barbershopAdmin.create({
+      data: { userId, barbershopId: barbershop.id, role: Role.ADMIN_BARBERSHOP },
+    });
+
+    // Agregar rol ADMIN_BARBERSHOP al usuario si no lo tiene
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (user && !user.roles.includes(Role.ADMIN_BARBERSHOP)) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { roles: { push: Role.ADMIN_BARBERSHOP } },
+      });
+    }
+
+    // Crear suscripción según el plan seleccionado
+    const plan = (body.plan ?? 'GRATUITO').toUpperCase();
+    if (plan !== 'GRATUITO') {
+      await this.prisma.barbershopSubscription.create({
+        data: {
+          barbershopId: barbershop.id,
+          plan,
+          startDate: new Date(),
+          isActive: true,
+          commissionRate: parseFloat(process.env['MP_PLATFORM_COMMISSION_RATE'] ?? '0.10'),
+          minDepositRate: parseFloat(process.env['MP_MIN_DEPOSIT_RATE'] ?? '0.30'),
+        },
+      });
+    }
+
+    // Registrar subdominio en Cloudflare
+    this.cloudflare.registerSubdomain(finalSlug).catch(() => {});
+
+    return { ...barbershop, slug: finalSlug };
   }
 
   async update(id: string, dto: UpdateBarbershopDto) {

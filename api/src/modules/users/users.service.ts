@@ -54,6 +54,32 @@ export class UsersService {
     });
   }
 
+  async getMyBarbershops(userId: string) {
+    const [adminRows, barberRows] = await Promise.all([
+      this.prisma.barbershopAdmin.findMany({
+        where: { userId },
+        include: {
+          barbershop: {
+            select: { id: true, name: true, address: true, slug: true },
+          },
+        },
+      }),
+      this.prisma.barber.findMany({
+        where: { userId, isActive: true },
+        include: {
+          barbershop: {
+            select: { id: true, name: true, address: true, slug: true },
+          },
+        },
+      }),
+    ]);
+
+    return {
+      adminBarbershops: adminRows.map((r) => ({ ...r.barbershop, adminRole: r.role })),
+      barberBarbershops: barberRows.map((r) => ({ ...r.barbershop, barberId: r.id })),
+    };
+  }
+
   async assignRole(dto: AssignRoleDto) {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (!user) throw new NotFoundException('Usuario no encontrado');

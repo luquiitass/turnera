@@ -64,6 +64,20 @@ ion-button {
   min-height: 44px;
 }
 
+.remember-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.forgot-link {
+  font-size: 0.85rem;
+  color: var(--ion-color-primary);
+  text-decoration: none;
+  padding-right: 4px;
+  white-space: nowrap;
+}
+
 .register-link {
   margin-top: 20px;
 

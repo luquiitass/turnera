@@ -86,27 +86,8 @@ export class BarberProfilePage implements OnInit {
   async editAvatar(): Promise<void> {
     const alert = await this.alertController.create({
       header: 'Foto de perfil',
-      message: 'Ingresa la URL de tu foto de perfil',
-      inputs: [
-        { name: 'avatarUrl', type: 'url', placeholder: 'https://ejemplo.com/mi-foto.jpg', value: this.selectedProfile?.avatarUrl || '' },
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: 'Guardar',
-          handler: (data) => {
-            if (!data.avatarUrl) return false;
-            this.barbersService.update(this.selectedProfile.id, { avatarUrl: data.avatarUrl }).subscribe({
-              next: () => {
-                this.selectedProfile.avatarUrl = data.avatarUrl;
-                this.showToast('Foto actualizada', 'success');
-              },
-              error: () => this.showToast('Error al actualizar', 'danger'),
-            });
-            return true;
-          },
-        },
-      ],
+      message: 'La foto de perfil se gestiona desde el panel de la barbería.',
+      buttons: [{ text: 'Entendido', role: 'cancel' }],
     });
     await alert.present();
   }

@@ -1,0 +1,136 @@
+.rb-content { --background: var(--ion-background-color); }
+
+// Éxito
+.rb-success {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 48px 24px; text-align: center; gap: 12px;
+  .rb-success-icon { font-size: 64px; }
+  h2 { font-size: 24px; font-weight: 900; margin: 0; color: var(--ion-color-dark); }
+  p  { font-size: 15px; color: var(--ion-color-medium); margin: 0; }
+}
+.rb-success-actions { width: 100%; display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+
+// Formulario
+.rb-form { padding: 0 0 32px; }
+
+.rb-header {
+  text-align: center; padding: 24px 20px 16px;
+  .rb-header-icon { font-size: 48px; margin-bottom: 8px; }
+}
+.rb-header-title { font-size: 22px; font-weight: 900; margin: 0 0 6px; color: var(--ion-color-dark); letter-spacing: -.3px; }
+.rb-header-sub   { font-size: 14px; color: var(--ion-color-medium); margin: 0; }
+
+// Secciones
+.rb-section { padding: 0 16px 8px; }
+.rb-section-title {
+  font-size: 13px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--ion-color-medium); margin: 16px 0 12px;
+}
+
+// Campos
+.rb-field { margin-bottom: 12px; }
+.rb-label {
+  display: block; font-size: 13px; font-weight: 600;
+  color: var(--ion-color-dark); margin-bottom: 5px;
+}
+.rb-required { color: var(--ion-color-danger); }
+.rb-optional { font-size: 11px; font-weight: 400; color: var(--ion-color-medium); }
+.rb-input {
+  width: 100%; border: 1.5px solid var(--ion-color-light-shade);
+  border-radius: 12px; padding: 11px 14px; font-size: 15px;
+  background: var(--ion-color-light); color: var(--ion-color-dark);
+  outline: none; transition: border-color .15s;
+  &:focus { border-color: var(--ion-color-primary); }
+  &::placeholder { color: var(--ion-color-medium); }
+}
+.rb-textarea { resize: none; font-family: inherit; }
+.rb-error { display: block; font-size: 12px; color: var(--ion-color-danger); margin-top: 4px; }
+
+// Planes
+.rb-plans { display: flex; flex-direction: column; gap: 12px; }
+
+.rb-plan-card {
+  border: 1.5px solid var(--ion-color-light-shade);
+  border-radius: 14px; padding: 14px; cursor: pointer;
+  transition: border-color .15s, background .15s;
+  position: relative; overflow: hidden;
+  &.selected   { border-color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb),.04); }
+  &.highlight  { border-color: rgba(var(--ion-color-primary-rgb),.4); }
+  &:active     { background: var(--ion-color-light); }
+}
+.rb-plan-badge {
+  position: absolute; top: 0; right: 16px;
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+  color: white; font-size: 10px; font-weight: 800; padding: 3px 10px;
+  border-radius: 0 0 8px 8px; text-transform: uppercase; letter-spacing: .5px;
+}
+.rb-plan-header { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+.rb-plan-check { flex-shrink: 0; padding-top: 2px; ion-icon { font-size: 22px; } }
+.rb-plan-info { flex: 1; }
+.rb-plan-name  { font-size: 16px; font-weight: 800; margin: 0 0 2px; color: var(--ion-color-dark); }
+.rb-plan-price { font-size: 14px; font-weight: 700; color: var(--ion-color-primary); margin: 0 0 2px; }
+.rb-plan-desc  { font-size: 12px; color: var(--ion-color-medium); margin: 0; }
+.rb-plan-features {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 5px;
+  li { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ion-color-dark-tint); }
+  ion-icon { font-size: 14px; flex-shrink: 0; }
+}
+
+// Submit
+.rb-submit { padding: 8px 16px 0; }
+.rb-terms {
+  font-size: 11px; color: var(--ion-color-medium); text-align: center; margin: 8px 0 0;
+  a { color: var(--ion-color-primary); text-decoration: none; }
+}
+
+// ── Autocomplete de dirección ─────────────────────────────────────────────────
+.rb-addr-wrap { position: relative; }
+.rb-addr-clear {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--ion-color-medium);
+  cursor: pointer; display: flex; padding: 4px;
+  ion-icon { font-size: 18px; }
+}
+
+.rb-addr-searching {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--ion-color-medium); padding: 6px 2px;
+}
+
+.rb-suggestions {
+  border: 1.5px solid var(--ion-color-light-shade);
+  border-top: none; border-radius: 0 0 12px 12px;
+  overflow: hidden; margin-top: -2px;
+  background: var(--ion-background-color);
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+  z-index: 10; position: relative;
+}
+.rb-suggestion-item {
+  display: flex; align-items: flex-start; gap: 8px;
+  width: 100%; padding: 10px 14px;
+  background: none; border: none; border-bottom: 1px solid var(--ion-color-light-shade);
+  text-align: left; cursor: pointer; font-size: 13px; color: var(--ion-color-dark);
+  line-height: 1.4;
+  &:last-child { border-bottom: none; }
+  &:active { background: var(--ion-color-light); }
+  ion-icon { font-size: 16px; color: var(--ion-color-primary); flex-shrink: 0; margin-top: 1px; }
+}
+
+.rb-map-preview { margin-top: 10px; border-radius: 12px; overflow: hidden; }
+.rb-map-check {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; color: var(--ion-color-success);
+  padding: 6px 2px;
+  ion-icon { font-size: 16px; }
+}
+.rb-map-frame {
+  width: 100%; height: 160px; border: none; display: block;
+  border-radius: 12px; border: 1px solid var(--ion-color-light-shade);
+}
+
+.rb-hint {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 12px; color: var(--ion-color-medium); margin-top: 4px;
+  ion-icon { font-size: 14px; flex-shrink: 0; }
+}

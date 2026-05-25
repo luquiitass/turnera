@@ -1,10 +1,18 @@
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module.js';
+import { join } from 'path';
+import { mkdirSync } from 'fs';
+import express from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const uploadsDir = join(process.cwd(), 'public', 'uploads');
+  mkdirSync(uploadsDir, { recursive: true });
 
+  const app = await NestFactory.create(AppModule, { rawBody: true });
+
+  app.use('/uploads', express.static(join(process.cwd(), 'public', 'uploads')));
   app.setGlobalPrefix('api');
 
   app.enableCors({

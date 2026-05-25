@@ -36,6 +36,6 @@ export class PlatformPanelPage implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/tabs/home']);
+    this.router.navigate(['/admin/tabs/home']);
   }
 }

@@ -1,0 +1,157 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Registrar mi barbería</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rb-content">
+
+  <!-- ── ÉXITO ── -->
+  <div *ngIf="success" class="rb-success">
+    <div class="rb-success-icon">🎉</div>
+    <h2>¡Barbería registrada!</h2>
+    <p>Tu barbería ya está online en <strong>{{ newSlug }}.{{ baseDomain }}</strong></p>
+    <div class="rb-success-actions">
+      <ion-button expand="block" color="primary" (click)="goToBarbershop()">
+        <ion-icon slot="start" name="storefront-outline"></ion-icon>
+        Ver mi barbería
+      </ion-button>
+      <ion-button expand="block" fill="clear" color="medium" (click)="goHome()">
+        Volver al inicio
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- ── FORMULARIO ── -->
+  <form *ngIf="!success" [formGroup]="form" (ngSubmit)="onSubmit()" class="rb-form">
+
+    <!-- Header -->
+    <div class="rb-header">
+      <div class="rb-header-icon">✂️</div>
+      <h2 class="rb-header-title">Sumá tu barbería</h2>
+      <p class="rb-header-sub">Completá los datos y empezá a recibir reservas hoy mismo.</p>
+    </div>
+
+    <!-- Datos de la barbería -->
+    <div class="rb-section">
+      <p class="rb-section-title">Información de la barbería</p>
+
+      <div class="rb-field">
+        <label class="rb-label">Nombre <span class="rb-required">*</span></label>
+        <input class="rb-input" formControlName="name" type="text" placeholder="Ej: Barber Alemán" />
+        <span class="rb-error" *ngIf="form.get('name')?.invalid && form.get('name')?.touched">
+          El nombre es obligatorio (mín. 3 caracteres)
+        </span>
+      </div>
+
+      <div class="rb-field">
+        <label class="rb-label">Dirección <span class="rb-required">*</span></label>
+        <div class="rb-addr-wrap">
+          <input class="rb-input"
+                 formControlName="address"
+                 type="text"
+                 placeholder="Ej: Av. Corrientes 1234, Buenos Aires"
+                 (input)="onAddressInput()"
+                 autocomplete="off" />
+          <button *ngIf="form.value.address" class="rb-addr-clear" type="button" (click)="clearAddress()">
+            <ion-icon name="close-circle"></ion-icon>
+          </button>
+        </div>
+
+        <!-- Spinner de búsqueda -->
+        <div *ngIf="addressSearching" class="rb-addr-searching">
+          <ion-spinner name="crescent" style="width:14px;height:14px"></ion-spinner>
+          <span>Buscando...</span>
+        </div>
+
+        <!-- Sugerencias -->
+        <div class="rb-suggestions" *ngIf="addressSuggestions.length > 0">
+          <button type="button" class="rb-suggestion-item"
+                  *ngFor="let s of addressSuggestions"
+                  (click)="selectAddress(s)">
+            <ion-icon name="location-outline"></ion-icon>
+            <span>{{ s.address }}</span>
+          </button>
+        </div>
+
+        <!-- Mini-mapa de validación -->
+        <div class="rb-map-preview" *ngIf="mapUrl">
+          <div class="rb-map-check">
+            <ion-icon name="checkmark-circle" color="success"></ion-icon>
+            <span>Ubicación verificada</span>
+          </div>
+          <iframe [src]="mapUrl" class="rb-map-frame" frameborder="0" scrolling="no"></iframe>
+        </div>
+
+        <span class="rb-error" *ngIf="form.get('address')?.invalid && form.get('address')?.touched">
+          La dirección es obligatoria
+        </span>
+        <span class="rb-hint" *ngIf="form.value.address && !selectedLat && !addressSearching && addressSuggestions.length === 0">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          Seleccioná una sugerencia para validar la ubicación en el mapa
+        </span>
+      </div>
+
+      <div class="rb-field">
+        <label class="rb-label">Teléfono <span class="rb-optional">(opcional)</span></label>
+        <input class="rb-input" formControlName="phone" type="tel" placeholder="+54 9 11 xxxx-xxxx" />
+      </div>
+
+      <div class="rb-field">
+        <label class="rb-label">Descripción <span class="rb-optional">(opcional)</span></label>
+        <textarea class="rb-input rb-textarea" formControlName="description"
+                  placeholder="Contá algo sobre tu barbería..." rows="3"></textarea>
+      </div>
+    </div>
+
+    <!-- Plan de suscripción -->
+    <div class="rb-section">
+      <p class="rb-section-title">Elegí tu plan</p>
+
+      <div class="rb-plans">
+        <div *ngFor="let plan of plans"
+             class="rb-plan-card"
+             [class.selected]="selectedPlan === plan.id"
+             [class.highlight]="plan.highlight"
+             (click)="selectPlan(plan.id)">
+
+          <div class="rb-plan-badge" *ngIf="plan.highlight">Más popular</div>
+
+          <div class="rb-plan-header">
+            <div class="rb-plan-check">
+              <ion-icon [name]="selectedPlan === plan.id ? 'checkmark-circle' : 'ellipse-outline'"
+                        [color]="selectedPlan === plan.id ? 'primary' : 'medium'"></ion-icon>
+            </div>
+            <div class="rb-plan-info">
+              <h3 class="rb-plan-name">{{ plan.name }}</h3>
+              <p class="rb-plan-price">{{ plan.price }}</p>
+              <p class="rb-plan-desc">{{ plan.desc }}</p>
+            </div>
+          </div>
+
+          <ul class="rb-plan-features">
+            <li *ngFor="let f of plan.features">
+              <ion-icon name="checkmark-outline" color="success"></ion-icon>
+              {{ f }}
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="rb-submit">
+      <ion-button expand="block" color="primary" type="submit" [disabled]="submitting || form.invalid">
+        <ion-spinner *ngIf="submitting" name="crescent" slot="start" style="width:16px;height:16px"></ion-spinner>
+        <ion-icon *ngIf="!submitting" name="storefront-outline" slot="start"></ion-icon>
+        {{ submitting ? 'Registrando...' : 'Registrar mi barbería gratis' }}
+      </ion-button>
+      <p class="rb-terms">Al registrarte aceptás los <a href="#">Términos de uso</a>. Podés cambiar de plan en cualquier momento.</p>
+    </div>
+
+  </form>
+
+</ion-content>

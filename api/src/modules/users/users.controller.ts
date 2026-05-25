@@ -39,6 +39,11 @@ export class UsersController {
     return this.usersService.findOne(userId);
   }
 
+  @Get('me/barbershops')
+  getMyBarbershops(@CurrentUser('id') userId: string) {
+    return this.usersService.getMyBarbershops(userId);
+  }
+
   @Get(':id')
   @Roles(Role.ADMIN_GENERAL)
   findOne(@Param('id') id: string) {

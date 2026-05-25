@@ -1,8 +1,11 @@
-import { Controller, Get, Patch, Delete, Param, Query, Body } from '@nestjs/common';
+import { Controller, Get, Patch, Delete, Param, Query, Body, Sse, Res, MessageEvent, Header } from '@nestjs/common';
 import { NotificationType } from '@prisma/client';
+import { Observable, map } from 'rxjs';
+import type { Response } from 'express';
 import { NotificationsService } from './notifications.service.js';
 import { PushService } from './push.service.js';
 import { WhatsAppService } from './whatsapp.service.js';
+import { SseManagerService } from './sse-manager.service.js';
 import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
 import { UpdatePreferenceDto } from './dto/notifications.dto.js';
 
@@ -12,7 +15,30 @@ export class NotificationsController {
     private svc: NotificationsService,
     private push: PushService,
     private whatsapp: WhatsAppService,
+    private sseMgr: SseManagerService,
   ) {}
+
+  // ── SSE stream ────────────────────────────────────────────────────────────
+  @Sse('stream')
+  @Header('X-Accel-Buffering', 'no')   // deshabilita buffering en nginx
+  stream(
+    @CurrentUser('id') userId: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Observable<MessageEvent> {
+    // Enviar conteo inicial de no leídas al conectar
+    this.svc.countUnread(userId).then(count => {
+      this.sseMgr.pushUnreadCount(userId, count);
+    });
+
+    return this.sseMgr.connect(userId).pipe(
+      map(evt => ({
+        type:  evt.event ?? 'message',
+        data:  evt.data,
+        ...(evt.id    ? { id:    evt.id }    : {}),
+        ...(evt.retry ? { retry: evt.retry } : {}),
+      }) as MessageEvent),
+    );
+  }
 
   @Get()
   findAll(

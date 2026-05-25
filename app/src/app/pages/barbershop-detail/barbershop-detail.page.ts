@@ -11,7 +11,7 @@ import { AmenitiesService } from '../../services/amenities.service';
 import { UploadService, UploadEvent } from '../../services/upload.service';
 import { GeocodingService } from '../../core/geocoding.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Barbershop, Amenity, ImageType, Barber } from '../../shared/models';
+import { Barbershop, BarbershopAdmin, Amenity, ImageType, Barber } from '../../shared/models';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -91,6 +91,7 @@ export class BarbershopDetailPage implements OnInit {
     { icon: 'leaf-outline',        label: 'Caracteristicas',   action: 'manage-amenities' },
     { icon: 'settings-outline',    label: 'Configuracion',     action: 'edit-settings' },
     { icon: 'stats-chart-outline', label: 'Estadisticas',      action: 'stats' },
+    { icon: 'wallet-outline',      label: 'Pagos y deudas',    action: 'payments' },
   ];
 
   constructor(
@@ -140,24 +141,21 @@ export class BarbershopDetailPage implements OnInit {
   }
 
   checkAdminAccess(): void {
-    const role = this.authService.activeRole;
-    if (role === 'ADMIN_GENERAL') {
+    if (!this.authService.isAuthenticated) return;
+
+    if (this.authService.hasRole('ADMIN_GENERAL')) {
       this.isAdmin = true;
       this.isSuperAdmin = true;
       this.checkSetupAlerts();
       return;
     }
-    if (role === 'ADMIN_BARBERSHOP' || role === 'SUB_ADMIN') {
-      this.barbershopsService.getMyBarbershops().subscribe({
-        next: (res: any) => {
-          const myBarbershops = Array.isArray(res.data) ? res.data : [];
-          this.isAdmin = myBarbershops.some(
-            (bs: any) => bs.id === this.barbershop?.id
-          );
-          if (this.isAdmin) this.checkSetupAlerts();
-        },
-      });
-    }
+
+    const currentUserId = this.authService.currentUser?.id;
+    if (!currentUserId) return;
+
+    const admins: BarbershopAdmin[] = this.barbershop?.admins ?? [];
+    this.isAdmin = admins.some((a) => a.userId === currentUserId);
+    if (this.isAdmin) this.checkSetupAlerts();
   }
 
   checkSetupAlerts(): void {
@@ -175,7 +173,7 @@ export class BarbershopDetailPage implements OnInit {
 
   navigateToBooking(): void {
     if (this.barbershop) {
-      this.router.navigate(['/admin/booking-flow'], {
+      this.router.navigate(['/booking'], {
         queryParams: { barbershopId: this.barbershop.id },
       });
     }
@@ -269,7 +267,8 @@ export class BarbershopDetailPage implements OnInit {
       case 'manage-offers': return this.manageOffers();
       case 'manage-amenities': return this.manageAmenities();
       case 'edit-settings': return this.editSettings();
-      case 'stats': this.router.navigate(['/admin/tabs/dashboard'], { queryParams: { barbershopId: this.barbershop?.id } }); return;
+      case 'stats':     this.router.navigate(['/admin/tabs/dashboard'], { queryParams: { barbershopId: this.barbershop?.id } }); return;
+      case 'payments':  this.router.navigate(['/admin/tabs/payments'],   { queryParams: { barbershopId: this.barbershop?.id } }); return;
     }
   }
 

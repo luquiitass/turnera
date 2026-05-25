@@ -74,6 +74,16 @@ export class BarbershopsController {
     return this.barbershopsService.create(dto);
   }
 
+  /** Auto-registro: cualquier usuario autenticado puede dar de alta su barbería */
+  @Post('self-register')
+  selfRegister(
+    @CurrentUser('id') userId: string,
+    @CurrentUser('email') userEmail: string,
+    @Body() body: { name: string; address: string; phone?: string; description?: string; plan?: string },
+  ) {
+    return this.barbershopsService.selfRegister(userId, userEmail, body);
+  }
+
   @Put(':id')
   @Roles(Role.ADMIN_BARBERSHOP)
   @UseGuards(BarbershopOwnershipGuard)

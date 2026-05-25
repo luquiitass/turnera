@@ -66,6 +66,65 @@
   --background: rgba(var(--ion-color-primary-rgb), 0.05);
 }
 
+.theme-list-header {
+  margin-top: 8px;
+}
+
+.theme-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 16px;
+  margin-bottom: 8px;
+}
+
+.theme-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: var(--app-surface);
+  border: 1.5px solid var(--app-border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+  text-align: left;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+
+  &.active {
+    border-color: var(--ion-color-primary);
+    background: var(--app-surface-2);
+  }
+
+  &:active { transform: scale(0.98); }
+
+  .theme-preview {
+    width: 52px;
+    height: 40px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+
+    .preview-bg     { position: absolute; inset: 0; }
+    .preview-card   { position: absolute; top: 6px; left: 6px; right: 6px; height: 18px; border-radius: 4px; opacity: 0.9; }
+    .preview-accent { position: absolute; bottom: 5px; left: 6px; width: 20px; height: 5px; border-radius: 3px; }
+  }
+
+  .theme-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .theme-name { font-size: 15px; font-weight: 700; color: var(--ion-text-color); }
+    .theme-desc { font-size: 12px; color: var(--ion-color-medium); }
+  }
+
+  .theme-check { font-size: 22px; flex-shrink: 0; }
+}
+
 .logout-section {
-  padding: 24px 16px 32px;
+  padding: 16px 16px 32px;
 }

@@ -91,6 +91,20 @@ export class BookingDetailPage implements OnInit {
     return ['PENDIENTE', 'CONFIRMADA'].includes(this.booking?.status);
   }
 
+  /** True si la hora de fin de la reserva ya pasó */
+  get isBookingPast(): boolean {
+    if (!this.booking?.date || !this.booking?.endTime) return false;
+    const dateStr = (this.booking.date as string).split('T')[0];
+    const [h, m] = this.booking.endTime.split(':').map(Number);
+    const endDt = new Date(`${dateStr}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`);
+    return new Date() > endDt;
+  }
+
+  /** Puede marcar no-show: es staff, CONFIRMADA y la hora ya pasó */
+  get canMarkNoShow(): boolean {
+    return this.isStaff && this.booking?.status === 'CONFIRMADA' && this.isBookingPast;
+  }
+
   formatDate(d: string): string {
     if (!d) return '';
     const date = new Date(d.split('T')[0] + 'T00:00:00');
@@ -152,6 +166,13 @@ export class BookingDetailPage implements OnInit {
       ],
     });
     await alert.present();
+  }
+
+  openDirections(barbershop: any): void {
+    const dest = barbershop.latitude && barbershop.longitude
+      ? `${barbershop.latitude},${barbershop.longitude}`
+      : encodeURIComponent(barbershop.address ?? '');
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${dest}`, '_blank');
   }
 
   private async toast(msg: string, color = 'success'): Promise<void> {

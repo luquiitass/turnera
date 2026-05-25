@@ -1,6 +1,7 @@
 import {
   IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, IsInt, Min, IsEmail,
 } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
 import { BusinessModel, Role } from '@prisma/client';
 
 export class CreateBarbershopDto {
@@ -58,9 +59,15 @@ export class CreateBarbershopDto {
   @IsInt()
   @Min(1)
   maxBarbers?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  maxBarberImages?: number;
+
 }
 
-export class UpdateBarbershopDto extends CreateBarbershopDto {}
+export class UpdateBarbershopDto extends PartialType(CreateBarbershopDto) {}
 
 export class AddBarbershopAdminDto {
   @IsString()

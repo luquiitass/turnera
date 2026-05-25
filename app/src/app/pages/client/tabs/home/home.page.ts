@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AlertController, ToastController, LoadingController } from '@ionic/angular';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -60,10 +60,11 @@ export class HomePage implements OnInit, OnDestroy {
   selectedServiceFilter = '';
 
   readonly filterChips = [
-    { id: 'all',       label: 'Todos',           icon: 'apps-outline' },
-    { id: 'nearby',    label: 'Cerca de mí',     icon: 'location-outline' },
-    { id: 'top-rated', label: 'Mejor calificados', icon: 'star-outline' },
-    { id: 'popular',   label: 'Populares',       icon: 'flame-outline' },
+    { id: 'all',       label: 'Todos',             icon: 'apps-outline' },
+    { id: 'services',  label: 'Servicios',          icon: 'cut-outline' },
+    { id: 'nearby',    label: 'Cerca de mí',        icon: 'location-outline' },
+    { id: 'top-rated', label: 'Mejor calificados',  icon: 'star-outline' },
+    { id: 'popular',   label: 'Populares',          icon: 'flame-outline' },
   ];
 
   // Barber agenda
@@ -116,6 +117,7 @@ export class HomePage implements OnInit, OnDestroy {
     private geolocationService: GeolocationService,
     private nearbyService: NearbyBarbershopsService,
     private sanitizer: DomSanitizer,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
@@ -125,6 +127,12 @@ export class HomePage implements OnInit, OnDestroy {
     if (!this.hasSubdomain) {
       // Modo: cliente sin subdominio
       this.loadClientHome();
+      // Si viene ?barber=xxx en la URL, pre-cargar el buscador
+      const barberParam = this.route.snapshot.queryParamMap.get('barber');
+      if (barberParam) {
+        this.searchQuery = barberParam;
+        setTimeout(() => this.onSearchInput(), 300);
+      }
     } else {
       // Modo: con subdominio (barbería específica)
       this.loadBarbershopData();
@@ -172,6 +180,7 @@ export class HomePage implements OnInit, OnDestroy {
       this.loadNextBooking();
     }
     this.loadNearbyBarbershops();
+    this.loadGlobalServicesIfNeeded();
     this.loading = false;
   }
 
@@ -230,18 +239,20 @@ export class HomePage implements OnInit, OnDestroy {
     }
   }
 
+  loadGlobalServicesIfNeeded(): void {
+    if (this.globalServices.length > 0 || this.servicesLoading) return;
+    this.servicesLoading = true;
+    this.http.get<any>(`${this.apiUrl}/services`).subscribe({
+      next: (res: any) => {
+        this.globalServices = (res.data ?? res ?? []).filter((s: any) => s.isActive !== false);
+        this.servicesLoading = false;
+      },
+      error: () => { this.servicesLoading = false; },
+    });
+  }
+
   toggleServicePicker(): void {
-    this.showServicePicker = !this.showServicePicker;
-    if (this.showServicePicker && this.globalServices.length === 0) {
-      this.servicesLoading = true;
-      this.http.get<any>(`${this.apiUrl}/services`).subscribe({
-        next: (res: any) => {
-          this.globalServices = (res.data ?? res ?? []).filter((s: any) => s.isActive !== false);
-          this.servicesLoading = false;
-        },
-        error: () => { this.servicesLoading = false; },
-      });
-    }
+    this.loadGlobalServicesIfNeeded();
   }
 
   filterByService(svc: any): void {
@@ -256,8 +267,14 @@ export class HomePage implements OnInit, OnDestroy {
     this.showServicePicker = false;
   }
 
-  setFilter(filter: 'all' | 'nearby' | 'top-rated' | 'popular'): void {
-    this.activeFilter = filter;
+  setFilter(filter: string): void {
+    if (filter === 'services') {
+      this.showServicePicker = !this.showServicePicker;
+      this.loadGlobalServicesIfNeeded();
+      return;
+    }
+    this.showServicePicker = false;
+    this.activeFilter = filter as any;
     if (filter === 'nearby' && !this.hasUserLocation) {
       this.requestLocation();
     }
@@ -458,7 +475,9 @@ export class HomePage implements OnInit, OnDestroy {
   redirectToMain(): void {
     const base = environment.baseDomains.find(d => window.location.hostname.endsWith(d)) || 'localhost';
     const port = window.location.port ? `:${window.location.port}` : '';
-    window.location.href = `${window.location.protocol}//${base}${port}/tabs/home`;
+    const slug = this.resolverService.slug;
+    const query = slug ? `?barber=${encodeURIComponent(slug)}` : '';
+    window.location.href = `${window.location.protocol}//${base}${port}/tabs/home${query}`;
   }
 
   doRefresh(event: any): void {

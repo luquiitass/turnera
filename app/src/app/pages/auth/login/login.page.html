@@ -40,10 +40,13 @@
         <p class="error-text" *ngIf="password?.errors?.['minlength']">Minimo 6 caracteres.</p>
       </ion-text>
 
-      <ion-item lines="none" class="remember-item">
-        <ion-checkbox [(ngModel)]="rememberMe" [ngModelOptions]="{standalone: true}" slot="start"></ion-checkbox>
-        <ion-label>Recordar mis datos</ion-label>
-      </ion-item>
+      <div class="remember-row">
+        <ion-item lines="none" class="remember-item">
+          <ion-checkbox [(ngModel)]="rememberMe" [ngModelOptions]="{standalone: true}" slot="start"></ion-checkbox>
+          <ion-label>Recordar mis datos</ion-label>
+        </ion-item>
+        <a routerLink="/auth/forgot-password" class="forgot-link">¿Olvidaste tu contraseña?</a>
+      </div>
 
       <ion-text color="danger" *ngIf="errorMessage">
         <p class="error-text general-error">{{ errorMessage }}</p>

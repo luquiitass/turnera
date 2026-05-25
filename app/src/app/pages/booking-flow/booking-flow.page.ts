@@ -224,7 +224,7 @@ export class BookingFlowPage implements OnInit {
       this.resetSelections();
       this.mode = 'select';
     } else {
-      this.router.navigate(['/tabs/home']);
+      this.router.navigate(['/admin/tabs/home']);
     }
   }
 
@@ -563,8 +563,8 @@ export class BookingFlowPage implements OnInit {
     });
   }
 
-  goToMyBookings(): void { this.router.navigate(['/tabs/my-bookings']); }
-  goHome(): void { this.router.navigate(['/tabs/home']); }
+  goToMyBookings(): void { this.router.navigate(['/admin/tabs/my-bookings']); }
+  goHome(): void { this.router.navigate(['/admin/tabs/home']); }
 
   // ==================== HELPERS ====================
 

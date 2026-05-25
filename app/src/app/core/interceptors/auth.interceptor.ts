@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
@@ -10,7 +10,18 @@ export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
   private refreshTokenSubject = new BehaviorSubject<string | null>(null);
 
-  constructor(private authService: AuthService, private router: Router) {}
+  // Lazy para romper la dependencia circular:
+  // AuthInterceptor → AuthService → HttpClient → AuthInterceptor
+  private _authService?: AuthService;
+
+  constructor(private injector: Injector, private router: Router) {}
+
+  private get authService(): AuthService {
+    if (!this._authService) {
+      this._authService = this.injector.get(AuthService);
+    }
+    return this._authService;
+  }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = this.authService.accessToken;
@@ -48,7 +59,11 @@ export class AuthInterceptor implements HttpInterceptor {
         catchError((err) => {
           this.isRefreshing = false;
           this.authService.logout();
-          this.router.navigateByUrl('/auth/login');
+          // No redirigir si ya estamos en una ruta de auth (forgot/reset password)
+          const currentUrl = this.router.url;
+          if (!currentUrl.includes('/auth/')) {
+            this.router.navigateByUrl('/auth/login');
+          }
           return throwError(() => err);
         }),
       );

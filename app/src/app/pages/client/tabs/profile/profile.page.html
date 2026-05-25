@@ -1,0 +1,221 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Perfil</ion-title>
+    <ion-buttons slot="end">
+      <ion-button *ngIf="!editing && user" (click)="startEdit()" fill="clear">
+        <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content pullingText="Soltar para actualizar" refreshingSpinner="crescent"></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="profile-container" *ngIf="user">
+
+    <!-- Hero del usuario -->
+    <div class="profile-hero">
+      <div class="profile-hero-bg"></div>
+
+      <!-- Input oculto para seleccionar foto -->
+      <input id="profile-photo-input" type="file" accept="image/*" style="display:none"
+             (change)="onPhotoSelected($event)">
+
+      <!-- Avatar clicable -->
+      <div class="avatar-circle avatar-circle--editable" (click)="triggerPhotoInput()">
+        <img *ngIf="user.avatarUrl && !uploadingPhoto" [src]="user.avatarUrl" [alt]="user.firstName" class="avatar-img" />
+        <span *ngIf="!user.avatarUrl && !uploadingPhoto" class="initials">{{ getInitials() }}</span>
+        <div *ngIf="uploadingPhoto" class="avatar-uploading">
+          <ion-spinner name="crescent" style="width:28px;height:28px;color:white"></ion-spinner>
+        </div>
+        <div class="avatar-camera-badge">
+          <ion-icon name="camera-outline"></ion-icon>
+        </div>
+      </div>
+
+      <h2 class="user-name">{{ user.firstName }} {{ user.lastName }}</h2>
+      <p class="user-email">{{ user.email }}</p>
+    </div>
+
+    <!-- ── MODO EDICIÓN ── -->
+    <ng-container *ngIf="editing">
+      <p class="section-header">Editar información</p>
+      <div class="edit-group">
+
+        <div class="edit-field">
+          <label class="edit-label">Nombre</label>
+          <input class="edit-input" type="text" [(ngModel)]="editForm.firstName" placeholder="Nombre" />
+        </div>
+
+        <div class="edit-field">
+          <label class="edit-label">Apellido</label>
+          <input class="edit-input" type="text" [(ngModel)]="editForm.lastName" placeholder="Apellido" />
+        </div>
+
+        <div class="edit-field">
+          <label class="edit-label">Teléfono</label>
+          <input class="edit-input" type="tel" [(ngModel)]="editForm.phone" placeholder="+54 9 11 xxxx-xxxx" />
+        </div>
+
+        <div class="edit-field">
+          <label class="edit-label">Dirección</label>
+          <input class="edit-input" type="text" [(ngModel)]="editForm.address" placeholder="Tu dirección (opcional)" />
+        </div>
+
+      </div>
+
+      <div class="edit-actions">
+        <ion-button expand="block" color="primary" [disabled]="saving" (click)="saveEdit()">
+          <ion-spinner *ngIf="saving" name="crescent" slot="start" style="width:16px;height:16px"></ion-spinner>
+          <ion-icon *ngIf="!saving" name="checkmark-outline" slot="start"></ion-icon>
+          {{ saving ? 'Guardando...' : 'Guardar cambios' }}
+        </ion-button>
+        <ion-button expand="block" fill="clear" color="medium" [disabled]="saving" (click)="cancelEdit()">
+          Cancelar
+        </ion-button>
+      </div>
+    </ng-container>
+
+    <!-- ── MODO VISTA ── -->
+    <ng-container *ngIf="!editing">
+
+      <p class="section-header">Información personal</p>
+      <div class="info-group">
+
+        <div class="info-row">
+          <div class="info-icon">
+            <ion-icon name="person-outline" color="primary"></ion-icon>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Nombre completo</span>
+            <span class="info-value">{{ user.firstName }} {{ user.lastName }}</span>
+          </div>
+        </div>
+
+        <div class="info-row">
+          <div class="info-icon">
+            <ion-icon name="mail-outline" color="primary"></ion-icon>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ user.email }}</span>
+          </div>
+        </div>
+
+        <div class="info-row" *ngIf="user.phone">
+          <div class="info-icon">
+            <ion-icon name="call-outline" color="primary"></ion-icon>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Teléfono</span>
+            <span class="info-value">{{ user.phone }}</span>
+          </div>
+        </div>
+
+        <div class="info-row" *ngIf="user.address">
+          <div class="info-icon">
+            <ion-icon name="location-outline" color="primary"></ion-icon>
+          </div>
+          <div class="info-content">
+            <span class="info-label">Dirección</span>
+            <span class="info-value">{{ user.address }}</span>
+          </div>
+        </div>
+
+        <div class="info-row" *ngIf="!user.phone && !user.address">
+          <div class="info-content" style="padding-left:0">
+            <span class="info-label" style="font-style:italic;color:var(--ion-color-medium)">
+              Teléfono y dirección sin completar
+            </span>
+            <ion-button fill="clear" size="small" color="primary" (click)="startEdit()" style="margin:-4px 0 0 -4px">
+              Completar perfil
+            </ion-button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Barberias que administro -->
+      <ng-container *ngIf="adminBarbershops.length > 0">
+        <p class="section-header">Barberias que administro</p>
+        <div class="info-group">
+          <div class="info-row info-row--clickable" *ngFor="let bs of adminBarbershops" (click)="openBarberBarbershop(bs)">
+            <div class="info-icon">
+              <ion-icon name="storefront-outline" color="primary"></ion-icon>
+            </div>
+            <div class="info-content">
+              <span class="info-label">{{ adminRoleLabel(bs.adminRole) }}</span>
+              <span class="info-value">{{ bs.name }}</span>
+              <span class="info-sub" *ngIf="bs.address">{{ bs.address }}</span>
+            </div>
+            <ion-icon name="chevron-forward-outline" color="medium" style="flex-shrink:0"></ion-icon>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Barberias donde soy barbero -->
+      <ng-container *ngIf="barberBarbershops.length > 0">
+        <p class="section-header">Barberias donde soy barbero</p>
+        <div class="info-group">
+          <div class="info-row info-row--clickable" *ngFor="let bs of barberBarbershops" (click)="openBarberBarbershop(bs)">
+            <div class="info-icon">
+              <ion-icon name="cut-outline" color="primary"></ion-icon>
+            </div>
+            <div class="info-content">
+              <span class="info-label">Barbero</span>
+              <span class="info-value">{{ bs.name }}</span>
+              <span class="info-sub" *ngIf="bs.address">{{ bs.address }}</span>
+            </div>
+            <ion-icon name="chevron-forward-outline" color="medium" style="flex-shrink:0"></ion-icon>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Selector de tema -->
+      <p class="section-header">Apariencia</p>
+      <div class="theme-grid">
+        <button
+          *ngFor="let t of themes"
+          class="theme-card"
+          [class.active]="activeTheme === t.id"
+          (click)="selectTheme(t.id)">
+
+          <div class="theme-preview">
+            <div class="preview-bg"     [style.background]="t.colors[0]"></div>
+            <div class="preview-card"   [style.background]="t.colors[1]"></div>
+            <div class="preview-accent" [style.background]="t.colors[2]"></div>
+          </div>
+
+          <div class="theme-info">
+            <span class="theme-name">{{ t.name }}</span>
+            <span class="theme-desc">{{ t.description }}</span>
+          </div>
+
+          <div class="theme-check" *ngIf="activeTheme === t.id">
+            <ion-icon name="checkmark-circle" color="primary"></ion-icon>
+          </div>
+
+        </button>
+      </div>
+
+      <!-- Cerrar sesión -->
+      <div class="logout-section">
+        <ion-button expand="block" color="danger" fill="outline" (click)="confirmLogout()">
+          <ion-icon name="log-out-outline" slot="start"></ion-icon>
+          Cerrar sesión
+        </ion-button>
+      </div>
+
+    </ng-container>
+
+  </div>
+
+  <div *ngIf="!user" class="loading-container">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+</ion-content>

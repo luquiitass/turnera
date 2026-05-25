@@ -17,6 +17,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.message
         : 'Error interno del servidor';
 
+
     response.status(status).json({
       success: false,
       error: { message, statusCode: status },

@@ -1,0 +1,174 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Pagos y Deudas</ion-title>
+  </ion-toolbar>
+
+  <!-- Navegación de meses -->
+  <ion-toolbar color="dark" class="month-nav-toolbar">
+    <div class="month-nav">
+      <ion-button fill="clear" (click)="prevMonth()" [disabled]="currentIndex === 0">
+        <ion-icon name="chevron-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+      <span class="month-label">{{ getMonthLabel(currentSlot) }}</span>
+      <ion-button fill="clear" (click)="nextMonth()" [disabled]="currentIndex === months.length - 1">
+        <ion-icon name="chevron-forward-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="payments-content" [scrollY]="false">
+
+  <!-- Scroll horizontal entre meses -->
+  <div class="months-scroll-container" #monthsScroll
+       (scrollend)="onScrollEnd()"
+       (touchend)="onScrollEnd()">
+
+    <div *ngFor="let slot of months; let i = index" class="month-panel">
+
+      <!-- Loading -->
+      <div *ngIf="slot.loading" class="panel-loading">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+        <p>Cargando {{ getMonthLabel(slot) }}...</p>
+      </div>
+
+      <!-- Sin datos -->
+      <div *ngIf="!slot.loading && !slot.data" class="panel-empty">
+        <ion-icon name="receipt-outline" color="medium"></ion-icon>
+        <p>Sin movimientos</p>
+      </div>
+
+      <ng-container *ngIf="!slot.loading && slot.data">
+
+        <!-- Resumen del mes -->
+        <div class="month-summary">
+          <div class="ms-stat">
+            <span class="ms-val green">{{ formatPrice(slot.data.summary.totalNet) }}</span>
+            <span class="ms-lab">Cobrado (neto)</span>
+          </div>
+          <div class="ms-stat" *ngIf="slot.data.summary.totalDebt > 0">
+            <span class="ms-val red">{{ formatPrice(slot.data.summary.totalDebt) }}</span>
+            <span class="ms-lab">Deudas</span>
+          </div>
+          <div class="ms-stat" *ngIf="slot.data.summary.totalPending > 0">
+            <span class="ms-val yellow">{{ formatPrice(slot.data.summary.totalPending) }}</span>
+            <span class="ms-lab">Pendientes</span>
+          </div>
+          <div class="ms-stat" *ngIf="slot.data.summary.totalMpFee > 0">
+            <span class="ms-val gray">{{ formatPrice(slot.data.summary.totalMpFee) }}</span>
+            <span class="ms-lab">Fee MP</span>
+          </div>
+        </div>
+
+        <!-- Lista por días -->
+        <div class="days-list" *ngIf="slot.data.days.length > 0">
+
+          <div *ngFor="let day of slot.data.days" class="day-section">
+
+            <!-- Header del día -->
+            <div class="day-header">
+              <span class="day-title">{{ formatDate(day.date) }}</span>
+              <span class="day-total">{{ formatPrice(day.totalNet) }}</span>
+            </div>
+
+            <!-- Pagos del día -->
+            <div class="day-payments">
+              <div *ngFor="let p of day.payments" class="payment-row"
+                   [class.is-debt]="p.status === 'DEUDA'"
+                   [class.is-pending]="p.status === 'PENDIENTE'">
+
+                <div class="pr-left">
+                  <div class="pr-type-badge" [attr.data-type]="p.type">
+                    {{ getTypeLabel(p.type) }}
+                  </div>
+                  <div class="pr-info">
+                    <p class="pr-client">
+                      {{ p.booking?.user?.firstName }} {{ p.booking?.user?.lastName }}
+                    </p>
+                    <p class="pr-detail">
+                      {{ p.booking?.service?.name }}
+                      · {{ p.booking?.barber?.firstName }}
+                      · {{ getMethodLabel(p.method) }}
+                    </p>
+                    <p class="pr-time" *ngIf="p.paidAt">
+                      <ion-icon name="time-outline"></ion-icon>
+                      {{ formatTime(p.paidAt) }}
+                    </p>
+                    <!-- Desglose de comisiones si las hay -->
+                    <div class="pr-fees" *ngIf="p.mpFee > 0 || p.platformFee > 0">
+                      <span>Bruto: {{ formatPrice(p.grossAmount) }}</span>
+                      <span *ngIf="p.mpFee > 0">Fee MP: -{{ formatPrice(p.mpFee) }}</span>
+                      <span *ngIf="p.platformFee > 0">Fee sistema: -{{ formatPrice(p.platformFee) }}</span>
+                    </div>
+                    <p class="pr-notes" *ngIf="p.notes">{{ p.notes }}</p>
+                  </div>
+                </div>
+
+                <div class="pr-right">
+                  <span class="pr-amount" [class.net]="p.mpFee > 0 || p.platformFee > 0">
+                    {{ formatPrice(p.netAmount || p.grossAmount || p.amount) }}
+                  </span>
+                  <ion-chip [color]="getStatusColor(p.status)" outline class="pr-status">
+                    {{ getStatusLabel(p.status) }}
+                  </ion-chip>
+
+                  <!-- Acciones en pagos pendientes -->
+                  <div class="pr-actions" *ngIf="p.status === 'PENDIENTE' || p.status === 'DEUDA'">
+                    <ion-button fill="clear" size="small" color="success"
+                                (click)="markAsPaid(p)">
+                      <ion-icon name="checkmark-circle-outline" slot="icon-only"></ion-icon>
+                    </ion-button>
+                    <ion-button *ngIf="p.status === 'PENDIENTE'" fill="clear" size="small" color="danger"
+                                (click)="markAsDebt(p)">
+                      <ion-icon name="alert-circle-outline" slot="icon-only"></ion-icon>
+                    </ion-button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Total del día -->
+            <div class="day-footer">
+              <span>Total cobrado del día</span>
+              <span class="day-footer-total">{{ formatPrice(day.totalNet) }}</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Sin movimientos en el mes -->
+        <div *ngIf="slot.data.days.length === 0" class="panel-empty">
+          <ion-icon name="receipt-outline" color="medium"></ion-icon>
+          <p>Sin movimientos en {{ getMonthLabel(slot) }}</p>
+        </div>
+
+        <!-- Total del mes al final -->
+        <div class="month-footer" *ngIf="slot.data.days.length > 0">
+          <div class="mf-row">
+            <span>Total cobrado del mes</span>
+            <span class="mf-val green">{{ formatPrice(slot.data.summary.totalNet) }}</span>
+          </div>
+          <div class="mf-row" *ngIf="slot.data.summary.totalDebt > 0">
+            <span>Total deudas</span>
+            <span class="mf-val red">{{ formatPrice(slot.data.summary.totalDebt) }}</span>
+          </div>
+          <div class="mf-row" *ngIf="slot.data.summary.totalMpFee > 0">
+            <span>Comisiones MercadoPago</span>
+            <span class="mf-val gray">-{{ formatPrice(slot.data.summary.totalMpFee) }}</span>
+          </div>
+          <div class="mf-row" *ngIf="slot.data.summary.totalPlatformFee > 0">
+            <span>Comisiones sistema</span>
+            <span class="mf-val gray">-{{ formatPrice(slot.data.summary.totalPlatformFee) }}</span>
+          </div>
+        </div>
+
+      </ng-container>
+
+    </div><!-- /month-panel -->
+  </div><!-- /months-scroll-container -->
+
+</ion-content>

@@ -93,7 +93,6 @@
     <div class="ch-next-booking" *ngIf="auth.isAuthenticated && nextBooking"
          [routerLink]="['/tabs/booking', nextBooking.id]">
 
-      <!-- Encabezado: label + estado -->
       <div class="ch-nb-header">
         <div class="ch-nb-label-wrap">
           <span class="ch-nb-dot"></span>
@@ -102,13 +101,11 @@
         <ion-chip color="success" class="ch-nb-chip">Confirmada</ion-chip>
       </div>
 
-      <!-- Barbería -->
       <p class="ch-nb-barbershop" *ngIf="nextBooking.barber?.barbershop?.name">
         <ion-icon name="storefront-outline"></ion-icon>
         {{ nextBooking.barber.barbershop.name }}
       </p>
 
-      <!-- Fecha y hora -->
       <div class="ch-nb-datetime">
         <div class="ch-nb-date-block">
           <ion-icon name="calendar-outline"></ion-icon>
@@ -116,29 +113,22 @@
         </div>
         <div class="ch-nb-time-block">
           <ion-icon name="time-outline"></ion-icon>
-          <span>{{ nextBooking.startTime }}
-            <span *ngIf="nextBooking.endTime"> – {{ nextBooking.endTime }}</span>
-          </span>
+          <span>{{ nextBooking.startTime }}<span *ngIf="nextBooking.endTime"> – {{ nextBooking.endTime }}</span></span>
         </div>
       </div>
 
-      <!-- Servicio + barbero + precio + duración -->
       <div class="ch-nb-details">
         <span class="ch-nb-detail-item" *ngIf="nextBooking.service?.name">
-          <ion-icon name="cut-outline"></ion-icon>
-          {{ nextBooking.service.name }}
+          <ion-icon name="cut-outline"></ion-icon>{{ nextBooking.service.name }}
         </span>
         <span class="ch-nb-detail-item" *ngIf="nextBooking.barber">
-          <ion-icon name="person-outline"></ion-icon>
-          {{ nextBooking.barber.firstName }} {{ nextBooking.barber.lastName }}
+          <ion-icon name="person-outline"></ion-icon>{{ nextBooking.barber.firstName }} {{ nextBooking.barber.lastName }}
         </span>
         <span class="ch-nb-detail-item" *ngIf="nextBooking.startTime && nextBooking.endTime">
-          <ion-icon name="hourglass-outline"></ion-icon>
-          {{ calcDuration(nextBooking.startTime, nextBooking.endTime) }} min
+          <ion-icon name="hourglass-outline"></ion-icon>{{ calcDuration(nextBooking.startTime, nextBooking.endTime) }} min
         </span>
         <span class="ch-nb-detail-item price" *ngIf="nextBooking.totalPrice">
-          <ion-icon name="cash-outline"></ion-icon>
-          ${{ nextBooking.totalPrice | number }}
+          <ion-icon name="cash-outline"></ion-icon>${{ nextBooking.totalPrice | number }}
         </span>
       </div>
 
@@ -161,28 +151,27 @@
         <ion-icon name="arrow-forward-outline" class="ch-qa-arrow"></ion-icon>
       </button>
 
-      <button class="ch-qa-card" (click)="toggleServicePicker()">
-        <div class="ch-qa-icon">
-          <ion-icon name="cut-outline"></ion-icon>
-        </div>
-        <div class="ch-qa-text">
-          <span class="ch-qa-title">Buscar por servicio</span>
-          <span class="ch-qa-sub">Encontrá quién ofrece lo que necesitás</span>
-        </div>
-        <ion-icon name="arrow-forward-outline" class="ch-qa-arrow"></ion-icon>
+    </div>
+
+    <!-- ── FILTROS RÁPIDOS ── -->
+    <div class="ch-filters-scroll">
+      <button
+        *ngFor="let chip of filterChips"
+        class="ch-chip"
+        [class.active]="chip.id === 'services' ? (showServicePicker || !!selectedServiceFilter) : activeFilter === chip.id"
+        (click)="setFilter(chip.id)">
+        <ion-icon [name]="chip.icon"></ion-icon>
+        {{ chip.id === 'services' && selectedServiceFilter ? selectedServiceFilter : chip.label }}
+        <ion-icon *ngIf="chip.id === 'services'"
+                  [name]="showServicePicker ? 'chevron-up-outline' : 'chevron-down-outline'"
+                  style="font-size:12px;margin-left:2px"></ion-icon>
       </button>
     </div>
 
-    <!-- ── PICKER DE SERVICIOS ── -->
+    <!-- ── DESPLEGABLE DE SERVICIOS ── -->
     <div class="ch-service-picker" *ngIf="showServicePicker">
-      <div class="ch-sp-header">
-        <span>¿Qué necesitás?</span>
-        <button class="ch-sp-close" (click)="toggleServicePicker()">
-          <ion-icon name="close-outline"></ion-icon>
-        </button>
-      </div>
-      <div *ngIf="servicesLoading" class="ion-text-center ion-padding-bottom">
-        <ion-spinner name="crescent" color="primary" style="width:20px;height:20px"></ion-spinner>
+      <div *ngIf="servicesLoading" class="ion-text-center" style="padding:8px">
+        <ion-spinner name="crescent" color="primary" style="width:18px;height:18px"></ion-spinner>
       </div>
       <div class="ch-sp-chips" *ngIf="!servicesLoading">
         <button
@@ -193,18 +182,6 @@
           {{ svc.name }}
         </button>
       </div>
-    </div>
-
-    <!-- ── FILTROS RÁPIDOS ── -->
-    <div class="ch-filters-scroll">
-      <button
-        *ngFor="let chip of filterChips"
-        class="ch-chip"
-        [class.active]="activeFilter === chip.id"
-        (click)="setFilter($any(chip.id))">
-        <ion-icon [name]="chip.icon"></ion-icon>
-        {{ chip.label }}
-      </button>
     </div>
 
     <!-- ── SERVICIO ACTIVO ── -->
@@ -325,6 +302,16 @@
 
     </div>
 
+    <!-- ── CTA: Registrar barbería ── -->
+    <div class="ch-owner-cta" [routerLink]="['/register-barbershop']">
+      <div class="ch-owner-icon">✂️</div>
+      <div class="ch-owner-text">
+        <h3 class="ch-owner-title">¿Tenés una barbería?</h3>
+        <p class="ch-owner-sub">Registrala gratis y empezá a recibir reservas online hoy.</p>
+      </div>
+      <ion-icon name="arrow-forward-outline" class="ch-owner-arrow"></ion-icon>
+    </div>
+
     <div style="height: 80px;"></div>
   </ng-container>
 
@@ -428,8 +415,11 @@
           <h4>{{ b.firstName }} {{ b.lastName }}</h4>
           <p *ngIf="b.bio" class="barber-bio">{{ b.bio }}</p>
           <div class="barber-services" *ngIf="b.services?.length > 0">
-            <ion-chip *ngFor="let bs of b.services" size="small" color="primary" outline>
+            <ion-chip *ngFor="let bs of b.services.slice(0,2)" size="small" color="primary" outline>
               <ion-label>{{ bs.service?.name }}</ion-label>
+            </ion-chip>
+            <ion-chip *ngIf="b.services.length > 2" size="small" color="medium" outline>
+              <ion-label>+{{ b.services.length - 2 }} más</ion-label>
             </ion-chip>
           </div>
         </div>

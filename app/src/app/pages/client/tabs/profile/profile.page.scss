@@ -1,0 +1,298 @@
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+}
+
+.profile-container {
+  padding-bottom: 40px;
+}
+
+// ─── Hero ─────────────────────────────────────────────────────────────────────
+
+.profile-hero {
+  position: relative;
+  padding: 48px 20px 28px;
+  text-align: center;
+  overflow: hidden;
+
+  .profile-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: var(--app-hero-gradient);
+    opacity: 0.6;
+    z-index: 0;
+  }
+
+  .avatar-circle,
+  .user-name,
+  .user-email {
+    position: relative;
+    z-index: 1;
+  }
+
+  .avatar-circle {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    margin: 0 auto 14px;
+    background: var(--app-surface-2);
+    border: 3px solid var(--ion-color-primary);
+    box-shadow: 0 0 0 4px var(--app-accent-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+
+    .avatar-img { width: 100%; height: 100%; object-fit: cover; }
+    .initials { font-size: 28px; font-weight: 700; color: var(--ion-color-primary); }
+  }
+
+  .user-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: var(--ion-text-color);
+  }
+
+  .user-email {
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}
+
+// ─── Info group ───────────────────────────────────────────────────────────────
+
+.info-group {
+  margin: 0 16px;
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--app-border);
+
+  &:last-child { border-bottom: none; }
+
+  &--clickable {
+    cursor: pointer;
+    transition: background 0.15s;
+    &:active { background: var(--app-surface-2); }
+  }
+
+  .info-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--app-accent-glow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    ion-icon { font-size: 18px; }
+  }
+
+  .info-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+
+    .info-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--ion-color-medium);
+    }
+
+    .info-value {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--ion-text-color);
+    }
+
+    .info-sub {
+      font-size: 12px;
+      color: var(--ion-color-medium);
+      margin-top: 1px;
+    }
+  }
+}
+
+// ─── Theme grid ───────────────────────────────────────────────────────────────
+
+.theme-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 16px;
+}
+
+.theme-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: var(--app-surface);
+  border: 1.5px solid var(--app-border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+  text-align: left;
+
+  &.active {
+    border-color: var(--ion-color-primary);
+    background: var(--app-surface-2);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  .theme-preview {
+    width: 52px;
+    height: 40px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+
+    .preview-bg {
+      position: absolute;
+      inset: 0;
+    }
+
+    .preview-card {
+      position: absolute;
+      top: 6px;
+      left: 6px;
+      right: 6px;
+      height: 18px;
+      border-radius: 4px;
+      opacity: 0.9;
+    }
+
+    .preview-accent {
+      position: absolute;
+      bottom: 5px;
+      left: 6px;
+      width: 20px;
+      height: 5px;
+      border-radius: 3px;
+    }
+  }
+
+  .theme-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    .theme-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ion-text-color);
+    }
+
+    .theme-desc {
+      font-size: 12px;
+      color: var(--ion-color-medium);
+    }
+  }
+
+  .theme-check {
+    ion-icon { font-size: 22px; }
+  }
+}
+
+// ─── Logout ───────────────────────────────────────────────────────────────────
+
+.logout-section {
+  padding: 8px 16px 0;
+}
+
+// ── Edición ───────────────────────────────────────────────────────────────────
+.edit-group {
+  margin: 0 16px;
+  background: var(--ion-color-light);
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.edit-field {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+  &:last-child { border-bottom: none; }
+}
+
+.edit-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: var(--ion-color-medium);
+  margin-bottom: 4px;
+}
+
+.edit-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: var(--ion-color-dark);
+  padding: 0;
+  &::placeholder { color: var(--ion-color-medium); }
+}
+
+.edit-actions {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+// ── Foto de perfil ────────────────────────────────────────────────────────────
+.avatar-circle--editable {
+  cursor: pointer;
+  position: relative;
+  &:active { opacity: .85; }
+}
+
+.avatar-uploading {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-camera-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--ion-color-primary);
+  border: 2px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  ion-icon { font-size: 14px; color: white; }
+}

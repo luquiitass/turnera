@@ -12,7 +12,7 @@ export class BarbersService {
       include: {
         user: { select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true, phone: true } },
         services: { include: { service: true } },
-        images: { orderBy: { sortOrder: 'asc' } },
+        images: { include: { image: true }, orderBy: { sortOrder: 'asc' } },
         _count: { select: { bookings: true } },
       },
     });
@@ -26,7 +26,7 @@ export class BarbersService {
         user: { select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true, phone: true } },
         services: { include: { service: true } },
         schedules: true,
-        images: { orderBy: { sortOrder: 'asc' } },
+        images: { include: { image: true }, orderBy: { sortOrder: 'asc' } },
       },
     });
     if (!barber) throw new NotFoundException('Barbero no encontrado');
@@ -58,7 +58,6 @@ export class BarbersService {
         userId: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
-        avatarUrl: user.avatarUrl,
         phone: user.phone,
         bio: dto.bio,
       },
@@ -104,23 +103,84 @@ export class BarbersService {
     return this.findOne(barberId);
   }
 
-  async addImage(barberId: string, imageUrl: string, caption?: string) {
-    await this.ensureExists(barberId);
-    const count = await this.prisma.barberImage.count({ where: { barberId } });
+  async addImage(barberId: string, imageId: string) {
+    const barber = await this.prisma.barber.findUnique({
+      where: { id: barberId },
+      include: { barbershop: { select: { maxBarberImages: true } } },
+    });
+    if (!barber) throw new NotFoundException('Barbero no encontrado');
+
+    const image = await this.prisma.image.findUnique({ where: { id: imageId } });
+    if (!image) throw new NotFoundException('Imagen no encontrada');
+
+    if (image.type !== 'PERFIL') {
+      throw new BadRequestException('Solo se permiten imágenes de tipo PERFIL para barberos');
+    }
+
+    // PERFIL es único — reemplaza si ya existe
+    const existing = await this.prisma.barberImage.findFirst({
+      where: { barberId, image: { type: 'PERFIL' } },
+    });
+    if (existing) await this.prisma.barberImage.delete({ where: { id: existing.id } });
+
     return this.prisma.barberImage.create({
-      data: { barberId, imageUrl, caption, sortOrder: count },
+      data: { barberId, imageId, sortOrder: 0 },
+      include: { image: true },
     });
   }
 
-  async removeImage(imageId: string) {
-    return this.prisma.barberImage.delete({ where: { id: imageId } });
+  async removeImage(relationId: string) {
+    const relation = await this.prisma.barberImage.findUnique({ where: { id: relationId } });
+    if (!relation) throw new NotFoundException('Imagen no encontrada');
+    return this.prisma.barberImage.delete({ where: { id: relationId } });
   }
 
   // ==================== BARBER AGENDA ====================
 
-  async getBarberAgenda(userId: string, date: string) {
+  async getBarberUpcomingBookings(userId: string, barbershopId?: string, days = 30) {
     const barber = await this.prisma.barber.findFirst({
-      where: { userId, isActive: true },
+      where: { userId, isActive: true, ...(barbershopId ? { barbershopId } : {}) },
+    });
+    if (!barber) throw new NotFoundException('No tienes perfil de barbero');
+
+    const from = new Date();
+    from.setUTCHours(0, 0, 0, 0);
+    const to = new Date(from.getTime() + days * 86400000);
+
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        barberId: barber.id,
+        date: { gte: from, lte: to },
+        status: { in: ['PENDIENTE', 'CONFIRMADA'] },
+      },
+      include: {
+        user:    { select: { firstName: true, lastName: true, phone: true } },
+        service: { select: { name: true } },
+      },
+      orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
+    });
+
+    return bookings.map(b => ({
+      id:          b.id,
+      date:        b.date.toISOString().split('T')[0],
+      startTime:   b.startTime,
+      endTime:     b.endTime,
+      status:      b.status,
+      clientName:  `${b.user.firstName} ${b.user.lastName}`,
+      clientPhone: b.user.phone,
+      serviceName: b.service.name,
+      notes:       b.notes,
+    }));
+  }
+
+  async getBarberAgenda(userId: string, date: string, barbershopId?: string) {
+    const barber = await this.prisma.barber.findFirst({
+      where: {
+        userId,
+        isActive: true,
+        // Si viene barbershopId, filtrar por barbería específica
+        ...(barbershopId ? { barbershopId } : {}),
+      },
       include: { schedules: true },
     });
     if (!barber) throw new NotFoundException('No tienes perfil de barbero');
@@ -282,7 +342,7 @@ export class BarbersService {
         user: { select: { id: true, email: true, firstName: true, lastName: true, avatarUrl: true } },
         services: { include: { service: true } },
         schedules: true,
-        images: { orderBy: { sortOrder: 'asc' } },
+        images: { include: { image: true }, orderBy: { sortOrder: 'asc' } },
         reviews: {
           include: { user: { select: { firstName: true, lastName: true, avatarUrl: true } } },
           orderBy: { createdAt: 'desc' },
@@ -303,26 +363,26 @@ export class BarbersService {
       include: {
         user: { select: { id: true, email: true, firstName: true, lastName: true } },
         services: { include: { service: true } },
-        images: { orderBy: { sortOrder: 'asc' } },
+        images: { include: { image: true }, orderBy: { sortOrder: 'asc' } },
       },
     });
   }
 
-  async addImageByUserId(userId: string, imageUrl: string, caption?: string) {
-    const barber = await this.prisma.barber.findFirst({ where: { userId, isActive: true } });
-    if (!barber) throw new NotFoundException('No tienes perfil de barbero');
-    const count = await this.prisma.barberImage.count({ where: { barberId: barber.id } });
-    return this.prisma.barberImage.create({
-      data: { barberId: barber.id, imageUrl, caption, sortOrder: count },
+  async addImageByUserId(userId: string, imageId: string) {
+    const barber = await this.prisma.barber.findFirst({
+      where: { userId, isActive: true },
+      include: { barbershop: { select: { maxBarberImages: true } } },
     });
+    if (!barber) throw new NotFoundException('No tienes perfil de barbero');
+    return this.addImage(barber.id, imageId);
   }
 
-  async removeImageByUserId(userId: string, imageId: string) {
+  async removeImageByUserId(userId: string, relationId: string) {
     const barber = await this.prisma.barber.findFirst({ where: { userId, isActive: true } });
     if (!barber) throw new NotFoundException('No tienes perfil de barbero');
-    const image = await this.prisma.barberImage.findUnique({ where: { id: imageId } });
-    if (!image || image.barberId !== barber.id) throw new NotFoundException('Imagen no encontrada');
-    return this.prisma.barberImage.delete({ where: { id: imageId } });
+    const relation = await this.prisma.barberImage.findUnique({ where: { id: relationId } });
+    if (!relation || relation.barberId !== barber.id) throw new NotFoundException('Imagen no encontrada');
+    return this.prisma.barberImage.delete({ where: { id: relationId } });
   }
 
   // ==================== BARBER REVIEWS ====================

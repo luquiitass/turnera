@@ -20,7 +20,7 @@ export class OffersService {
         validFrom: { lte: new Date() },
         validUntil: { gte: new Date() },
       },
-      include: { barbershop: { select: { id: true, name: true, logoImage: true } } },
+      include: { barbershop: { select: { id: true, name: true } } },
       orderBy: { createdAt: 'desc' },
     });
   }

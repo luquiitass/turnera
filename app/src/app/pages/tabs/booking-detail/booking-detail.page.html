@@ -97,6 +97,61 @@
       </div>
     </div>
 
+    <!-- Barbería -->
+    <div class="detail-section" *ngIf="booking.barber?.barbershop">
+      <p class="section-header">Barbería</p>
+      <div class="detail-card">
+
+        <div class="detail-row">
+          <div class="detail-icon" style="background: rgba(var(--ion-color-primary-rgb),0.12)">
+            <ion-icon name="storefront-outline" color="primary"></ion-icon>
+          </div>
+          <div class="detail-info">
+            <span class="detail-label">Nombre</span>
+            <span class="detail-value">{{ booking.barber.barbershop.name }}</span>
+          </div>
+        </div>
+
+        <ng-container *ngIf="booking.barber.barbershop.address">
+          <div class="detail-divider"></div>
+          <div class="detail-row">
+            <div class="detail-icon" style="background: rgba(var(--ion-color-tertiary-rgb),0.12)">
+              <ion-icon name="location-outline" color="tertiary"></ion-icon>
+            </div>
+            <div class="detail-info">
+              <span class="detail-label">Dirección</span>
+              <span class="detail-value">{{ booking.barber.barbershop.address }}</span>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="booking.barber.barbershop.phone">
+          <div class="detail-divider"></div>
+          <div class="detail-row">
+            <div class="detail-icon" style="background: rgba(var(--ion-color-success-rgb),0.12)">
+              <ion-icon name="call-outline" color="success"></ion-icon>
+            </div>
+            <div class="detail-info">
+              <span class="detail-label">Teléfono</span>
+              <a class="detail-value link" [href]="'tel:' + booking.barber.barbershop.phone">
+                {{ booking.barber.barbershop.phone }}
+              </a>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="booking.barber.barbershop.address">
+          <div class="detail-divider"></div>
+          <ion-button expand="block" fill="outline" color="primary" size="small"
+                      (click)="openDirections(booking.barber.barbershop)">
+            <ion-icon name="navigate-outline" slot="start"></ion-icon>
+            Cómo llegar
+          </ion-button>
+        </ng-container>
+
+      </div>
+    </div>
+
     <!-- Cliente -->
     <div class="detail-section" *ngIf="booking.user">
       <p class="section-header">Cliente</p>
@@ -160,6 +215,7 @@
       <p class="section-header">Acciones</p>
       <div class="actions-grid">
 
+        <!-- Confirmar: solo si está pendiente -->
         <ion-button
           *ngIf="booking.status === 'PENDIENTE'"
           expand="block" color="success" fill="solid"
@@ -169,8 +225,9 @@
           Confirmar
         </ion-button>
 
+        <!-- Completar y No se presentó: solo DESPUÉS de la hora de finalización -->
         <ion-button
-          *ngIf="booking.status === 'CONFIRMADA'"
+          *ngIf="booking.status === 'CONFIRMADA' && isBookingPast"
           expand="block" color="primary" fill="solid"
           [disabled]="saving"
           (click)="changeStatus('COMPLETADA')">
@@ -179,7 +236,7 @@
         </ion-button>
 
         <ion-button
-          *ngIf="booking.status === 'CONFIRMADA'"
+          *ngIf="booking.status === 'CONFIRMADA' && isBookingPast"
           expand="block" color="warning" fill="outline"
           [disabled]="saving"
           (click)="changeStatus('NO_SHOW')">
@@ -187,6 +244,7 @@
           No se presentó
         </ion-button>
 
+        <!-- Cancelar: siempre disponible mientras sea editable -->
         <ion-button
           expand="block" color="danger" fill="outline"
           [disabled]="saving"

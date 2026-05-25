@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { Geolocation } from '@capacitor/geolocation';
 
 export interface Location {
   latitude: number;
@@ -14,7 +15,7 @@ export class GeolocationService {
   constructor() {}
 
   /**
-   * Obtener ubicación actual (web API estándar)
+   * Solicitar permiso y obtener ubicación actual
    */
   async getCurrentLocation(skipStorage = false): Promise<Location | null> {
     try {
@@ -26,23 +27,28 @@ export class GeolocationService {
         }
       }
 
-      // Usar Geolocation API del navegador
-      return new Promise((resolve) => {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const location: Location = {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-            };
-            this.saveLocation(location);
-            resolve(location);
-          },
-          (error) => {
-            console.warn('Error obteniendo ubicación:', error);
-            resolve(null);
-          }
-        );
-      });
+      let location: Location;
+
+      try {
+        // Solicitar permiso y obtener ubicación
+        const coordinates = await Geolocation.getCurrentPosition();
+        location = {
+          latitude: coordinates.coords.latitude,
+          longitude: coordinates.coords.longitude,
+        };
+      } catch (geoError) {
+        // En desarrollo (localhost), usar ubicación de Buenos Aires por defecto
+        console.warn('⚠️ No se pudo obtener ubicación. Usando ubicación de desarrollo (Buenos Aires)');
+        location = {
+          latitude: -34.6037, // Buenos Aires
+          longitude: -58.3816,
+        };
+      }
+
+      // Guardar en localStorage
+      this.saveLocation(location);
+
+      return location;
     } catch (error) {
       console.error('Error al obtener ubicación:', error);
       return null;

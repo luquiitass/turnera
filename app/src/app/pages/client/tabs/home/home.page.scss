@@ -884,3 +884,421 @@
   ion-icon { font-size: 15px; }
   &:active { background: rgba(255,255,255,.25); }
 }
+
+// ==================== MODO SUBDOMINIO — Barbería específica ====================
+
+// ── Hero ──────────────────────────────────────────────────────────────────────
+.hero-section {
+  position: relative;
+  height: 220px;
+  background: var(--ion-color-light-shade);
+  overflow: visible;
+}
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  &.clickable { cursor: pointer; }
+}
+
+.logo-container {
+  position: absolute;
+  bottom: -28px;
+  left: 16px;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  border: 3px solid var(--ion-background-color, #fff);
+  background: var(--ion-color-light);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  &.clickable { cursor: pointer; }
+}
+.logo-image { width: 100%; height: 100%; object-fit: cover; }
+.logo-placeholder-icon { font-size: 32px; color: var(--ion-color-medium); }
+
+// ── Info card ─────────────────────────────────────────────────────────────────
+.info-card {
+  margin: 36px 12px 12px !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 12px rgba(0,0,0,.08) !important;
+}
+
+.barbershop-name {
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0 0 8px;
+  color: var(--ion-color-dark);
+  letter-spacing: -.3px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  margin-bottom: 6px;
+  a { color: var(--ion-color-primary); text-decoration: none; font-weight: 500; }
+}
+
+.description p {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  line-height: 1.6;
+  margin: 8px 0 0;
+}
+
+.quick-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.info-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(var(--ion-color-primary-rgb), .08);
+  border-radius: 100px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  ion-icon { font-size: 14px; }
+}
+
+// ── Botón reservar ────────────────────────────────────────────────────────────
+.booking-button {
+  padding: 4px 16px 8px;
+}
+
+// ── Servicios ─────────────────────────────────────────────────────────────────
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.service-card {
+  background: var(--ion-color-light);
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.service-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.service-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(var(--ion-color-primary-rgb), .1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  ion-icon { font-size: 18px; color: var(--ion-color-primary); }
+}
+.service-price-tag {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ion-color-primary);
+}
+.service-name {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--ion-color-dark);
+}
+.service-desc {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.service-footer {
+  margin-top: auto;
+}
+.service-duration {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--ion-color-medium);
+  ion-icon { font-size: 12px; }
+}
+
+// ── Equipo (barberos) ─────────────────────────────────────────────────────────
+.barber-avatar-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto 10px;
+  border: 2px solid var(--ion-color-light-shade);
+  &.clickable { cursor: pointer; }
+
+  .barber-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: var(--ion-color-medium-tint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    ion-icon { font-size: 32px; color: var(--ion-color-medium); }
+  }
+}
+
+// ── Galería ───────────────────────────────────────────────────────────────────
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.gallery-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  cursor: pointer;
+  transition: opacity .15s;
+  &:active { opacity: .8; }
+}
+
+// ── Mapa de ubicación ─────────────────────────────────────────────────────────
+.map-wrapper {
+  border-radius: 14px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  border: 1px solid var(--ion-color-light-shade);
+}
+.location-map {
+  width: 100%;
+  height: 200px;
+  border: none;
+  display: block;
+}
+
+// ── Image viewer overlay ──────────────────────────────────────────────────────
+.img-viewer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.92);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.img-viewer-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(255,255,255,.15);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  ion-icon { font-size: 22px; }
+}
+.img-viewer-counter {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(255,255,255,.8);
+  font-size: 14px;
+  font-weight: 600;
+}
+.img-viewer-img {
+  max-width: 96vw;
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: 8px;
+  &.slide-left  { animation: slide-left  .2s ease; }
+  &.slide-right { animation: slide-right .2s ease; }
+}
+@keyframes slide-left  { from { opacity:.4; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+@keyframes slide-right { from { opacity:.4; transform:translateX(-40px); } to { opacity:1; transform:translateX(0); } }
+
+.img-viewer-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,.15);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  ion-icon { font-size: 22px; }
+  &.img-viewer-prev { left: 12px; }
+  &.img-viewer-next { right: 12px; }
+}
+.img-viewer-dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+}
+.img-viewer-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.4);
+  cursor: pointer;
+  &.active { background: white; }
+}
+
+// ── Clickable helper ──────────────────────────────────────────────────────────
+.clickable { cursor: pointer; }
+
+// Próximo turno compacto (dentro del hero)
+.ch-next-booking--hero {
+  margin: 12px 0 10px !important;
+  border-radius: 12px !important;
+  border-color: rgba(255,255,255,.25) !important;
+  background: rgba(255,255,255,.12) !important;
+  padding: 10px 14px !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  display: flex !important;
+  gap: 10px !important;
+
+  .ch-nb-dot {
+    background: #4ade80 !important;
+    flex-shrink: 0;
+  }
+  .ch-nb-chip {
+    flex-shrink: 0;
+    --background: rgba(74,222,128,.2);
+    --color: #4ade80;
+  }
+}
+
+.ch-nb-hero-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  overflow: hidden;
+}
+.ch-nb-hero-info { overflow: hidden; }
+.ch-nb-hero-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ch-nb-hero-time {
+  font-size: 12px;
+  color: rgba(255,255,255,.7);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+// Separador entre filtros de orden y chips de servicios
+.ch-filter-sep {
+  width: 1px;
+  height: 24px;
+  background: var(--ion-color-light-shade);
+  flex-shrink: 0;
+  align-self: center;
+  margin: 0 4px;
+}
+
+// Chip de servicio (mismo estilo que los demás, con color diferente al activarse)
+.ch-chip-service.active {
+  background: var(--ion-color-secondary);
+  border-color: var(--ion-color-secondary);
+  color: white;
+  ion-icon { color: white; }
+}
+
+// Chip de loading
+.ch-chip-loading {
+  pointer-events: none;
+  opacity: .6;
+  padding: 7px 12px;
+}
+
+// ── CTA: Registrar barbería ───────────────────────────────────────────────────
+.ch-owner-cta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 16px 0;
+  padding: 18px 16px;
+  background: linear-gradient(135deg,
+    rgba(var(--ion-color-primary-rgb), .08) 0%,
+    rgba(var(--ion-color-secondary-rgb), .06) 100%);
+  border: 1.5px solid rgba(var(--ion-color-primary-rgb), .2);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: border-color .15s, transform .15s;
+  text-decoration: none;
+  color: inherit;
+  &:active { transform: scale(.98); border-color: var(--ion-color-primary); }
+}
+
+.ch-owner-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.ch-owner-text { flex: 1; }
+
+.ch-owner-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--ion-color-dark);
+  margin: 0 0 3px;
+}
+
+.ch-owner-sub {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.ch-owner-arrow {
+  font-size: 18px;
+  color: var(--ion-color-primary);
+  flex-shrink: 0;
+}

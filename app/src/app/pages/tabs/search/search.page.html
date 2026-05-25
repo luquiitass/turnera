@@ -30,8 +30,8 @@
         class="shop-card"
         (click)="goToDetail(shop)">
 
-        <div class="shop-cover" [style.backgroundImage]="shop.coverImage ? 'url(' + shop.coverImage + ')' : 'none'">
-          <div *ngIf="!shop.coverImage" class="cover-placeholder">
+        <div class="shop-cover" [style.backgroundImage]="shop.images?.[0]?.image?.url ? 'url(' + shop.images![0].image.url + ')' : 'none'">
+          <div *ngIf="!shop.images?.length" class="cover-placeholder">
             <ion-icon name="cut-outline" color="medium"></ion-icon>
           </div>
         </div>
@@ -52,13 +52,17 @@
               <ion-icon name="star-outline"></ion-icon>
               <ion-label>{{ getRatingStars(shop.avgRating) }} ({{ shop.totalReviews }})</ion-label>
             </ion-chip>
-            <ion-chip *ngIf="getAmenitiesCount(shop) > 0" color="primary" outline="true">
-              <ion-icon name="checkmark-circle-outline"></ion-icon>
-              <ion-label>{{ getAmenitiesCount(shop) }} amenidades</ion-label>
+            <ion-chip *ngIf="getDistance(shop) as dist" color="success" outline="true">
+              <ion-icon name="navigate-outline"></ion-icon>
+              <ion-label>{{ dist }}</ion-label>
+            </ion-chip>
+            <ion-chip *ngIf="(shop._count?.services ?? 0) > 0" color="tertiary" outline="true">
+              <ion-icon name="cut-outline"></ion-icon>
+              <ion-label>{{ shop._count?.services }} servicio{{ (shop._count?.services ?? 0) !== 1 ? 's' : '' }}</ion-label>
             </ion-chip>
             <ion-chip *ngIf="shop._count?.barbers" color="secondary" outline="true">
               <ion-icon name="people-outline"></ion-icon>
-              <ion-label>{{ shop._count?.barbers }} barberista{{ (shop._count?.barbers ?? 0) !== 1 ? 's' : '' }}</ion-label>
+              <ion-label>{{ shop._count?.barbers }} barbero{{ (shop._count?.barbers ?? 0) !== 1 ? 's' : '' }}</ion-label>
             </ion-chip>
           </div>
 

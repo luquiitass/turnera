@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { BarbersService } from './barbers.service.js';
 import { CreateBarberDto, UpdateBarberDto, AssignServicesDto } from './dto/barbers.dto.js';
@@ -29,12 +29,8 @@ export class BarbersController {
   }
 
   @Post('my-profile/images')
-  addMyImage(
-    @CurrentUser('id') userId: string,
-    @Body('imageUrl') imageUrl: string,
-    @Body('caption') caption?: string,
-  ) {
-    return this.barbersService.addImageByUserId(userId, imageUrl, caption);
+  addMyImage(@CurrentUser('id') userId: string, @Body('imageId') imageId: string) {
+    return this.barbersService.addImageByUserId(userId, imageId);
   }
 
   @Delete('my-profile/images/:imageId')
@@ -42,10 +38,24 @@ export class BarbersController {
     return this.barbersService.removeImageByUserId(userId, imageId);
   }
 
+  // Barber's upcoming bookings (next N days)
+  @Get('my-upcoming-bookings')
+  getMyUpcomingBookings(
+    @CurrentUser('id') userId: string,
+    @Query('barbershopId') barbershopId?: string,
+    @Query('days') days?: string,
+  ) {
+    return this.barbersService.getBarberUpcomingBookings(userId, barbershopId, days ? +days : 30);
+  }
+
   // Barber's agenda (bookings for a date)
   @Get('my-agenda/:date')
-  getMyAgenda(@CurrentUser('id') userId: string, @Param('date') date: string) {
-    return this.barbersService.getBarberAgenda(userId, date);
+  getMyAgenda(
+    @CurrentUser('id') userId: string,
+    @Param('date') date: string,
+    @Query('barbershopId') barbershopId?: string,
+  ) {
+    return this.barbersService.getBarberAgenda(userId, date, barbershopId);
   }
 
   // Barber's reviews
@@ -94,8 +104,8 @@ export class BarbersController {
 
   @Post(':id/images')
   @Roles(Role.ADMIN_BARBERSHOP)
-  addImage(@Param('id') id: string, @Body('imageUrl') imageUrl: string, @Body('caption') caption?: string) {
-    return this.barbersService.addImage(id, imageUrl, caption);
+  addImage(@Param('id') id: string, @Body('imageId') imageId: string) {
+    return this.barbersService.addImage(id, imageId);
   }
 
   @Delete('images/:imageId')

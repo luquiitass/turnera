@@ -3,18 +3,22 @@ import {
   UnauthorizedException,
   ConflictException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { randomBytes, createHash } from 'crypto';
 import { OAuth2Client } from 'google-auth-library';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { RegisterDto, LoginDto, RefreshTokenDto } from './dto/auth.dto.js';
+import { EmailService } from './email.service.js';
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private emailService: EmailService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -157,16 +161,53 @@ export class AuthService {
 
   async forgotPassword(email: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
-    if (!user) return { message: 'Si el email existe, recibiras instrucciones' };
-    // TODO: enviar email con token de reset
-    return { message: 'Si el email existe, recibiras instrucciones' };
+    // Respuesta genérica para no revelar si el email existe
+    if (!user) return { message: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña.' };
+
+    // Token aleatorio de 32 bytes → lo guardamos hasheado, enviamos el raw
+    const rawToken = randomBytes(32).toString('hex');
+    const hashed   = createHash('sha256').update(rawToken).digest('hex');
+    const expiry   = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { resetPasswordToken: hashed, resetPasswordTokenExpiry: expiry },
+    });
+
+    const appUrl = process.env.APP_URL ?? 'http://localhost:4200';
+    await this.emailService.sendPasswordReset(email, rawToken, appUrl);
+
+    return { message: 'Si el email existe, recibirás instrucciones para recuperar tu contraseña.' };
   }
 
   async resetPassword(token: string, newPassword: string) {
-    // TODO: validar token de reset
-    void token;
-    void newPassword;
-    return { message: 'Contrasena actualizada' };
+    const hashed = createHash('sha256').update(token).digest('hex');
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        resetPasswordToken: hashed,
+        resetPasswordTokenExpiry: { gt: new Date() },
+      },
+    });
+
+    if (!user) throw new BadRequestException('El enlace de recuperación es inválido o ha expirado.');
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordTokenExpiry: null,
+      },
+    });
+
+    // Retornar tokens para login automático
+    const tokens = await this.generateTokens(user.id, user.email, user.roles);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return { message: 'Contraseña actualizada correctamente.', user: this.sanitizeUser(user), ...tokens };
   }
 
   async generateDevToken(userId: string) {

@@ -261,8 +261,8 @@
                 [class.selected]="selectedBarber?.id === barber.id"
                 (click)="selectBarber(barber)" button>
         <div class="barber-avatar-container">
-          <img *ngIf="barber.avatarUrl" [src]="barber.avatarUrl" class="barber-avatar">
-          <div *ngIf="!barber.avatarUrl" class="barber-avatar-placeholder">
+          <img *ngIf="barber.images?.[0]?.image?.url" [src]="barber.images![0].image.url" class="barber-avatar">
+          <div *ngIf="!barber.images?.length" class="barber-avatar-placeholder">
             <ion-icon name="person-outline"></ion-icon>
           </div>
         </div>
@@ -367,7 +367,7 @@
 
     <ion-card *ngIf="confirmedBooking">
       <ion-card-content>
-        <p><strong>ID:</strong> {{ confirmedBooking.id?.substring(0, 8) }}...</p>
+        <p><strong>ID:</strong> {{ confirmedBooking.id.substring(0, 8) }}...</p>
         <p><strong>Fecha:</strong> {{ formatDate(selectedDate) }}</p>
         <p><strong>Hora:</strong> {{ confirmedBooking.startTime }} - {{ confirmedBooking.endTime }}</p>
         <p><strong>Estado:</strong> {{ confirmedBooking.status }}</p>

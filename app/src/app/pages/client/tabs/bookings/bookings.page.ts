@@ -31,6 +31,8 @@ export class BookingsPage implements OnInit {
   // Main tab: client or barber
   mainTab: 'client' | 'barber' = 'client';
   isBarber = false;
+  barberProfiles: any[] = [];       // todos los perfiles de barbero del usuario
+  selectedBarbershopId = '';         // barbería activa en la vista barbero
 
   // Client bookings
   allBookings: any[] = [];
@@ -45,6 +47,10 @@ export class BookingsPage implements OnInit {
   agendaDate = new Date().toISOString().split('T')[0];
   agenda: any = null;
   agendaLoading = false;
+
+  // Próximas reservas del barbero (vista rápida)
+  upcomingBarberBookings: any[] = [];
+  upcomingLoading = false;
 
   constructor(
     private api: ApiService,
@@ -67,14 +73,15 @@ export class BookingsPage implements OnInit {
   }
 
   private roleChecked = false;
+  private isRefreshing = false;
 
   ngOnInit(): void {
     this.checkIfBarber();
   }
 
   ionViewWillEnter(): void {
-    if (!this.roleChecked) return; // esperar que checkIfBarber termine
-    if (this.isBarber) {
+    if (!this.roleChecked || this.isRefreshing) return;
+    if (this.mainTab === 'barber') {
       this.loadAgenda();
     } else {
       this.loadBookings();
@@ -82,10 +89,20 @@ export class BookingsPage implements OnInit {
   }
 
   doRefresh(event: any): void {
-    if (this.isBarber) {
-      this.api.getMyAgenda(this.agendaDate).subscribe({
-        next: (res: any) => { this.agenda = res.data; event.target.complete(); },
-        error: () => { event.target.complete(); },
+    // isRefreshing se mantiene hasta después de la animación del refresher
+    // para que ionViewWillEnter (que Ionic dispara al completar) no interfiera
+    this.isRefreshing = true;
+
+    const done = () => {
+      event.target.complete();
+      setTimeout(() => { this.isRefreshing = false; }, 800);
+    };
+
+    if (this.mainTab === 'barber') {
+      this.agendaLoading = true;
+      this.api.getMyAgenda(this.agendaDate, this.selectedBarbershopId || undefined).subscribe({
+        next: (res: any) => { this.agenda = res.data; this.agendaLoading = false; done(); },
+        error: () => { this.agendaLoading = false; done(); },
       });
     } else {
       this.api.getMyBookings().subscribe({
@@ -93,9 +110,9 @@ export class BookingsPage implements OnInit {
           const raw = res.data;
           this.allBookings = Array.isArray(raw) ? raw : (raw?.data ?? []);
           this.applyFilter();
-          event.target.complete();
+          done();
         },
-        error: () => { event.target.complete(); },
+        error: () => done(),
       });
     }
   }
@@ -103,8 +120,19 @@ export class BookingsPage implements OnInit {
   checkIfBarber(): void {
     this.api.getMyBarberProfile().subscribe({
       next: (res: any) => {
-        const profiles = res.data || [];
-        this.isBarber = profiles.some((p: any) => p.barbershopId === environment.barbershopId);
+        const profiles: any[] = res.data || [];
+        this.barberProfiles = profiles.filter((p: any) => p.isActive !== false);
+
+        if (environment.barbershopId) {
+          // Subdominio: verificar si tiene perfil en esta barbería
+          this.isBarber = profiles.some((p: any) => p.barbershopId === environment.barbershopId);
+          this.selectedBarbershopId = environment.barbershopId;
+        } else {
+          // Base domain: es barbero si tiene CUALQUIER perfil activo
+          this.isBarber = this.barberProfiles.length > 0;
+          this.selectedBarbershopId = this.barberProfiles[0]?.barbershopId ?? '';
+        }
+
         this.roleChecked = true;
         if (this.isBarber) {
           this.mainTab = 'barber';
@@ -121,9 +149,21 @@ export class BookingsPage implements OnInit {
     });
   }
 
+  onBarbershopChange(_barbershopId: string): void {
+    this.loadAgenda();
+  }
+
+  get selectedBarberProfile(): any {
+    return this.barberProfiles.find(p => p.barbershopId === this.selectedBarbershopId);
+  }
+
   onMainTabChange(tab: 'client' | 'barber'): void {
     this.mainTab = tab;
-    if (tab === 'barber') this.loadAgenda();
+    if (tab === 'barber') {
+      this.loadAgenda();
+    } else {
+      if (this.allBookings.length === 0) this.loadBookings();
+    }
   }
 
   // ==================== CLIENT BOOKINGS ====================
@@ -275,12 +315,23 @@ export class BookingsPage implements OnInit {
 
   loadAgenda(): void {
     this.agendaLoading = true;
-    this.api.getMyAgenda(this.agendaDate).subscribe({
+    this.api.getMyAgenda(this.agendaDate, this.selectedBarbershopId || undefined).subscribe({
       next: (res: any) => {
         this.agenda = res.data;
         this.agendaLoading = false;
       },
       error: () => { this.agenda = null; this.agendaLoading = false; },
+    });
+  }
+
+  loadUpcomingBarberBookings(): void {
+    this.upcomingLoading = true;
+    this.api.getMyUpcomingBarberBookings(30, this.selectedBarbershopId || undefined).subscribe({
+      next: (res: any) => {
+        this.upcomingBarberBookings = res.data ?? [];
+        this.upcomingLoading = false;
+      },
+      error: () => { this.upcomingLoading = false; },
     });
   }
 

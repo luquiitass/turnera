@@ -12,26 +12,29 @@ export class StatsService {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
 
+    const activeStatuses: any[] = ['CONFIRMADA', 'COMPLETADA', 'PENDIENTE'];
+
     const [
       bookingsToday, bookingsMonth, cancelledMonth,
       revenueToday, revenueMonth, activeBarbers, avgRating,
     ] = await Promise.all([
       this.prisma.booking.count({
-        where: { barber: { barbershopId }, date: { gte: today, lt: tomorrow }, status: { not: 'CANCELADA' } },
+        where: { barber: { barbershopId }, date: { gte: today, lt: tomorrow }, status: { in: activeStatuses } },
       }),
       this.prisma.booking.count({
-        where: { barber: { barbershopId }, date: { gte: startOfMonth }, status: { not: 'CANCELADA' } },
+        where: { barber: { barbershopId }, date: { gte: startOfMonth }, status: { in: activeStatuses } },
       }),
       this.prisma.booking.count({
         where: { barber: { barbershopId }, date: { gte: startOfMonth }, status: 'CANCELADA' },
       }),
-      this.prisma.payment.aggregate({
-        _sum: { amount: true },
-        where: { booking: { barber: { barbershopId }, date: { gte: today, lt: tomorrow } }, status: 'APROBADO' },
+      // Ingresos = suma de totalPrice de reservas activas/completadas (no solo pagos MercadoPago)
+      this.prisma.booking.aggregate({
+        _sum: { totalPrice: true },
+        where: { barber: { barbershopId }, date: { gte: today, lt: tomorrow }, status: { in: activeStatuses } },
       }),
-      this.prisma.payment.aggregate({
-        _sum: { amount: true },
-        where: { booking: { barber: { barbershopId }, date: { gte: startOfMonth } }, status: 'APROBADO' },
+      this.prisma.booking.aggregate({
+        _sum: { totalPrice: true },
+        where: { barber: { barbershopId }, date: { gte: startOfMonth }, status: { in: activeStatuses } },
       }),
       this.prisma.barber.count({ where: { barbershopId, isActive: true } }),
       this.prisma.review.aggregate({ _avg: { rating: true }, where: { barbershopId } }),
@@ -39,9 +42,17 @@ export class StatsService {
 
     return {
       bookingsToday,
-      revenueToday: revenueToday._sum.amount || 0,
+      ingresosHoy:  (revenueToday._sum as any)?.totalPrice  || 0,
       bookingsMonth,
-      revenueMonth: revenueMonth._sum.amount || 0,
+      ingresosMes:  (revenueMonth._sum as any)?.totalPrice  || 0,
+      cancelaciones: cancelledMonth,
+      barberosActivos: activeBarbers,
+      rating: avgRating._avg.rating ? Math.round(avgRating._avg.rating * 10) / 10 : 0,
+      // Aliases para compatibilidad con el dashboard frontend
+      reservasHoy:  bookingsToday,
+      reservasMes:  bookingsMonth,
+      revenueToday: (revenueToday._sum as any)?.totalPrice || 0,
+      revenueMonth: (revenueMonth._sum as any)?.totalPrice || 0,
       cancelledMonth,
       activeBarbers,
       avgRating: avgRating._avg.rating ? Math.round(avgRating._avg.rating * 10) / 10 : 0,

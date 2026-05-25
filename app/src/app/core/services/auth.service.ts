@@ -42,6 +42,12 @@ export class AuthService {
     return this.storage.get('accessToken');
   }
 
+  googleLogin(idToken: string): Observable<ApiResponse<AuthResponse>> {
+    return this.http
+      .post<ApiResponse<AuthResponse>>(`${environment.apiUrl}/auth/google`, { idToken })
+      .pipe(tap((res) => this.handleAuth(res.data)));
+  }
+
   login(email: string, password: string): Observable<ApiResponse<AuthResponse>> {
     return this.http
       .post<ApiResponse<AuthResponse>>(`${environment.apiUrl}/auth/login`, { email, password })
@@ -73,6 +79,22 @@ export class AuthService {
           this.storage.set('refreshToken', res.data.refreshToken);
         }),
       );
+  }
+
+  forgotPassword(email: string): Observable<ApiResponse<{ message: string }>> {
+    return this.http.post<ApiResponse<{ message: string }>>(
+      `${environment.apiUrl}/auth/forgot-password`,
+      { email },
+    );
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<ApiResponse<AuthResponse & { message: string }>> {
+    return this.http
+      .post<ApiResponse<AuthResponse & { message: string }>>(
+        `${environment.apiUrl}/auth/reset-password`,
+        { token, newPassword },
+      )
+      .pipe(tap((res) => this.handleAuth(res.data)));
   }
 
   logout(): void {
@@ -125,9 +147,12 @@ export class AuthService {
           this.storage.setJson('currentUser', res.data);
           this.currentUserSubject.next(res.data);
         },
-        error: () => {
-          // Token expired or invalid - clean up
-          this.logout();
+        error: (err) => {
+          // Solo limpiar sesión si el token es realmente inválido (401)
+          // Ignorar errores de red/servidor para no cerrar sesión por problemas temporales
+          if (err?.status === 401) {
+            this.logout();
+          }
         },
       });
     } else if (token && !user) {
