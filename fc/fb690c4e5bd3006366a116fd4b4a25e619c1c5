@@ -1,0 +1,78 @@
+app/src/app/pages/super-admin/tabs/home/home.module.ts
+  s_83987cc04e5e90::t_ed937a51cfbb96 1-13
+app/src/app/pages/tabs/tabs.page.html
+  s_83987cc04e5e90::t_2a5bb4f75a0de6 33
+  s_83987cc04e5e90::t_d7b437eef154ce 3
+  s_83987cc04e5e90::t_94b0afcd09e534 15
+api/src/modules/auth/auth.service.ts
+  s_83987cc04e5e90::t_42de6a47bed4ec 106
+app/src/app/pages/super-admin/tabs/tabs-routing.module.ts
+  s_83987cc04e5e90::t_ffd386ba0d353f 1-36
+app/src/app/pages/barber/tabs/tabs.module.ts
+  s_83987cc04e5e90::t_9b44a8c762a91c 1-11
+app/src/app/pages/barber/tabs/home/home.page.ts
+  s_83987cc04e5e90::t_a2af2934327e27 1-114
+app/src/app/pages/super-admin/tabs/home/home.page.ts
+  s_83987cc04e5e90::t_ff73237b0dfb72 1-52
+app/src/app/pages/barber/tabs/tabs.page.scss
+  s_83987cc04e5e90::t_b5b9ff0c3376e3 1
+app/src/app/pages/super-admin/tabs/home/home.page.scss
+  s_83987cc04e5e90::t_dca79806769bb7 1-22
+app/src/app/pages/tabs/tabs.page.ts
+  s_83987cc04e5e90::t_4dd4cefe211f5c 2
+  s_83987cc04e5e90::t_415e3185d30cd1 56-60,65-72,80
+  s_83987cc04e5e90::t_915cf5f2542dc0 27
+app/src/app/pages/client/tabs/tabs.page.ts
+  s_83987cc04e5e90::t_2f88a4908abf67 53-99
+  s_83987cc04e5e90::t_381b26ccb5a6cb 2-3
+  s_83987cc04e5e90::t_031c85b2d5aa6f 25-26
+app/src/app/pages/barber/tabs/home/home.page.html
+  s_83987cc04e5e90::t_6e70a0f6e0146e 1-68
+app/src/app/pages/barber/tabs/tabs-routing.module.ts
+  s_83987cc04e5e90::t_867b15578dd444 1-32
+app/src/app/app-routing.module.ts
+  s_83987cc04e5e90::t_b5cf8da646f77f 54-79
+app/src/app/pages/super-admin/tabs/home/home.page.html
+  s_83987cc04e5e90::t_46d48cf37255eb 1-82
+app/src/app/pages/super-admin/tabs/tabs.page.html
+  s_83987cc04e5e90::t_158576b8bbd76a 1-36
+app/src/app/pages/barber/tabs/tabs.page.ts
+  s_83987cc04e5e90::t_ece8f51984632b 1-83
+app/src/app/pages/barber/tabs/home/home.page.scss
+  s_83987cc04e5e90::t_b2856f29e273fd 1-34
+app/src/app/pages/admin/manage-barbershops/manage-barbershops.module.ts
+  s_83987cc04e5e90::t_4b35506f64dbaf 1-10
+app/src/app/pages/auth/login/login.page.ts
+  s_83987cc04e5e90::t_c798f946171f07 128-130,136
+app/src/app/core/services/auth.service.ts
+  s_83987cc04e5e90::t_b40015f3739051 45-56
+  s_83987cc04e5e90::t_e11a4da1e67486 127-131
+app/src/app/pages/barber/tabs/tabs.page.html
+  s_83987cc04e5e90::t_4051fbca87b746 1-31
+app/src/app/pages/super-admin/tabs/tabs.module.ts
+  s_83987cc04e5e90::t_8b233721f97357 1-11
+app/src/app/pages/super-admin/tabs/tabs.page.ts
+  s_83987cc04e5e90::t_f0f854d41025b8 1-83
+app/src/app/pages/barber/tabs/home/home.module.ts
+  s_83987cc04e5e90::t_a8c494311ae975 1-13
+app/src/app/pages/super-admin/tabs/tabs.page.scss
+  s_83987cc04e5e90::t_6e14348a3705c1 1
+app/src/app/pages/client/tabs/tabs.page.html
+  s_83987cc04e5e90::t_525f98f2db820b 3,33-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "fcfb690c4e5bd3006366a116fd4b4a25e619c1c5",
+  "prompts": {},
+  "sessions": {
+    "s_83987cc04e5e90": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3141bd6b-b682-4964-bb8d-5f895573e3dc",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
