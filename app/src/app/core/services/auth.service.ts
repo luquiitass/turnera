@@ -42,6 +42,18 @@ export class AuthService {
     return this.storage.get('accessToken');
   }
 
+  get hasBarberProfile(): boolean {
+    return ((this.currentUser as any)?.barberProfiles?.length ?? 0) > 0;
+  }
+
+  getDefaultRoute(): string {
+    const roles = this.currentUser?.roles || [];
+    if (roles.includes('ADMIN_GENERAL')) return '/super_admin/tabs/home';
+    if (roles.includes('ADMIN_BARBERSHOP') || roles.includes('SUB_ADMIN')) return '/admin/tabs/home';
+    if (this.hasBarberProfile) return '/barber/tabs/home';
+    return '/tabs/home';
+  }
+
   googleLogin(idToken: string): Observable<ApiResponse<AuthResponse>> {
     return this.http
       .post<ApiResponse<AuthResponse>>(`${environment.apiUrl}/auth/google`, { idToken })
@@ -112,7 +124,11 @@ export class AuthService {
   }
 
   getAvailableRoles(): string[] {
-    return this.currentUser?.roles || ['USUARIO'];
+    const roles = [...(this.currentUser?.roles || ['USUARIO'])];
+    if (this.hasBarberProfile && !roles.includes('BARBERO')) {
+      roles.push('BARBERO');
+    }
+    return roles;
   }
 
   hasRole(role: string): boolean {

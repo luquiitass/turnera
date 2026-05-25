@@ -103,6 +103,7 @@ export class AuthService {
         barbershopAdmins: {
           include: { barbershop: { select: { id: true, name: true } } },
         },
+        barberProfiles: { select: { id: true, barbershopId: true } },
       },
     });
     if (!user) throw new NotFoundException('Usuario no encontrado');

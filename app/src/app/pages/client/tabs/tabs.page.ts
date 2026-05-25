@@ -1,4 +1,6 @@
 import { Component, OnInit, inject, DestroyRef } from '@angular/core';
+import { Router } from '@angular/router';
+import { ActionSheetController } from '@ionic/angular';
 import { AuthService } from '../../../core/services/auth.service';
 import { BarbershopResolverService } from '../../../core/barbershop-resolver.service';
 import { NotificationsService } from '../../../services/notifications.service';
@@ -20,6 +22,8 @@ export class TabsPage implements OnInit {
     public auth: AuthService,
     public notificationsService: NotificationsService,
     private resolver: BarbershopResolverService,
+    private actionSheetController: ActionSheetController,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -45,5 +49,52 @@ export class TabsPage implements OnInit {
     // Use first base domain (localhost in dev)
     const baseDomain = environment.baseDomains[0];
     window.location.href = `${protocol}//${baseDomain}${port}/auth/login?redirect=${slug}`;
+  }
+
+  private getRoleLabel(role: string): string {
+    const labels: Record<string, string> = {
+      USUARIO: 'Cliente',
+      ADMIN_BARBERSHOP: 'Admin de barbería',
+      SUB_ADMIN: 'Encargado',
+      BARBERO: 'Barbero',
+      ADMIN_GENERAL: 'Super Admin',
+    };
+    return labels[role] ?? role;
+  }
+
+  private readonly roleRoutes: Record<string, string> = {
+    USUARIO: '/tabs/home',
+    ADMIN_BARBERSHOP: '/admin/tabs/home',
+    SUB_ADMIN: '/admin/tabs/home',
+    BARBERO: '/barber/tabs/home',
+    ADMIN_GENERAL: '/super_admin/tabs/home',
+  };
+
+  async openRoleSwitcher(): Promise<void> {
+    const availableRoles = this.auth.getAvailableRoles();
+    const activeRole = this.auth.activeRole;
+
+    const buttons = availableRoles.map(role => ({
+      text: this.getRoleLabel(role),
+      icon: role === activeRole ? 'checkmark-circle-outline' : 'ellipse-outline',
+      cssClass: role === activeRole ? 'active-role-button' : '',
+      handler: () => {
+        this.auth.setActiveRole(role);
+        this.router.navigateByUrl(this.roleRoutes[role] ?? '/tabs/home');
+      },
+    }));
+
+    buttons.push({
+      text: 'Cancelar',
+      icon: 'close-outline',
+      cssClass: 'cancel-button',
+      handler: () => true as any,
+    });
+
+    const actionSheet = await this.actionSheetController.create({
+      header: 'Cambiar modo de uso',
+      buttons,
+    });
+    await actionSheet.present();
   }
 }

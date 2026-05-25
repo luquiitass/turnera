@@ -123,18 +123,17 @@ export class LoginPage implements OnInit {
   }
 
   private navigateAfterLogin(): void {
-    const role = this.authService.activeRole;
-    const isAdmin = ['ADMIN_GENERAL', 'ADMIN_BARBERSHOP', 'SUB_ADMIN'].includes(role);
-
     const params = new URLSearchParams(window.location.search);
     const slug = params.get('redirect');
+    const defaultRoute = this.authService.getDefaultRoute();
+    const isAdmin = defaultRoute !== '/tabs/home';
+
     if (slug && !isAdmin) {
       this.redirectToSubdomain(slug);
       return;
     }
 
-    const target = isAdmin ? '/admin/tabs/home' : '/tabs/home';
-    this.router.navigateByUrl(target, { replaceUrl: true });
+    this.router.navigateByUrl(defaultRoute, { replaceUrl: true });
   }
 
   // Redirige al subdominio del slug pasando los tokens en el hash

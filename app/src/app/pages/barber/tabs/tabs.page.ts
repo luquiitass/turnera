@@ -2,26 +2,24 @@ import { Component, OnInit, OnDestroy, inject, DestroyRef } from '@angular/core'
 import { Router } from '@angular/router';
 import { ActionSheetController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
-import { AuthService } from '../../core/services/auth.service';
-import { NotificationsService } from '../../services/notifications.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { NotificationsService } from '../../../services/notifications.service';
 
 @Component({
   standalone: false,
-  selector: 'app-tabs',
+  selector: 'app-barber-tabs',
   templateUrl: './tabs.page.html',
   styleUrls: ['./tabs.page.scss'],
 })
-export class TabsPage implements OnInit, OnDestroy {
-  activeRole = 'USUARIO';
+export class BarberTabsPage implements OnInit, OnDestroy {
+  activeRole = 'BARBERO';
   availableRoles: string[] = [];
   private roleSub!: Subscription;
 
-  // DestroyRef bound to this component's lifecycle; passed to startPolling so
-  // the interval is cancelled automatically when this component is destroyed.
   private readonly destroyRef = inject(DestroyRef);
 
   constructor(
-    private authService: AuthService,
+    public authService: AuthService,
     private actionSheetController: ActionSheetController,
     public notificationsService: NotificationsService,
     private router: Router,
@@ -39,19 +37,7 @@ export class TabsPage implements OnInit, OnDestroy {
     this.roleSub?.unsubscribe();
   }
 
-  get isUsuario(): boolean {
-    return this.activeRole === 'USUARIO';
-  }
-
-  get isAdmin(): boolean {
-    return this.activeRole === 'ADMIN_BARBERSHOP' || this.activeRole === 'ADMIN_GENERAL';
-  }
-
-  get hasMultipleRoles(): boolean {
-    return this.availableRoles.length > 1;
-  }
-
-  getRoleLabel(role: string): string {
+  private getRoleLabel(role: string): string {
     const labels: Record<string, string> = {
       USUARIO: 'Cliente',
       ADMIN_BARBERSHOP: 'Admin de barbería',

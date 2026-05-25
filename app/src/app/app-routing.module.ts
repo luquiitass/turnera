@@ -51,6 +51,32 @@ const routes: Routes = [
     loadChildren: () => import('./pages/client/register-barbershop/register-barbershop.module').then(m => m.RegisterBarbershopPageModule),
   },
 
+  // ── RUTAS BARBERO ────────────────────────────────────────────
+  {
+    path: 'barber',
+    children: [
+      { path: '', redirectTo: 'tabs/home', pathMatch: 'full' },
+      {
+        path: 'tabs',
+        canActivate: [AuthGuard],
+        loadChildren: () => import('./pages/barber/tabs/tabs.module').then(m => m.BarberTabsPageModule),
+      },
+    ],
+  },
+
+  // ── RUTAS SUPER ADMIN ─────────────────────────────────────────
+  {
+    path: 'super_admin',
+    children: [
+      { path: '', redirectTo: 'tabs/home', pathMatch: 'full' },
+      {
+        path: 'tabs',
+        canActivate: [AuthGuard],
+        loadChildren: () => import('./pages/super-admin/tabs/tabs.module').then(m => m.SuperAdminTabsPageModule),
+      },
+    ],
+  },
+
   // ── RUTAS ADMIN ─────────────────────────────────────────────
   // Admin — todo el contenido actual de la app
   {
