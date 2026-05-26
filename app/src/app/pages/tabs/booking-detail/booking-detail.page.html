@@ -210,6 +210,101 @@
       </div>
     </div>
 
+    <!-- Pagos / Seña -->
+    <div class="detail-section" *ngIf="showPaymentsSection">
+      <p class="section-header">Seña</p>
+      <div class="detail-card">
+
+        <!-- Estado de la seña -->
+        <div class="detail-row">
+          <div class="detail-icon" [style.background]="depositPaid ? 'rgba(var(--ion-color-success-rgb),0.12)' : 'rgba(var(--ion-color-warning-rgb),0.12)'">
+            <ion-icon [name]="depositPaid ? 'checkmark-circle-outline' : 'cash-outline'" [color]="depositPaid ? 'success' : 'warning'"></ion-icon>
+          </div>
+          <div class="detail-info">
+            <span class="detail-label">Estado seña</span>
+            <span class="detail-value">
+              <ion-badge [color]="depositPaid ? 'success' : 'warning'">{{ depositPaid ? 'Pagada' : 'Pendiente' }}</ion-badge>
+            </span>
+          </div>
+          <span class="detail-price">${{ depositAmount }}</span>
+        </div>
+
+        <!-- Pago registrado -->
+        <ng-container *ngIf="senaPago">
+          <div class="detail-divider"></div>
+          <div class="detail-row">
+            <div class="detail-icon" style="background: rgba(var(--ion-color-success-rgb),0.12)">
+              <ion-icon name="receipt-outline" color="success"></ion-icon>
+            </div>
+            <div class="detail-info">
+              <span class="detail-label">{{ getMethodLabel(senaPago.method) }}</span>
+              <span class="detail-value">${{ senaPago.netAmount || senaPago.amount }}</span>
+            </div>
+            <ion-badge color="success">{{ getPaymentStatusLabel(senaPago.status) }}</ion-badge>
+          </div>
+        </ng-container>
+
+        <!-- Acciones si la seña no está pagada -->
+        <ng-container *ngIf="!depositPaid && booking?.status === 'CONFIRMADA'">
+          <div class="detail-divider"></div>
+
+          <!-- STAFF: generar link + registrar manual -->
+          <ng-container *ngIf="isStaff">
+            <div *ngIf="mpLink" class="mp-link-box">
+              <p class="mp-link-label">Link de pago listo:</p>
+              <p class="mp-link-url">{{ mpLink }}</p>
+              <ion-button expand="block" size="small" color="primary" (click)="copyMpLink()">
+                <ion-icon name="copy-outline" slot="start"></ion-icon>
+                Copiar link
+              </ion-button>
+              <ion-button expand="block" size="small" fill="outline" color="primary"
+                          [href]="mpLink" target="_blank">
+                <ion-icon name="open-outline" slot="start"></ion-icon>
+                Abrir link
+              </ion-button>
+            </div>
+            <div class="payment-actions">
+              <ion-button expand="block" color="primary" fill="solid"
+                          [disabled]="generatingLink" (click)="generateMpLink()">
+                <ion-spinner *ngIf="generatingLink" name="crescent" slot="start"></ion-spinner>
+                <ion-icon *ngIf="!generatingLink" name="logo-paypal" slot="start"></ion-icon>
+                {{ mpLink ? 'Regenerar link MP' : 'Generar link de pago MP' }}
+              </ion-button>
+              <ion-button expand="block" color="medium" fill="outline" (click)="registerManualPayment()">
+                <ion-icon name="cash-outline" slot="start"></ion-icon>
+                Registrar seña manual
+              </ion-button>
+              <ion-button expand="block" color="medium" fill="clear" size="small"
+                          [disabled]="verifyingPayment" (click)="verifyPayment()">
+                <ion-spinner *ngIf="verifyingPayment" name="crescent" slot="start"></ion-spinner>
+                <ion-icon *ngIf="!verifyingPayment" name="refresh-outline" slot="start"></ion-icon>
+                Verificar pago en MP
+              </ion-button>
+            </div>
+          </ng-container>
+
+          <!-- CLIENTE: botón pagar -->
+          <ng-container *ngIf="!isStaff">
+            <div class="payment-actions">
+              <ion-button expand="block" color="primary" fill="solid"
+                          [disabled]="generatingLink" (click)="payDeposit()">
+                <ion-spinner *ngIf="generatingLink" name="crescent" slot="start"></ion-spinner>
+                <ion-icon *ngIf="!generatingLink" name="logo-paypal" slot="start"></ion-icon>
+                Pagar seña con MercadoPago
+              </ion-button>
+              <ion-button expand="block" color="medium" fill="outline"
+                          [disabled]="verifyingPayment" (click)="verifyPayment()">
+                <ion-spinner *ngIf="verifyingPayment" name="crescent" slot="start"></ion-spinner>
+                <ion-icon *ngIf="!verifyingPayment" name="refresh-outline" slot="start"></ion-icon>
+                Ya pagué — verificar
+              </ion-button>
+            </div>
+          </ng-container>
+        </ng-container>
+
+      </div>
+    </div>
+
     <!-- Acciones STAFF: barbero / admin barbería -->
     <div class="actions-section" *ngIf="canMarkFinal">
       <p class="section-header">Acciones</p>

@@ -1,21 +1,20 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { BarbershopDetailPage } from './barbershop-detail.page';
 import { BarbershopDetailRoutingModule } from './barbershop-detail-routing.module';
-import { SharedComponentsModule } from '../../shared/shared-components.module';
+import { BarbershopProfileModule } from '../../shared/barbershop-profile/barbershop-profile.module';
 
 @NgModule({
   imports: [
     CommonModule,
-    FormsModule,
     IonicModule,
     RouterModule,
     BarbershopDetailRoutingModule,
-    SharedComponentsModule,
+    BarbershopProfileModule,
   ],
   declarations: [BarbershopDetailPage],
+  exports: [BarbershopDetailPage],
 })
 export class BarbershopDetailPageModule {}

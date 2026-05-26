@@ -19,6 +19,7 @@ import { GeocodingModule } from './modules/geocoding/geocoding.module.js';
 import { UploadModule } from './modules/upload/upload.module.js';
 import { MercadoPagoModule } from './modules/mercadopago/mercadopago.module.js';
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
+import { BankAccountsModule } from './modules/bank-accounts/bank-accounts.module.js';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard.js';
 import { RolesGuard } from './common/guards/roles.guard.js';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor.js';
@@ -47,6 +48,7 @@ import { CloudflareModule } from './common/cloudflare.module.js';
     UploadModule,
     MercadoPagoModule,
     NotificationsModule,
+    BankAccountsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: JwtAuthGuard },

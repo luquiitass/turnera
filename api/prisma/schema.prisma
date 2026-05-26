@@ -84,6 +84,7 @@ model Barbershop {
   createdAt            DateTime                  @default(now())
   updatedAt            DateTime                  @updatedAt
   maxBarberImages      Int                       @default(3)
+  bankAccounts         BarbershopBankAccount[]
   barbers              Barber[]
   admins               BarbershopAdmin[]
   amenities            BarbershopAmenity[]
@@ -96,6 +97,35 @@ model Barbershop {
   reviews              Review[]
 
   @@map("barbershops")
+}
+
+model BarbershopBankAccount {
+  id               String               @id @default(uuid())
+  barbershopId     String
+  accountType      BankAccountType
+  // Datos bancarios (CBU / CVU)
+  cbuCvu           String?
+  alias            String?
+  bankName         String?
+  holderName       String?
+  holderCuit       String?
+  accountCategory  BankAccountCategory?
+  // MercadoPago OAuth (accountType = MP_OAUTH)
+  mpUserId         String?
+  mpAccessToken    String?
+  mpRefreshToken   String?
+  mpTokenExpiresAt DateTime?
+  // Estado
+  isPrimary        Boolean              @default(false)
+  isVerified       Boolean              @default(false)
+  isActive         Boolean              @default(true)
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  barbershop           Barbershop            @relation(fields: [barbershopId], references: [id], onDelete: Cascade)
+  platformTransactions PlatformTransaction[]
+
+  @@map("barbershop_bank_accounts")
 }
 
 model BarbershopAdmin {
@@ -449,19 +479,23 @@ model BarbershopSubscription {
 }
 
 model PlatformTransaction {
-  id            String     @id @default(uuid())
-  barbershopId  String
-  bookingId     String?
-  type          String
-  grossAmount   Float
-  platformFee   Float
-  barbershopNet Float?
-  mpPaymentId   String?
-  mpStatus      String?
-  status        String     @default("pending")
-  createdAt     DateTime   @default(now())
-  barbershop    Barbershop @relation(fields: [barbershopId], references: [id])
-  booking       Booking?   @relation(fields: [bookingId], references: [id])
+  id             String                 @id @default(uuid())
+  barbershopId   String
+  bookingId      String?
+  bankAccountId  String?
+  type           String
+  grossAmount    Float
+  platformFee    Float
+  barbershopNet  Float?
+  mpPaymentId    String?
+  mpStatus       String?
+  status         String                 @default("pending")
+  transferStatus TransferStatus         @default(NOT_REQUIRED)
+  transferredAt  DateTime?
+  createdAt      DateTime               @default(now())
+  barbershop     Barbershop             @relation(fields: [barbershopId], references: [id])
+  booking        Booking?               @relation(fields: [bookingId], references: [id])
+  bankAccount    BarbershopBankAccount? @relation(fields: [bankAccountId], references: [id])
 
   @@map("platform_transactions")
 }
@@ -562,4 +596,23 @@ enum ImageType {
   PORTADA
   PERFIL
   GALERIA
+}
+
+enum BankAccountType {
+  CBU
+  CVU
+  MP_OAUTH
+}
+
+enum BankAccountCategory {
+  CAJA_AHORRO
+  CUENTA_CORRIENTE
+}
+
+enum TransferStatus {
+  NOT_REQUIRED
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
 }

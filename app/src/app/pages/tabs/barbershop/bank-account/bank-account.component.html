@@ -1,0 +1,145 @@
+<div class="ion-padding">
+
+  <!-- MercadoPago OAuth -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>MercadoPago (split automático)</ion-card-title>
+      <ion-card-subtitle>Conectá tu cuenta para recibir pagos directamente</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+      <ng-container *ngIf="mpAccount; else noMp">
+        <ion-item lines="none">
+          <ion-icon name="checkmark-circle" color="success" slot="start"></ion-icon>
+          <ion-label>
+            <h3>Cuenta conectada</h3>
+            <p>User ID: {{ mpAccount.mpUserId }}</p>
+            <p *ngIf="mpAccount.isPrimary"><strong>Cuenta principal</strong></p>
+          </ion-label>
+          <ion-badge color="success" slot="end">Activa</ion-badge>
+        </ion-item>
+        <ion-button expand="block" fill="outline" color="medium" (click)="disconnectMercadoPago()">
+          Desconectar cuenta MP
+        </ion-button>
+        <ion-button *ngIf="!mpAccount.isPrimary" expand="block" fill="outline" (click)="setPrimary(mpAccount)">
+          Usar como principal
+        </ion-button>
+      </ng-container>
+      <ng-template #noMp>
+        <p class="ion-text-center ion-padding-bottom">No hay cuenta MP conectada</p>
+        <ion-button expand="block" (click)="connectMercadoPago()">
+          <ion-icon name="link" slot="start"></ion-icon>
+          Conectar cuenta MercadoPago
+        </ion-button>
+      </ng-template>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Cuentas CBU/CVU -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>CBU / CVU bancario</ion-card-title>
+      <ion-card-subtitle>Para transferencia directa a cualquier banco</ion-card-subtitle>
+    </ion-card-header>
+    <ion-card-content>
+
+      <ion-list *ngIf="bankAccounts.length > 0">
+        <ion-item *ngFor="let account of bankAccounts">
+          <ion-icon [name]="account.accountType === 'CBU' ? 'business' : 'phone-portrait'" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <h3>{{ account.holderName }}</h3>
+            <p>{{ account.accountType }}: {{ account.cbuCvu }}</p>
+            <p *ngIf="account.alias">Alias: {{ account.alias }}</p>
+            <p *ngIf="account.bankName">{{ account.bankName }}</p>
+          </ion-label>
+          <ion-badge *ngIf="account.isPrimary" color="primary" slot="end">Principal</ion-badge>
+          <ion-buttons slot="end">
+            <ion-button *ngIf="!account.isPrimary" (click)="setPrimary(account)" fill="clear" color="primary">
+              <ion-icon name="star-outline"></ion-icon>
+            </ion-button>
+            <ion-button (click)="confirmRemove(account)" fill="clear" color="danger">
+              <ion-icon name="trash-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-item>
+      </ion-list>
+
+      <p *ngIf="bankAccounts.length === 0" class="ion-text-center ion-padding-bottom">
+        No hay cuentas bancarias configuradas
+      </p>
+
+      <ion-button expand="block" fill="outline" (click)="showForm = !showForm">
+        <ion-icon [name]="showForm ? 'chevron-up' : 'add'" slot="start"></ion-icon>
+        {{ showForm ? 'Cancelar' : 'Agregar CBU / CVU' }}
+      </ion-button>
+
+      <!-- Formulario nueva cuenta -->
+      <ng-container *ngIf="showForm">
+        <ion-list class="ion-margin-top">
+          <ion-item>
+            <ion-label position="stacked">Tipo de cuenta</ion-label>
+            <ion-select [(ngModel)]="form.accountType" interface="action-sheet">
+              <ion-select-option value="CBU">CBU (banco tradicional)</ion-select-option>
+              <ion-select-option value="CVU">CVU (fintech: Ualá, Naranja X...)</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">CBU / CVU (22 dígitos)</ion-label>
+            <ion-input [(ngModel)]="form.cbuCvu" type="text" inputmode="numeric" maxlength="22" placeholder="0000000000000000000000"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Alias (opcional)</ion-label>
+            <ion-input [(ngModel)]="form.alias" placeholder="mi.barberia.alias"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Banco / Fintech</ion-label>
+            <ion-input [(ngModel)]="form.bankName" placeholder="Banco Galicia, Ualá..."></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Nombre del titular *</ion-label>
+            <ion-input [(ngModel)]="form.holderName" placeholder="Juan Pérez"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">CUIT / CUIL del titular *</ion-label>
+            <ion-input [(ngModel)]="form.holderCuit" type="text" inputmode="numeric" placeholder="20-12345678-9"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Tipo de cuenta</ion-label>
+            <ion-select [(ngModel)]="form.accountCategory" interface="action-sheet">
+              <ion-select-option value="CAJA_AHORRO">Caja de ahorro</ion-select-option>
+              <ion-select-option value="CUENTA_CORRIENTE">Cuenta corriente</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Usar como cuenta principal</ion-label>
+            <ion-toggle [(ngModel)]="form.isPrimary" slot="end"></ion-toggle>
+          </ion-item>
+        </ion-list>
+
+        <ion-button expand="block" (click)="save()" [disabled]="isLoading" class="ion-margin-top">
+          <ion-spinner *ngIf="isLoading" name="crescent" slot="start"></ion-spinner>
+          {{ isLoading ? 'Guardando...' : 'Guardar cuenta' }}
+        </ion-button>
+      </ng-container>
+
+    </ion-card-content>
+  </ion-card>
+
+  <!-- Info del esquema híbrido -->
+  <ion-card color="light">
+    <ion-card-content>
+      <ion-icon name="information-circle-outline" color="primary"></ion-icon>
+      <p class="ion-no-margin ion-padding-start" style="display:inline">
+        Si tenés cuenta MP conectada, los pagos se dividen automáticamente al instante.
+        Si solo tenés CBU/CVU, el sistema transfiere tu parte después de confirmar cada pago.
+      </p>
+    </ion-card-content>
+  </ion-card>
+
+</div>
