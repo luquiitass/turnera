@@ -1,0 +1,236 @@
+app/src/app/pages/tabs/home/home.module.ts
+  s_83987cc04e5e90::t_69b28bc8d181bb 19
+  s_83987cc04e5e90::t_63a3a8ab3459a5 5
+  s_83987cc04e5e90::t_e0e1672a6e8169 4
+  s_83987cc04e5e90::t_970944b453740e 3,18
+app/src/app/shared/barbershop-profile/barbershop-profile.component.html
+  s_80a6d3e114fa2e::t_c96fd815eaa0e0 221
+  s_80a6d3e114fa2e::t_8b6542dec9316c 238-239,242-255,258-322,331,336-337,343,345
+app/src/app/pages/tabs/home/home.page.ts
+  s_83987cc04e5e90::t_617c5ee69c9d5b 68-72
+  s_83987cc04e5e90::t_5415e892d195bf 130
+  s_83987cc04e5e90::t_586d8ddf7a6781 28-30
+  s_83987cc04e5e90::t_83e89f92107f45 37
+  s_83987cc04e5e90::t_a70ae594eff6b0 7
+  s_83987cc04e5e90::t_080f03707a8bc5 53-56
+app/src/app/pages/barber/tabs/home/home.page.html
+  s_83987cc04e5e90::t_5da3880e1ee809 10
+app/src/app/pages/barber/tabs/tabs-routing.module.ts
+  s_83987cc04e5e90::t_b9764198d47763 16
+  s_83987cc04e5e90::t_bca90e27df67b0 19-20
+app/src/app/pages/barber/tabs/home/home.module.ts
+  s_83987cc04e5e90::t_12346f72b8c772 4
+  s_83987cc04e5e90::t_970944b453740e 3,11
+app/src/app/pages/super-admin/tabs/tabs.page.ts
+  s_83987cc04e5e90::t_bb21c23e2bdac4 27
+  s_83987cc04e5e90::t_2996ae3726225f 5-6,22-23,28,37,39,42
+  s_83987cc04e5e90::t_7eb816b97cefa2 31
+app/src/app/pages/client/tabs/profile/profile.page.ts
+  s_83987cc04e5e90::t_f36fc78883df8b 41-57
+app/src/app/pages/admin/platform-panel/platform-panel.page.ts
+  s_80a6d3e114fa2e::t_f3485648bd5871 14,22,29-30,34-49
+app/src/app/pages/tabs/admin-bookings/admin-bookings.page.html
+  s_83987cc04e5e90::t_fa4c44fdbb360f 1-9,12-47,49-51,53-55,57-58,60-61,63-80,82-87,90-97,100-101,104-108,118
+  s_83987cc04e5e90::t_99268673237c25 216-227
+  s_83987cc04e5e90::t_7333101ecb4932 81
+  s_83987cc04e5e90::t_193f24333f822f 52
+  s_83987cc04e5e90::t_1d9cee954e7736 10
+  s_83987cc04e5e90::t_1ea5950ee50007 11
+  s_83987cc04e5e90::t_4274bb52e8460a 88-89
+  s_83987cc04e5e90::t_a97e16ef8b4b17 48,56,59,62,98-99,102-103,109-117,119-215,228-253
+app/src/app/pages/client/tabs/profile/profile.page.html
+  s_83987cc04e5e90::t_4a948a230ff800 42
+  s_83987cc04e5e90::t_a1d4294ab20698 143-144
+  s_83987cc04e5e90::t_9cf4bbcbf6276c 161-162
+api/src/modules/barbers/barbers.service.ts
+  s_83987cc04e5e90::t_b327addab93242 223
+  s_83987cc04e5e90::t_749f6390a47f32 316
+app/src/app/pages/barber/tabs/agenda/agenda.module.ts
+  s_83987cc04e5e90::t_db59fa4be67ff5 1-2,4-6,8-11,13-15
+  s_83987cc04e5e90::t_86a4a66ef95728 12
+  s_83987cc04e5e90::t_6acf7f7c64e81c 7
+  s_83987cc04e5e90::t_2e9ed9719b521d 3
+app/src/app/shared/context-subtitle/context-subtitle.component.ts
+  s_83987cc04e5e90::t_f24d704207f5a3 1-34
+api/src/modules/stats/stats.controller.ts
+  s_80a6d3e114fa2e::t_ce10b8d33c2985 57-62
+app/src/app/shared/context-subtitle/context-subtitle.module.ts
+  s_83987cc04e5e90::t_4257ea606a0b17 1-11
+app/src/app/pages/admin/platform-panel/platform-panel.page.html
+  s_80a6d3e114fa2e::t_4e6824af7a2610 88-149
+api/src/modules/bookings/bookings.service.ts
+  s_80a6d3e114fa2e::t_6c1f1d14349441 258,261,263-295,307
+  s_80a6d3e114fa2e::t_b90684680ac80a 2-3
+  s_80a6d3e114fa2e::t_527bfb9868357a 21
+  s_80a6d3e114fa2e::t_ab3f59847d4fa4 94-97,120
+  s_80a6d3e114fa2e::t_e6d3e06ff14f12 352-356,368
+  s_80a6d3e114fa2e::t_60a422df45611f 98-109
+  s_80a6d3e114fa2e::t_9ce104d28ca47f 110,121
+  s_80a6d3e114fa2e::t_fcc7693b4f101e 357,369
+api/src/modules/barbershops/dto/barbershops.dto.ts
+  s_80a6d3e114fa2e::t_5b17321b91dd30 5
+  s_80a6d3e114fa2e::t_10ce985f0b75a2 40-42
+app/src/app/shared/barbershop-profile/barbershop-profile.component.ts
+  s_80a6d3e114fa2e::t_ef29dafe6f18ce 126
+  s_80a6d3e114fa2e::t_bdee0113f1119b 143,152,154-157,159,161-237
+  s_80a6d3e114fa2e::t_b40a7a435fca07 153,158,160
+  s_80a6d3e114fa2e::t_2aacd5e3b93b36 48
+  s_80a6d3e114fa2e::t_a30745457441fd 894-928,930-931,935,947,951,954-957
+  s_80a6d3e114fa2e::t_8a29fa4dfbb8a8 14-15
+  s_80a6d3e114fa2e::t_02fd2ce1617762 44-47,49-52
+app/src/app/pages/barber/tabs/agenda/agenda.page.scss
+  s_83987cc04e5e90::t_93345383ae9c4e 28-29,33-35,37-38,53,61,71,75-76,78,84-85,93,98,108,119,128,156,158-159,161,171,174,177
+  s_83987cc04e5e90::t_fccc54f3a897a5 132-134
+  s_83987cc04e5e90::t_46670787b0bb38 27,30-32,36,39-50,55-56,58,60,65,67
+  s_83987cc04e5e90::t_96da7a6fbbfc67 25-26,51-52,54,57,59,62-64,66,68-70,72-74,77,79-83,86-92,94-97,99-107,109-118,120-127,129-131,135-155,157,160,162-170,172-173,175-176
+  s_83987cc04e5e90::t_5f1a7cff746be3 1-24
+app/src/app/core/services/auth.service.ts
+  s_83987cc04e5e90::t_353d89f76627f1 51-67
+  s_83987cc04e5e90::t_e962b4fbeab805 178-180
+app/src/app/pages/client/tabs/bookings/bookings.page.ts
+  s_83987cc04e5e90::t_53ccc1efedd513 137-138,142
+  s_83987cc04e5e90::t_43df86d490369a 57
+app/src/app/pages/client/tabs/tabs.page.html
+  s_83987cc04e5e90::t_aa7a701dc7e2c8 3
+  s_83987cc04e5e90::t_11a37253a65ee9 33
+app/src/app/pages/barber/tabs/tabs.page.ts
+  s_83987cc04e5e90::t_d1a907f700e791 27-29,35-37
+  s_83987cc04e5e90::t_7c20e2ae33c612 5-6,22-23,30,42,44,47
+  s_83987cc04e5e90::t_247406f49061e8 33
+app/src/app/pages/tabs/tabs-routing.module.ts
+  s_83987cc04e5e90::t_bb8a7e8865554d 20
+  s_83987cc04e5e90::t_b90bc996274c2d 27,29
+  s_83987cc04e5e90::t_9c9dd2610d8bc7 28
+  s_83987cc04e5e90::t_6b252aaa5dee6d 36
+api/src/modules/auth/auth.service.ts
+  s_83987cc04e5e90::t_d6ace353fe7d56 53
+  s_83987cc04e5e90::t_7d599648da7183 129-132,144,148,154
+app/src/app/pages/tabs/tabs.page.ts
+  s_83987cc04e5e90::t_6192532423927c 46
+  s_83987cc04e5e90::t_e9b84c3382b762 5-7,21,24-25,35-43,56,58,61
+  s_83987cc04e5e90::t_4bad266e9071f7 23,52-53
+  s_83987cc04e5e90::t_cadc9c645a90dd 29-34
+app/src/app/pages/barber/tabs/agenda/agenda.page.ts
+  s_83987cc04e5e90::t_b24251baa5f499 21-24,32-42,48-58,60-63,66,69
+  s_83987cc04e5e90::t_dd8e39ec5d8559 30
+  s_83987cc04e5e90::t_582735f2011d53 93-97
+  s_83987cc04e5e90::t_666befaf3ad7a0 27
+  s_83987cc04e5e90::t_8d0c062784f284 1,7-15,17-18,20,59,64-65,67-68,71-73,76,81-83,100,103,206-207,222-223,226-235,240
+  s_83987cc04e5e90::t_0a794c7c61c9b3 43-47
+  s_83987cc04e5e90::t_1d81707a1c914c 2,6
+  s_83987cc04e5e90::t_0083594cc5126d 3-4,16,25-26,28-29,31,70,74-75,104-106,108-112,117-205,208-221,224-225,236-239
+  s_83987cc04e5e90::t_9b750ed7f9f344 77-80,84-92,98-99,101-102,107
+  s_83987cc04e5e90::t_b28daac12156d7 113-116
+  s_83987cc04e5e90::t_1aebc4c1924d28 19
+  s_83987cc04e5e90::t_8c9d8712e5ab05 5
+app/src/app/pages/client/tabs/tabs.page.ts
+  s_83987cc04e5e90::t_223dae6fd98be9 5-6,21,23,33-34,40,44
+  s_83987cc04e5e90::t_888943ca162584 28
+app/src/app/core/guards/auth.guard.ts
+  s_83987cc04e5e90::t_babc868aa50f21 47
+app/src/app/pages/tabs/admin-bookings/admin-bookings.page.ts
+  s_83987cc04e5e90::t_48122924d6d6c8 79
+  s_83987cc04e5e90::t_1bb493876b6151 3,15,31-41,43-50,56,62-64,75-76,90,102,109,115-130,132-140,142-150,152-157,160-185,191-205,213-217,219-239,243,248,252,260,265,269-270,273-276,278-281
+  s_83987cc04e5e90::t_b7a74727452e38 131
+  s_83987cc04e5e90::t_5c9e90cf3e2a30 2,6-13,16-30,52,58,65-67,73-74,77-78,81-89,91-92,94-101,103-108,110-114,158-159,240-242,244-247,249-251,253-259,261-264,266-268,271-272,277,282
+  s_83987cc04e5e90::t_667c6f30c2640e 70-71
+  s_83987cc04e5e90::t_1cf9a56a824d4d 55,60-61
+  s_83987cc04e5e90::t_2f0b8d6fe837f7 206-212,218
+  s_83987cc04e5e90::t_d3d9582e3d588d 5
+  s_83987cc04e5e90::t_4361ee80ddccc3 42
+  s_83987cc04e5e90::t_cc93e45d526bca 186-190
+  s_83987cc04e5e90::t_aba3703d49745a 1,4,14,51,53-54,57,59,68-69,72,80,93
+  s_83987cc04e5e90::t_6e18e481839cd1 141,151
+app/src/app/core/role-switcher.service.ts
+  s_83987cc04e5e90::t_9d55d634fdf9e5 27-28,43-50,52-54,59,61,65-71,74-76,96,98-120,123-125,131,147-154,156-157
+  s_83987cc04e5e90::t_b335c0a5ca3f3f 1-7,9-26,29-37,39-42,51,55-58,60,62-64,72-73,77-95,97,121-122,126-130,132-146,159-161
+  s_83987cc04e5e90::t_c3795eee645f56 155
+  s_83987cc04e5e90::t_5a328a07595874 158
+  s_83987cc04e5e90::t_dc33f173a4166d 38
+  s_83987cc04e5e90::t_91727c1356423c 8
+app/src/app/core/active-context.service.ts
+  s_83987cc04e5e90::t_81a81e755af656 1-42
+app/src/app/core/admin-barbershop.service.ts
+  s_83987cc04e5e90::t_f52ae51dffe05c 1-51
+app/src/app/pages/super-admin/tabs/tabs.page.html
+  s_83987cc04e5e90::t_11a37253a65ee9 30
+  s_83987cc04e5e90::t_aa7a701dc7e2c8 2
+api/src/modules/bookings/bookings.controller.ts
+  s_80a6d3e114fa2e::t_fe27e16ccfe412 13-14
+  s_80a6d3e114fa2e::t_0f9fa1d0e787a4 49
+api/prisma/schema.prisma
+  s_80a6d3e114fa2e::t_06f04482ebad4e 557-561
+  s_80a6d3e114fa2e::t_f484e5d003ab8b 78
+api/src/modules/barbershops/barbershops.service.ts
+  s_80a6d3e114fa2e::t_dcf32e1798dcfb 281-295
+  s_80a6d3e114fa2e::t_75944b429f68d6 231-244
+api/src/modules/stats/stats.service.ts
+  s_80a6d3e114fa2e::t_75e94435756684 160-198
+app/src/app/shared/barbershop-profile/barbershop-profile.component.scss
+  s_80a6d3e114fa2e::t_49517805fff282 7-101
+app/src/app/pages/tabs/admin-bookings/admin-bookings.module.ts
+  s_83987cc04e5e90::t_9af84a0f160324 12
+  s_83987cc04e5e90::t_7955bed59ebe47 7
+  s_83987cc04e5e90::t_718abb73f51055 3
+  s_83987cc04e5e90::t_89aa1c4ae34004 1-2,4-6,8-11,13-15
+app/src/app/pages/admin/platform-panel/platform-panel.page.scss
+  s_80a6d3e114fa2e::t_650396e957d609 1-14
+api/src/modules/mercadopago/mercadopago.service.ts
+  s_80a6d3e114fa2e::t_c088d0e5e38a34 186-189
+app/src/app/pages/tabs/tabs.page.scss
+  s_83987cc04e5e90::t_e66c1a0f299954 1
+app/src/app/pages/client/tabs/bookings/bookings.page.html
+  s_83987cc04e5e90::t_fd25e8a434576b 25
+  s_83987cc04e5e90::t_330a0bb26e7234 6-7
+app/src/app/pages/tabs/tabs.page.html
+  s_83987cc04e5e90::t_aa7a701dc7e2c8 3
+  s_83987cc04e5e90::t_11a37253a65ee9 33
+app/src/app/pages/tabs/home/home.page.html
+  s_83987cc04e5e90::t_e3b5c834fdc4ba 3
+  s_83987cc04e5e90::t_77053e6257b596 7
+  s_83987cc04e5e90::t_80dbb891071b40 10-12,156-158
+  s_83987cc04e5e90::t_62a6b6cdb5035e 149-155
+  s_83987cc04e5e90::t_c23025a31a86fb 159-160
+app/src/app/pages/tabs/admin-bookings/admin-bookings.page.scss
+  s_83987cc04e5e90::t_bb57eae370f0f9 1-24
+  s_83987cc04e5e90::t_4340da5d3bc0af 26-50,53-58,61,63-79,82-126,129-139,312
+  s_83987cc04e5e90::t_a3345889ece65e 25,51-52,59-60,62,80-81,127-128,140-311
+app/src/app/pages/barber/tabs/tabs.page.html
+  s_83987cc04e5e90::t_11a37253a65ee9 25
+  s_83987cc04e5e90::t_aa7a701dc7e2c8 2
+app/src/app/pages/client/tabs/profile/profile.page.scss
+  s_83987cc04e5e90::t_1f611f1dc0d370 30-31,36-45
+app/src/app/pages/barber/tabs/agenda/agenda.page.html
+  s_83987cc04e5e90::t_afe4a41359d7e6 38,47-52,57
+  s_83987cc04e5e90::t_72f8c5beb3f2da 134
+  s_83987cc04e5e90::t_07bc8746262f5f 32-37,39-46,60
+  s_83987cc04e5e90::t_ff545d5f39b825 129-130
+  s_83987cc04e5e90::t_7db8a2464c59cb 1-9,24-31,53-56,58-59,61-74,76,81,101,126,132,137,140,142,148,152,168,172-177
+  s_83987cc04e5e90::t_c012a691a4bfe2 75,77-80,82-100,102-125,127-128,131,133,135-136,138-139,141,143-147,149-151,153-167,169-171
+  s_83987cc04e5e90::t_cb4e6ab774f101 11
+  s_83987cc04e5e90::t_04625c176ec984 10,12-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "7afb48a2c244bce7b0b75d9530f3ba7adf134356",
+  "prompts": {},
+  "sessions": {
+    "s_80a6d3e114fa2e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aaab432-f073-4933-9442-0c2cef976947",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    },
+    "s_83987cc04e5e90": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3141bd6b-b682-4964-bb8d-5f895573e3dc",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
