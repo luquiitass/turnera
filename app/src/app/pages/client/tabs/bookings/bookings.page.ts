@@ -54,7 +54,7 @@ export class BookingsPage implements OnInit {
 
   constructor(
     private api: ApiService,
-    private auth: AuthService,
+    public auth: AuthService,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     private resolver: BarbershopResolverService,
@@ -134,10 +134,12 @@ export class BookingsPage implements OnInit {
         }
 
         this.roleChecked = true;
-        if (this.isBarber) {
+        // En contexto USUARIO (/tabs) nunca mostrar vista de barbero
+        if (this.isBarber && this.auth.activeRole === 'BARBERO') {
           this.mainTab = 'barber';
           this.loadAgenda();
         } else {
+          this.mainTab = 'client';
           this.loadBookings();
         }
       },

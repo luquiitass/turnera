@@ -1,10 +1,15 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Reserva Barber</ion-title>
+    <ion-title>{{ isAdminBarbershop && activeCtx.barbershopName ? activeCtx.barbershopName : 'Inicio' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
+<!-- ── Todos los casos (ion-content siempre presente) ── -->
 <ion-content>
+
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
   <div *ngIf="isLoading" class="ion-text-center ion-padding">
     <ion-spinner name="crescent" color="primary"></ion-spinner>
@@ -141,32 +146,19 @@
 
   </ng-container>
 
-  <!-- ==================== ADMIN BARBERSHOP - DASHBOARD INLINE ==================== -->
-  <ng-container *ngIf="isAdminBarbershop && !isLoading">
+  <!-- ==================== ADMIN BARBERSHOP con barbería seleccionada ==================== -->
+  <app-barbershop-profile
+    *ngIf="isAdminBarbershop && activeCtx.barbershopId"
+    [barbershopId]="activeCtx.barbershopId!"
+    [embedded]="true"
+  ></app-barbershop-profile>
 
-    <div class="greeting-section">
-      <h2>Panel de Barberia</h2>
-      <p>Bienvenido, {{ currentUser?.firstName }}. Gestiona tus barberias.</p>
+  <!-- ==================== ADMIN BARBERSHOP sin barbería ==================== -->
+  <ng-container *ngIf="isAdminBarbershop && !activeCtx.barbershopId && !isLoading">
+    <div class="ion-text-center ion-padding" style="padding-top:80px">
+      <ion-icon name="storefront-outline" color="medium" style="font-size:64px"></ion-icon>
+      <p>Seleccioná una barbería desde el selector de rol para ver su panel.</p>
     </div>
-
-    <div *ngIf="myBarbershops.length === 0" class="empty-state">
-      <ion-icon name="storefront-outline" color="medium" style="font-size: 64px;"></ion-icon>
-      <p>No tienes barberias asignadas.</p>
-    </div>
-
-    <ion-list *ngIf="myBarbershops.length > 0">
-      <ion-item *ngFor="let bs of myBarbershops" button detail [routerLink]="'/admin/barbershop/' + bs.id">
-        <ion-icon name="storefront-outline" slot="start" color="primary"></ion-icon>
-        <ion-label>
-          <h2>{{ bs.name }}</h2>
-          <p>{{ bs.address }}</p>
-        </ion-label>
-        <ion-chip slot="end" color="medium" outline>
-          <ion-label>{{ bs._count?.barbers || 0 }} barberos</ion-label>
-        </ion-chip>
-      </ion-item>
-    </ion-list>
-
   </ng-container>
 
 </ion-content>

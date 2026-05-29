@@ -180,10 +180,13 @@ export class MercadoPagoService {
     }
 
     const sub = barbershop.subscription;
-    const depositRate    = sub?.minDepositRate ?? this.minDepositRate;
     const commissionRate = sub?.commissionRate ?? this.commissionRate;
-    const depositAmount  = Math.ceil(booking.totalPrice * depositRate);
     const isPlanComision = sub?.plan === 'COMISION';
+
+    // Cálculo unificado: monto fijo o porcentaje según depositType de la barbería
+    const depositAmount = (barbershop as any).depositType === 'PERCENTAGE'
+      ? Math.ceil(booking.totalPrice * (barbershop as any).depositAmount / 100)
+      : Math.ceil((barbershop as any).depositAmount ?? 0);
 
     console.log('[MP] createBookingPreference — bookingId:', bookingId, 'tipo:', bankAccount.accountType, 'plan:', sub?.plan);
 

@@ -38,6 +38,23 @@ export class ProfilePage implements OnInit {
     private storage: StorageService,
   ) {}
 
+  get activeRole(): string       { return this.auth.activeRole; }
+  get isAdminRole(): boolean     { return ['ADMIN_BARBERSHOP', 'SUB_ADMIN', 'ADMIN_GENERAL'].includes(this.activeRole); }
+  get isBarberRole(): boolean    { return this.activeRole === 'BARBERO'; }
+  get isSuperAdmin(): boolean    { return this.activeRole === 'ADMIN_GENERAL'; }
+  get hasMultipleRoles(): boolean { return this.auth.getAvailableRoles().length > 1; }
+
+  getRoleLabel(role: string): string {
+    const map: Record<string, string> = {
+      USUARIO: 'Cliente',
+      ADMIN_BARBERSHOP: 'Administrador de barbería',
+      SUB_ADMIN: 'Encargado',
+      BARBERO: 'Barbero',
+      ADMIN_GENERAL: 'Super Admin',
+    };
+    return map[role] ?? role;
+  }
+
   ngOnInit(): void {
     this.auth.currentUser$.subscribe(u => (this.user = u));
     this.activeTheme = this.themeService.current();

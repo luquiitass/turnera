@@ -44,9 +44,7 @@ export class GuestGuard implements CanActivate {
       return false;
     }
 
-    const role = this.authService.activeRole;
-    const isAdmin = ['ADMIN_GENERAL', 'ADMIN_BARBERSHOP', 'SUB_ADMIN'].includes(role);
-    this.router.navigate([isAdmin ? '/admin/tabs/home' : '/tabs/home']);
+    this.router.navigate([this.authService.getDefaultRoute()]);
     return false;
   }
 }

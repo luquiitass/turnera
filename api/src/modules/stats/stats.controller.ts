@@ -54,4 +54,10 @@ export class StatsController {
   getPlatformDashboard() {
     return this.statsService.getPlatformDashboard();
   }
+
+  @Get('platform/transactions')
+  @Roles(Role.ADMIN_GENERAL)
+  getPlatformTransactions(@Query('limit') limit?: string) {
+    return this.statsService.getPlatformTransactions(limit ? parseInt(limit) : 50);
+  }
 }

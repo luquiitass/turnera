@@ -50,6 +50,7 @@ export class AuthService {
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
+      include: { barberProfiles: { select: { id: true, barbershopId: true } } },
     });
     if (!user || !user.password) {
       throw new UnauthorizedException('Credenciales invalidas');
@@ -125,7 +126,10 @@ export class AuthService {
     if (!payload?.email) throw new UnauthorizedException('No se pudo obtener el email de Google');
 
     // Find or create user
-    let user = await this.prisma.user.findUnique({ where: { email: payload.email } });
+    let user = await this.prisma.user.findUnique({
+      where: { email: payload.email },
+      include: { barberProfiles: { select: { id: true, barbershopId: true } } },
+    });
 
     if (!user) {
       // Create new user from Google data
@@ -137,15 +141,17 @@ export class AuthService {
           avatarUrl: payload.picture || null,
           googleId: payload.sub,
         },
+        include: { barberProfiles: { select: { id: true, barbershopId: true } } },
       });
     } else if (!user.googleId) {
       // Link Google account to existing user
-      await this.prisma.user.update({
+      user = await this.prisma.user.update({
         where: { id: user.id },
         data: {
           googleId: payload.sub,
           avatarUrl: user.avatarUrl || payload.picture || null,
         },
+        include: { barberProfiles: { select: { id: true, barbershopId: true } } },
       });
     }
 

@@ -75,6 +75,7 @@ model Barbershop {
   longitude            Float?
   phone                String?
   depositAmount        Float                     @default(0)
+  depositType          DepositType               @default(FIXED)
   cancellationHours    Int                       @default(12)
   minAdvanceHours      Int                       @default(1)
   maxAdvanceDays       Int                       @default(30)
@@ -551,6 +552,11 @@ enum BusinessModel {
   COMISION
   SUSCRIPCION
   GRATUITO
+}
+
+enum DepositType {
+  FIXED
+  PERCENTAGE
 }
 
 enum DayOfWeek {

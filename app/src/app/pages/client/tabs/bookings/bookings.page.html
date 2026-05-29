@@ -3,8 +3,8 @@
     <ion-title>Mis Turnos</ion-title>
   </ion-toolbar>
 
-  <!-- Switcher barbero / cliente (solo si es barbero) -->
-  <ion-toolbar *ngIf="isBarber" color="dark" class="role-switcher-toolbar">
+  <!-- Switcher barbero / cliente (solo si rol activo es BARBERO) -->
+  <ion-toolbar *ngIf="isBarber && auth.activeRole === 'BARBERO'" color="dark" class="role-switcher-toolbar">
     <div class="role-switcher">
       <button class="role-btn"
               [class.active]="mainTab === 'barber'"
@@ -22,7 +22,7 @@
   </ion-toolbar>
 
   <!-- Selector de barbería (base domain + múltiples perfiles + vista barbero) -->
-  <ion-toolbar *ngIf="isBarber && mainTab === 'barber' && barberProfiles.length > 1" color="dark">
+  <ion-toolbar *ngIf="isBarber && auth.activeRole === 'BARBERO' && mainTab === 'barber' && barberProfiles.length > 1" color="dark">
     <div class="barbershop-selector-wrap">
       <ion-icon name="storefront-outline" style="color:rgba(255,255,255,.6);font-size:16px;flex-shrink:0"></ion-icon>
       <select class="barbershop-select"

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { AlertController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { ActiveContextService } from '../../../core/active-context.service';
 import { BookingsService } from '../../../services/bookings.service';
 import { BarbershopsService } from '../../../services/barbershops.service';
 import { User, Booking } from '../../../shared/models';
@@ -24,14 +25,16 @@ export class HomePage implements OnInit, OnDestroy {
   // Admin General dashboard
   platformDashboard: any = null;
 
-  // Admin Barbershop dashboard
-  myBarbershops: any[] = [];
+  // Admin Barbershop dashboard (barbería seleccionada)
+  barbershopDashboard: any = null;
+  barbershopName = '';
 
   private userSub!: Subscription;
   private roleSub!: Subscription;
 
   constructor(
     private authService: AuthService,
+    public activeCtx: ActiveContextService,
     private bookingsService: BookingsService,
     private barbershopsService: BarbershopsService,
     private http: HttpClient,
@@ -47,6 +50,10 @@ export class HomePage implements OnInit, OnDestroy {
       this.activeRole = role;
       this.loadDataForRole(role);
     });
+    // Recargar cuando cambia la barbería seleccionada
+    this.activeCtx.context$.subscribe(() => {
+      if (this.isAdminBarbershop) this.loadBarbershopDashboard();
+    });
   }
 
   ngOnDestroy(): void {
@@ -56,6 +63,11 @@ export class HomePage implements OnInit, OnDestroy {
 
   ionViewWillEnter(): void {
     this.loadDataForRole(this.activeRole);
+  }
+
+  doRefresh(event: any): void {
+    this.loadDataForRole(this.activeRole);
+    setTimeout(() => event?.target?.complete(), 1000);
   }
 
   loadDataForRole(role: string): void {
@@ -115,14 +127,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   loadBarbershopDashboard(): void {
-    this.isLoading = true;
-    this.barbershopsService.getMyBarbershops().subscribe({
-      next: (res: any) => {
-        this.myBarbershops = Array.isArray(res.data) ? res.data : [];
-        this.isLoading = false;
-      },
-      error: () => { this.isLoading = false; },
-    });
+    // El template muestra app-barbershop-profile inline usando activeCtx.barbershopId
   }
 
   goToSearch(): void {

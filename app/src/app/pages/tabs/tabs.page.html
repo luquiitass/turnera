@@ -1,6 +1,6 @@
 <ion-tabs>
 
-  <ion-tab-bar slot="top">
+  <ion-tab-bar slot="bottom">
 
     <ion-tab-button tab="home">
       <ion-icon name="home-outline"></ion-icon>
@@ -30,7 +30,7 @@
       <ion-label>Perfil</ion-label>
     </ion-tab-button>
 
-    <ion-tab-button (click)="openRoleSwitcher()">
+    <ion-tab-button *ngIf="hasMultipleRoles" (click)="openRoleSwitcher()">
       <ion-icon name="swap-horizontal-outline"></ion-icon>
       <ion-label>Rol</ion-label>
     </ion-tab-button>

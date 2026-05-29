@@ -27,9 +27,22 @@
 
   .avatar-circle,
   .user-name,
-  .user-email {
+  .user-email,
+  .role-badge {
     position: relative;
     z-index: 1;
+  }
+
+  .role-badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 3px 12px;
+    border-radius: 12px;
+    background: rgba(var(--ion-color-primary-rgb), 0.15);
+    color: var(--ion-color-primary);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
   }
 
   .avatar-circle {

@@ -11,7 +11,8 @@ import { AmenitiesService } from '../../services/amenities.service';
 import { UploadService, UploadEvent } from '../../services/upload.service';
 import { GeocodingService } from '../../core/geocoding.service';
 import { AuthService } from '../../core/services/auth.service';
-import { Barbershop, BarbershopAdmin, Amenity, ImageType, Barber } from '../models';
+import { Barbershop, BarbershopAdmin, Amenity, ImageType, Barber, Review } from '../models';
+import { ReviewsService } from '../../services/reviews.service';
 import { environment } from '../../../environments/environment';
 
 @Component({
@@ -40,6 +41,15 @@ export class AppBarbershopProfileComponent implements OnChanges {
   planLoading = false;
   showImageManager = false;
   showBankAccount = false;
+
+  // Reviews
+  reviews: Review[] = [];
+  userReview: Review | null = null;
+  reviewsLoading = false;
+  showReviewForm = false;
+  reviewRating = 5;
+  reviewComment = '';
+  reviewLoading = false;
   uploadingFor: string | null = null;
   uploadStatus: 'idle' | 'compressing' | 'uploading' = 'idle';
   uploadProgress = 0;
@@ -113,6 +123,7 @@ export class AppBarbershopProfileComponent implements OnChanges {
     private uploadService: UploadService,
     private geocodingService: GeocodingService,
     private sanitizer: DomSanitizer,
+    private reviewsService: ReviewsService,
   ) {}
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -129,12 +140,101 @@ export class AppBarbershopProfileComponent implements OnChanges {
         this.barbershop = res.data;
         this.checkAdminAccess();
         this.isLoading = false;
+        this.loadReviews(id);
       },
       error: () => {
         this.error = 'No se pudo cargar la informacion de la barberia.';
         this.isLoading = false;
       },
     });
+  }
+
+  loadReviews(barbershopId: string): void {
+    this.reviewsLoading = true;
+    this.reviewsService.getByBarbershop(barbershopId).subscribe({
+      next: (res) => {
+        this.reviews = res.data;
+        this.detectUserReview();
+        this.reviewsLoading = false;
+      },
+      error: () => { this.reviewsLoading = false; },
+    });
+  }
+
+  detectUserReview(): void {
+    const userId = this.authService.currentUser?.id;
+    this.userReview = userId ? (this.reviews.find(r => r.userId === userId) ?? null) : null;
+  }
+
+  get otherReviews(): Review[] {
+    const userId = this.authService.currentUser?.id;
+    return userId ? this.reviews.filter(r => r.userId !== userId) : this.reviews;
+  }
+
+  get isAuthenticatedUser(): boolean {
+    return this.authService.isAuthenticated && !this.isAdmin;
+  }
+
+  openReviewForm(): void {
+    this.reviewRating = this.userReview?.rating ?? 5;
+    this.reviewComment = this.userReview?.comment ?? '';
+    this.showReviewForm = true;
+  }
+
+  closeReviewForm(): void {
+    this.showReviewForm = false;
+  }
+
+  setReviewRating(n: number): void {
+    this.reviewRating = n;
+  }
+
+  submitReview(): void {
+    if (this.reviewLoading) return;
+    this.reviewLoading = true;
+    const obs = this.userReview
+      ? this.reviewsService.update(this.userReview.id, { rating: this.reviewRating, comment: this.reviewComment || undefined })
+      : this.reviewsService.create({ barbershopId: this.barbershop!.id, rating: this.reviewRating, comment: this.reviewComment || undefined });
+
+    obs.subscribe({
+      next: () => {
+        this.reviewLoading = false;
+        this.showReviewForm = false;
+        this.showToast(this.userReview ? 'Reseña actualizada' : 'Reseña publicada', 'success');
+        this.loadReviews(this.barbershop!.id);
+      },
+      error: (err: any) => {
+        this.reviewLoading = false;
+        const msg = err?.error?.error?.message || 'Error al guardar la reseña';
+        this.showToast(msg, 'danger');
+      },
+    });
+  }
+
+  async confirmDeleteReview(): Promise<void> {
+    if (!this.userReview) return;
+    const alert = await this.alertController.create({
+      header: 'Eliminar reseña',
+      message: '¿Estás seguro de que querés eliminar tu reseña?',
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Eliminar',
+          cssClass: 'alert-button-danger',
+          handler: () => {
+            this.reviewsService.remove(this.userReview!.id).subscribe({
+              next: () => {
+                this.userReview = null;
+                this.showToast('Reseña eliminada', 'success');
+                this.loadReviews(this.barbershop!.id);
+              },
+              error: () => this.showToast('Error al eliminar la reseña', 'danger'),
+            });
+          },
+        },
+      ],
+    });
+    await alert.present();
   }
 
   checkAdminAccess(): void {
@@ -791,12 +891,48 @@ export class AppBarbershopProfileComponent implements OnChanges {
 
   async editSettings(): Promise<void> {
     const bs = this.barbershop!;
+    const plan = (bs as any).subscription?.plan;
+    const isComision = plan === 'COMISION';
+    const depositType: string = (bs as any).depositType ?? 'FIXED';
+
+    // Paso 1: si no es plan COMISION, preguntar tipo de seña
+    if (!isComision) {
+      const typeAlert = await this.alertController.create({
+        header: 'Tipo de seña',
+        message: 'Elegí cómo se calcula la seña de la reserva.',
+        inputs: [
+          { type: 'radio', label: 'Monto fijo ($)', value: 'FIXED', checked: depositType === 'FIXED' },
+          { type: 'radio', label: 'Porcentaje del servicio (%)', value: 'PERCENTAGE', checked: depositType === 'PERCENTAGE' },
+        ],
+        buttons: [
+          { text: 'Cancelar', role: 'cancel' },
+          {
+            text: 'Siguiente',
+            handler: (selectedType: string) => {
+              this.openDepositAmountSettings(bs, selectedType || depositType);
+            },
+          },
+        ],
+      });
+      await typeAlert.present();
+    } else {
+      // Plan COMISION: tipo forzado a PERCENTAGE, ir directo al monto
+      this.openDepositAmountSettings(bs, 'PERCENTAGE');
+    }
+  }
+
+  private async openDepositAmountSettings(bs: any, depositType: string): Promise<void> {
+    const isComision = bs.subscription?.plan === 'COMISION';
+    const isPercentage = depositType === 'PERCENTAGE';
+    const depositLabel = isPercentage ? 'Seña (% del servicio, ej: 30)' : 'Seña (monto fijo $)';
+
     const alert = await this.alertController.create({
-      header: 'Configuracion',
+      header: 'Configuración',
+      ...(isComision ? { message: 'Plan Comisión: la seña es porcentual y no puede cambiarse.' } : {}),
       inputs: [
         { name: 'description', type: 'textarea', placeholder: 'Descripcion', value: bs.description || '' },
         { name: 'phone', type: 'tel', placeholder: 'Telefono', value: bs.phone || '' },
-        { name: 'depositAmount', type: 'number', placeholder: 'Monto sena', value: bs.depositAmount?.toString() || '0' },
+        { name: 'depositAmount', type: 'number', placeholder: depositLabel, value: bs.depositAmount?.toString() || '0' },
         { name: 'cancellationHours', type: 'number', placeholder: 'Hs cancelacion', value: bs.cancellationHours?.toString() || '12' },
       ],
       buttons: [
@@ -808,13 +944,17 @@ export class AppBarbershopProfileComponent implements OnChanges {
               description: data.description || undefined,
               phone: data.phone || undefined,
               depositAmount: parseFloat(data.depositAmount) || 0,
+              depositType: depositType as any,
               cancellationHours: parseInt(data.cancellationHours, 10) || 12,
             } as any).subscribe({
               next: () => {
-                this.showToast('Configuracion guardada', 'success');
+                this.showToast('Configuración guardada', 'success');
                 this.loadBarbershop(bs.id);
               },
-              error: () => this.showToast('Error al guardar', 'danger'),
+              error: (err: any) => {
+                const msg = err?.error?.error?.message || 'Error al guardar';
+                this.showToast(msg, 'danger');
+              },
             });
           },
         },

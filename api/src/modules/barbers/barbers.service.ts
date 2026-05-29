@@ -220,7 +220,7 @@ export class BarbersService {
     ]);
 
     if (!schedule) {
-      return { barberId: barber.id, barberName: `${barber.firstName} ${barber.lastName}`, date, schedule: null, bookings: 0, slots: [] };
+      return { barberId: barber.id, barbershopId: barber.barbershopId, barberName: `${barber.firstName} ${barber.lastName}`, date, schedule: null, bookings: 0, slots: [] };
     }
 
     // Merge bookings and blocks into a unified timeline
@@ -313,6 +313,7 @@ export class BarbersService {
 
     return {
       barberId: barber.id,
+      barbershopId: barber.barbershopId,
       barberName: `${barber.firstName} ${barber.lastName}`,
       date,
       schedule: { openTime: schedule.openTime, closeTime: schedule.closeTime },

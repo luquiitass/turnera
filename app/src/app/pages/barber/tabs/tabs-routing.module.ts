@@ -13,7 +13,11 @@ const routes: Routes = [
       },
       {
         path: 'bookings',
-        loadChildren: () => import('../../client/tabs/bookings/bookings.module').then(m => m.BookingsPageModule),
+        loadChildren: () => import('./agenda/agenda.module').then(m => m.BarberAgendaPageModule),
+      },
+      {
+        path: 'booking/:id',
+        loadChildren: () => import('../../tabs/booking-detail/booking-detail.module').then(m => m.BookingDetailPageModule),
       },
       {
         path: 'notifications',

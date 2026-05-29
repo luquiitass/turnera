@@ -2,7 +2,7 @@ import {
   IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, IsInt, Min, IsEmail,
 } from 'class-validator';
 import { PartialType } from '@nestjs/mapped-types';
-import { BusinessModel, Role } from '@prisma/client';
+import { BusinessModel, DepositType, Role } from '@prisma/client';
 
 export class CreateBarbershopDto {
   @IsEmail()
@@ -35,6 +35,10 @@ export class CreateBarbershopDto {
   @IsOptional()
   @IsNumber()
   depositAmount?: number;
+
+  @IsOptional()
+  @IsEnum(DepositType)
+  depositType?: DepositType;
 
   @IsOptional()
   @IsInt()

@@ -1,0 +1,177 @@
+// ── Selector de barbería ───────────────────────────────────────────────────
+
+.bs-toolbar {
+  --min-height: 40px;
+  --padding-top: 0;
+  --padding-bottom: 0;
+}
+
+.bs-select {
+  width: 100%;
+  --background: transparent;
+  --color: #fff;
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 4px;
+  --padding-bottom: 4px;
+  font-weight: 600;
+  font-size: 0.95rem;
+
+  &::part(text)        { color: #fff; }
+  &::part(icon)        { color: rgba(255,255,255,0.85); }
+  &::part(placeholder) { color: rgba(255,255,255,0.7); }
+}
+
+// ── Navegación de fechas ───────────────────────────────────────────────────
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  gap: 4px;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+}
+
+.date-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: var(--ion-color-light);
+  text-transform: capitalize;
+  flex: 1;
+  justify-content: center;
+  max-width: 280px;
+}
+
+// ── Info chips ─────────────────────────────────────────────────────────────
+
+.agenda-info {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+}
+
+// ── Empty state ────────────────────────────────────────────────────────────
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px;
+  gap: 12px;
+  color: var(--ion-color-medium);
+
+  ion-icon { font-size: 56px; }
+  p { margin: 0; font-size: 0.95rem; }
+  ion-button { margin-top: 4px; }
+}
+
+// ── Timeline ───────────────────────────────────────────────────────────────
+
+.agenda-timeline {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agenda-slot {
+  display: flex;
+  gap: 10px;
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--ion-color-light-shade);
+  background: var(--ion-background-color);
+
+  &.booked  { border-left: 4px solid var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), 0.04); }
+  &.blocked { border-left: 4px solid var(--ion-color-danger);  background: rgba(var(--ion-color-danger-rgb), 0.04); }
+  &.free    { border-left: 4px solid var(--ion-color-success); cursor: pointer;
+    &:active { opacity: 0.7; }
+  }
+}
+
+.slot-time {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 44px;
+  padding-top: 2px;
+
+  .time-start {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .time-end {
+    font-size: 0.72rem;
+    color: var(--ion-color-medium);
+    font-variant-numeric: tabular-nums;
+  }
+  .time-dur {
+    font-size: 0.65rem;
+    color: var(--ion-color-medium);
+    margin-top: 2px;
+  }
+}
+
+// ── Contenido del slot ─────────────────────────────────────────────────────
+
+.slot-content { flex: 1; min-width: 0; }
+
+.booking-content {
+  cursor: pointer;
+  &:active { opacity: 0.7; }
+
+  .booking-top {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+    ion-icon { font-size: 13px; color: var(--ion-color-primary); }
+  }
+  p {
+    margin: 2px 0;
+    font-size: 0.8rem;
+    color: var(--ion-color-medium);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    ion-icon { font-size: 12px; }
+  }
+  .time-range {
+    margin-left: 4px;
+    font-size: 0.75rem;
+    color: var(--ion-color-medium);
+  }
+  ion-chip { margin-top: 4px; height: 22px; font-size: 0.72rem; }
+}
+
+.block-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  ion-icon { font-size: 18px; margin-top: 2px; }
+  strong { font-size: 0.9rem; }
+  p { margin: 2px 0; font-size: 0.8rem; color: var(--ion-color-medium); }
+}
+
+.free-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--ion-color-medium);
+  ion-icon { font-size: 18px; }
+  .add-icon { margin-left: auto; font-size: 20px; }
+}

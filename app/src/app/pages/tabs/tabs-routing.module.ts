@@ -17,11 +17,15 @@ const routes: Routes = [
       },
       {
         path: 'bookings',
-        loadChildren: () => import('./my-bookings/my-bookings.module').then(m => m.MyBookingsPageModule),
+        loadChildren: () => import('./admin-bookings/admin-bookings.module').then(m => m.AdminBookingsPageModule),
       },
       {
         path: 'booking/:id',
         loadChildren: () => import('./booking-detail/booking-detail.module').then(m => m.BookingDetailPageModule),
+      },
+      {
+        path: 'barbershop/:id',
+        loadChildren: () => import('./barbershop/barbershop.module').then(m => m.BarbershopTabPageModule),
       },
       {
         path: 'notifications',
@@ -29,7 +33,7 @@ const routes: Routes = [
       },
       {
         path: 'profile',
-        loadChildren: () => import('./profile/profile.module').then(m => m.ProfilePageModule),
+        loadChildren: () => import('../client/tabs/profile/profile.module').then(m => m.ProfilePageModule),
       },
       {
         path: 'dashboard',

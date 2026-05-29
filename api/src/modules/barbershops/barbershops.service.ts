@@ -228,6 +228,20 @@ export class BarbershopsService {
 
   async update(id: string, dto: UpdateBarbershopDto) {
     await this.ensureExists(id);
+
+    // Plan COMISION: depositType siempre PERCENTAGE y no puede cambiarse
+    if (dto.depositType && dto.depositType !== 'PERCENTAGE') {
+      const bs = await this.prisma.barbershop.findUnique({
+        where: { id },
+        include: { subscription: { select: { plan: true } } },
+      });
+      if (bs?.subscription?.plan === 'COMISION') {
+        throw new BadRequestException(
+          'Con plan por comisión la seña debe ser porcentual. Cambiá el plan para usar monto fijo.',
+        );
+      }
+    }
+
     return this.prisma.barbershop.update({ where: { id }, data: dto });
   }
 
@@ -264,6 +278,21 @@ export class BarbershopsService {
 
   async activateComisionPlan(barbershopId: string) {
     await this.ensureExists(barbershopId);
+
+    const defaultDepositPct = parseFloat(process.env['MP_MIN_DEPOSIT_RATE'] ?? '0.30') * 100;
+
+    // Forzar depositType = PERCENTAGE en la barbería al activar plan COMISION
+    await this.prisma.barbershop.update({
+      where: { id: barbershopId },
+      data: {
+        depositType: 'PERCENTAGE',
+        // Si no tenía porcentaje configurado, poner el default del sistema
+        depositAmount: await this.prisma.barbershop
+          .findUnique({ where: { id: barbershopId }, select: { depositAmount: true } })
+          .then(b => (b?.depositAmount ?? 0) > 0 ? b!.depositAmount : defaultDepositPct),
+      },
+    });
+
     return this.prisma.barbershopSubscription.upsert({
       where: { barbershopId },
       create: {

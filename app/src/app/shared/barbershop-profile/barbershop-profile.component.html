@@ -218,44 +218,7 @@
       </div>
     </div>
 
-    <!-- Reviews Section -->
-    <div class="section" *ngIf="barbershop.reviews && barbershop.reviews.length > 0">
-      <ion-card class="info-card">
-        <ion-card-header>
-          <ion-card-title>
-            <ion-icon name="star-outline"></ion-icon>
-            Resenas
-          </ion-card-title>
-        </ion-card-header>
-        <ion-card-content>
-          <div class="review-item" *ngFor="let review of barbershop.reviews">
-            <div class="review-header">
-              <div class="reviewer-avatar-placeholder">
-                <ion-icon name="person-circle-outline"></ion-icon>
-              </div>
-              <div class="reviewer-info">
-                <span class="reviewer-name">
-                  {{ review.user?.firstName || 'Usuario' }} {{ review.user?.lastName || '' }}
-                </span>
-                <div class="review-stars">
-                  <ion-icon
-                    *ngFor="let filled of getStarArray(review.rating)"
-                    [name]="filled ? 'star' : 'star-outline'"
-                    color="warning"
-                    size="small"
-                  ></ion-icon>
-                </div>
-              </div>
-              <span class="review-date">{{ review.createdAt | date:'dd/MM/yyyy' }}</span>
-            </div>
-            <p class="review-comment" *ngIf="review.comment">{{ review.comment }}</p>
-            <hr style="border: none; border-top: 1px solid var(--ion-color-light-shade); margin: 12px 0;">
-          </div>
-        </ion-card-content>
-      </ion-card>
-    </div>
-
-    <!-- Gallery Section (al final) -->
+    <!-- Gallery Section -->
     <div class="section" *ngIf="getBarbershopGallery().length > 0">
       <h2 class="section-title">
         <ion-icon name="images-outline"></ion-icon>
@@ -270,6 +233,118 @@
           (click)="openViewer(getBarbershopGalleryUrls(), i)"
         />
       </div>
+    </div>
+
+    <!-- Reviews Section (al final) -->
+    <div class="section">
+      <ion-card class="info-card">
+        <ion-card-header>
+          <div class="reviews-header-row">
+            <ion-card-title>
+              <ion-icon name="star-outline"></ion-icon>
+              Reseñas
+              <span class="review-count" *ngIf="reviews.length > 0">({{ reviews.length }})</span>
+            </ion-card-title>
+            <ion-button
+              *ngIf="isAuthenticatedUser && !reviewsLoading && !showReviewForm && !userReview"
+              size="small" fill="outline" color="primary"
+              (click)="openReviewForm()">
+              <ion-icon name="create-outline" slot="start"></ion-icon>
+              Escribir reseña
+            </ion-button>
+          </div>
+        </ion-card-header>
+        <ion-card-content>
+
+          <!-- Reseña propia existente -->
+          <div *ngIf="userReview && !showReviewForm" class="user-review-block">
+            <div class="user-review-header">
+              <span class="user-review-label">Tu reseña</span>
+              <div class="user-review-actions">
+                <ion-button size="small" fill="clear" (click)="openReviewForm()">
+                  <ion-icon name="pencil-outline"></ion-icon>
+                </ion-button>
+                <ion-button size="small" fill="clear" color="danger" (click)="confirmDeleteReview()">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+            <div class="review-stars-row">
+              <ion-icon
+                *ngFor="let filled of getStarArray(userReview.rating)"
+                [name]="filled ? 'star' : 'star-outline'"
+                color="warning" size="small">
+              </ion-icon>
+            </div>
+            <p class="review-comment" *ngIf="userReview.comment">{{ userReview.comment }}</p>
+          </div>
+
+          <!-- Formulario nueva / editar reseña -->
+          <div *ngIf="showReviewForm" class="review-form">
+            <p class="review-form-title">{{ userReview ? 'Editar tu reseña' : 'Escribir reseña' }}</p>
+            <div class="star-selector">
+              <ion-icon
+                *ngFor="let n of [1,2,3,4,5]"
+                [name]="n <= reviewRating ? 'star' : 'star-outline'"
+                color="warning"
+                class="star-selectable"
+                (click)="setReviewRating(n)">
+              </ion-icon>
+            </div>
+            <ion-item lines="full" class="review-textarea-item">
+              <ion-textarea
+                [(ngModel)]="reviewComment"
+                placeholder="Contá tu experiencia (opcional)..."
+                [rows]="3"
+                [maxlength]="500">
+              </ion-textarea>
+            </ion-item>
+            <div class="review-form-actions">
+              <ion-button fill="outline" color="medium" (click)="closeReviewForm()" [disabled]="reviewLoading">
+                Cancelar
+              </ion-button>
+              <ion-button color="primary" (click)="submitReview()" [disabled]="reviewLoading">
+                <ion-spinner *ngIf="reviewLoading" name="crescent" style="margin-right:6px;width:16px;height:16px"></ion-spinner>
+                {{ userReview ? 'Actualizar' : 'Publicar' }}
+              </ion-button>
+            </div>
+          </div>
+
+          <!-- CTA sin reseñas -->
+          <p *ngIf="reviews.length === 0 && !reviewsLoading && !showReviewForm" class="no-reviews-text">
+            Aún no hay reseñas.
+            <span *ngIf="isAuthenticatedUser && !userReview"> ¡Sé el primero!</span>
+          </p>
+
+          <!-- Lista de reseñas de otros usuarios -->
+          <div *ngIf="userReview && otherReviews.length > 0" class="reviews-divider"></div>
+
+          <div class="review-item" *ngFor="let review of otherReviews">
+            <div class="review-header">
+              <div class="reviewer-avatar-placeholder">
+                <ion-icon name="person-circle-outline"></ion-icon>
+              </div>
+              <div class="reviewer-info">
+                <span class="reviewer-name">
+                  {{ review.user?.firstName || 'Usuario' }} {{ review.user?.lastName || '' }}
+                </span>
+                <div class="review-stars-row">
+                  <ion-icon
+                    *ngFor="let filled of getStarArray(review.rating)"
+                    [name]="filled ? 'star' : 'star-outline'"
+                    color="warning"
+                    size="small">
+                  </ion-icon>
+                </div>
+              </div>
+              <span class="review-date">{{ review.createdAt | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <p class="review-comment" *ngIf="review.comment">{{ review.comment }}</p>
+            <hr style="border:none;border-top:1px solid var(--ion-color-light-shade);margin:12px 0">
+          </div>
+
+        </ion-card-content>
+      </ion-card>
     </div>
 
     <!-- Bottom padding for FAB -->

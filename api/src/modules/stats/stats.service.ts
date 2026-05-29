@@ -157,6 +157,45 @@ export class StatsService {
       .sort((a, b) => a.hour.localeCompare(b.hour));
   }
 
+  async getPlatformTransactions(limit = 50) {
+    const transactions = await this.prisma.platformTransaction.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: {
+        barbershop: { select: { id: true, name: true } },
+        booking: {
+          select: {
+            id: true,
+            totalPrice: true,
+            service: { select: { name: true } },
+            user: { select: { firstName: true, lastName: true } },
+          },
+        },
+      },
+    });
+
+    const summary = await this.prisma.platformTransaction.aggregate({
+      _sum: { platformFee: true, grossAmount: true, barbershopNet: true },
+      where: { status: 'confirmed' },
+    });
+
+    const byType = await this.prisma.platformTransaction.groupBy({
+      by: ['type'],
+      _sum: { platformFee: true },
+      where: { status: 'confirmed' },
+    });
+
+    return {
+      transactions,
+      summary: {
+        totalPlatformFee: summary._sum.platformFee ?? 0,
+        totalGross: summary._sum.grossAmount ?? 0,
+        totalBarbershopNet: summary._sum.barbershopNet ?? 0,
+      },
+      byType: byType.map(t => ({ type: t.type, total: t._sum.platformFee ?? 0 })),
+    };
+  }
+
   async getPlatformDashboard() {
     const [totalBarbershops, activeBarbershops, totalUsers, totalBookings, totalRevenue] =
       await Promise.all([

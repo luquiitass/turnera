@@ -39,6 +39,7 @@
 
       <h2 class="user-name">{{ user.firstName }} {{ user.lastName }}</h2>
       <p class="user-email">{{ user.email }}</p>
+      <div class="role-badge">{{ getRoleLabel(activeRole) }}</div>
     </div>
 
     <!-- ── MODO EDICIÓN ── -->
@@ -139,8 +140,8 @@
 
       </div>
 
-      <!-- Barberias que administro -->
-      <ng-container *ngIf="adminBarbershops.length > 0">
+      <!-- Barberias que administro (visible para admins) -->
+      <ng-container *ngIf="adminBarbershops.length > 0 && (isAdminRole || isSuperAdmin)">
         <p class="section-header">Barberias que administro</p>
         <div class="info-group">
           <div class="info-row info-row--clickable" *ngFor="let bs of adminBarbershops" (click)="openBarberBarbershop(bs)">
@@ -157,8 +158,8 @@
         </div>
       </ng-container>
 
-      <!-- Barberias donde soy barbero -->
-      <ng-container *ngIf="barberBarbershops.length > 0">
+      <!-- Barberias donde soy barbero (visible para barberos) -->
+      <ng-container *ngIf="barberBarbershops.length > 0 && isBarberRole">
         <p class="section-header">Barberias donde soy barbero</p>
         <div class="info-group">
           <div class="info-row info-row--clickable" *ngFor="let bs of barberBarbershops" (click)="openBarberBarbershop(bs)">

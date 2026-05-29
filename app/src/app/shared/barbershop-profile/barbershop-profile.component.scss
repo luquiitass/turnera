@@ -4,6 +4,101 @@
   -webkit-overflow-scrolling: touch;
 }
 
+// ── Reviews ───────────────────────────────────────────────────
+.reviews-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  ion-card-title { display: flex; align-items: center; gap: 6px; }
+  .review-count { font-size: 14px; font-weight: 400; color: var(--ion-color-medium); }
+}
+
+.user-review-block {
+  background: var(--ion-color-light);
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 4px;
+}
+.user-review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  .user-review-label { font-size: 12px; font-weight: 600; color: var(--ion-color-primary); text-transform: uppercase; letter-spacing: 0.5px; }
+  .user-review-actions { display: flex; gap: 0; }
+}
+
+.review-stars-row {
+  display: flex;
+  gap: 2px;
+  margin: 4px 0;
+}
+
+.reviews-divider {
+  border-top: 1px solid var(--ion-color-light-shade);
+  margin: 12px 0;
+}
+
+// Formulario
+.review-form {
+  padding: 4px 0 8px;
+  .review-form-title { font-weight: 600; font-size: 14px; margin: 0 0 12px; }
+}
+
+.star-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  .star-selectable {
+    font-size: 36px;
+    cursor: pointer;
+    transition: transform 0.15s;
+    &:active { transform: scale(1.2); }
+  }
+}
+
+.review-textarea-item {
+  border-radius: 8px;
+  margin-bottom: 12px;
+  --border-radius: 8px;
+}
+
+.review-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.no-reviews-text {
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  text-align: center;
+  padding: 8px 0;
+  margin: 0;
+}
+
+// Reseñas de otros usuarios (se mantiene el estilo original)
+.review-item {
+  .review-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 6px;
+    .reviewer-avatar-placeholder {
+      font-size: 32px;
+      color: var(--ion-color-medium);
+      flex-shrink: 0;
+    }
+    .reviewer-info {
+      flex: 1;
+      .reviewer-name { font-weight: 600; font-size: 13px; display: block; margin-bottom: 2px; }
+    }
+    .review-date { font-size: 11px; color: var(--ion-color-medium); white-space: nowrap; }
+  }
+  .review-comment { font-size: 13px; color: var(--ion-color-dark); margin: 0 0 4px; line-height: 1.4; }
+}
+
 // Schedule Editor Overlay
 .schedule-overlay {
   position: fixed;

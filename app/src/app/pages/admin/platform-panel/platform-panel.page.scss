@@ -1,3 +1,17 @@
+.tx-card {
+  margin: 4px 0;
+  .tx-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .tx-info { flex: 1; }
+  .tx-header { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .tx-date { font-size: 11px; color: var(--ion-color-medium); }
+  .tx-barbershop { font-weight: 600; font-size: 13px; margin: 2px 0; }
+  .tx-detail { font-size: 11px; color: var(--ion-color-medium); margin: 0; }
+  .tx-amounts { text-align: right; white-space: nowrap; }
+  .tx-fee { font-size: 16px; font-weight: 700; color: var(--ion-color-success); margin: 0; }
+  .tx-net { font-size: 11px; color: var(--ion-color-medium); margin: 2px 0; }
+  .tx-transfer { font-size: 10px; }
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

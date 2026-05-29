@@ -1,0 +1,253 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Turnos</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="loadBookings()" [disabled]="isLoading">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <app-context-subtitle></app-context-subtitle>
+</ion-header>
+
+<ion-content>
+
+  <ion-refresher slot="fixed" (ionRefresh)="loadBookings(); $event.target.complete()">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Filtros -->
+  <div class="filters-bar">
+    <div class="date-filter">
+      <ion-icon name="calendar-outline" color="primary"></ion-icon>
+      <ion-datetime-button datetime="booking-date"></ion-datetime-button>
+      <ion-modal [keepContentsMounted]="true">
+        <ng-template>
+          <ion-datetime
+            id="booking-date"
+            presentation="date"
+            [value]="selectedDate"
+            (ionChange)="onDateChange($event)"
+          ></ion-datetime>
+        </ng-template>
+      </ion-modal>
+    </div>
+
+    <ion-select
+      placeholder="Estado"
+      [value]="selectedStatus"
+      (ionChange)="onStatusChange($event)"
+      interface="popover"
+      class="status-select"
+    >
+      <ion-select-option *ngFor="let s of statuses" [value]="s.value">{{ s.label }}</ion-select-option>
+    </ion-select>
+  </div>
+
+  <!-- Resumen del día -->
+  <div class="day-header">
+    <div class="day-info">
+      <p class="day-name">{{ formatDate() | titlecase }}</p>
+      <p class="barbershop-name">{{ activeCtx.barbershopName }}</p>
+    </div>
+    <div class="day-stats" *ngIf="!isLoading && todayBookings.length > 0">
+      <div class="stat-chip confirmed">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>{{ confirmedCount }}
+      </div>
+      <div class="stat-chip pending">
+        <ion-icon name="time-outline"></ion-icon>{{ pendingCount }}
+      </div>
+      <div class="stat-chip total">
+        <ion-icon name="people-outline"></ion-icon>{{ todayBookings.length }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando turnos...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !isLoading" class="ion-text-center ion-padding">
+    <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+    <p>No se pudieron cargar los turnos.</p>
+    <ion-button fill="outline" (click)="loadBookings()">Reintentar</ion-button>
+  </div>
+
+  <!-- Lista de turnos -->
+  <ng-container *ngIf="!isLoading && !error">
+    <div *ngIf="todayBookings.length === 0" class="empty-state">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <p>Sin turnos para este día</p>
+    </div>
+
+    <ion-list *ngIf="todayBookings.length > 0" lines="full">
+      <ion-item *ngFor="let booking of todayBookings" class="booking-item" button detail
+                [routerLink]="['/admin/tabs/booking', booking.id]">
+        <div class="booking-time" slot="start">
+          <span class="time">{{ booking.startTime ?? '--:--' }}</span>
+        </div>
+        <ion-label>
+          <h2 class="client-name">
+            <ion-icon name="person-outline"></ion-icon>
+            {{ getClientName(booking) }}
+          </h2>
+          <p><ion-icon name="cut-outline"></ion-icon>{{ getServiceName(booking) }}</p>
+          <p><ion-icon name="person-circle-outline"></ion-icon>{{ getBarberName(booking) }}</p>
+        </ion-label>
+        <div slot="end" class="booking-status">
+          <ion-badge [color]="getStatusColor(booking.status)">{{ getStatusLabel(booking.status) }}</ion-badge>
+          <span class="price" *ngIf="booking.totalPrice">${{ booking.totalPrice | number }}</span>
+        </div>
+      </ion-item>
+    </ion-list>
+  </ng-container>
+
+  <div style="height: 100px;"></div>
+
+  <!-- FAB nuevo turno -->
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button color="primary" (click)="openNewBooking()" [disabled]="showNewBooking">
+      <ion-icon name="add-outline"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+
+</ion-content>
+
+<!-- ── OVERLAY: Nuevo turno ──────────────────────────────────────────────── -->
+<div class="booking-overlay" *ngIf="showNewBooking" (click)="closeNewBooking()"></div>
+
+<div class="booking-drawer" [class.open]="showNewBooking">
+  <div class="drawer-handle"></div>
+
+  <div class="drawer-header">
+    <h3>Nuevo turno</h3>
+    <ion-button fill="clear" size="small" (click)="closeNewBooking()">
+      <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+    </ion-button>
+  </div>
+
+  <div class="drawer-content">
+
+    <!-- Barbero -->
+    <div class="form-field">
+      <label class="field-label">Barbero <span class="required">*</span></label>
+      <ion-select
+        placeholder="Seleccioná un barbero"
+        [value]="form.barberId"
+        (ionChange)="onBarberChange($event)"
+        interface="action-sheet"
+        class="field-select"
+      >
+        <ion-select-option *ngFor="let b of barbers" [value]="b.id">
+          {{ getBarberLabel(b) }}
+        </ion-select-option>
+      </ion-select>
+      <div *ngIf="loadingBarbers" class="field-loading">
+        <ion-spinner name="crescent" style="width:16px;height:16px"></ion-spinner>
+      </div>
+    </div>
+
+    <!-- Servicio -->
+    <div class="form-field">
+      <label class="field-label">Servicio <span class="required">*</span></label>
+      <ion-select
+        placeholder="Seleccioná un servicio"
+        [value]="form.serviceId"
+        (ionChange)="onServiceChange($event)"
+        interface="action-sheet"
+        class="field-select"
+      >
+        <ion-select-option *ngFor="let s of services" [value]="s.serviceId ?? s.id">
+          {{ getServiceLabel(s) }}
+        </ion-select-option>
+      </ion-select>
+      <div *ngIf="loadingServices" class="field-loading">
+        <ion-spinner name="crescent" style="width:16px;height:16px"></ion-spinner>
+      </div>
+    </div>
+
+    <!-- Horario -->
+    <div class="form-field">
+      <label class="field-label">
+        Horario <span class="required">*</span>
+        <span class="field-hint">{{ selectedDate | date:'d/M/yyyy' }}</span>
+      </label>
+
+      <div *ngIf="!form.barberId" class="field-hint-block">
+        <ion-icon name="information-circle-outline" color="medium"></ion-icon>
+        Seleccioná un barbero primero
+      </div>
+
+      <div *ngIf="form.barberId && loadingSlots" class="field-loading">
+        <ion-spinner name="crescent" style="width:16px;height:16px"></ion-spinner>
+        <span>Cargando horarios...</span>
+      </div>
+
+      <div *ngIf="form.barberId && !loadingSlots && availableSlots.length === 0" class="field-hint-block warning">
+        <ion-icon name="alert-circle-outline" color="warning"></ion-icon>
+        Sin horarios disponibles para este día
+      </div>
+
+      <div class="slots-grid" *ngIf="availableSlots.length > 0">
+        <button
+          *ngFor="let slot of availableSlots"
+          class="slot-btn"
+          [class.selected]="form.startTime === slot"
+          (click)="form.startTime = slot"
+        >{{ slot }}</button>
+      </div>
+    </div>
+
+    <!-- Nombre del cliente (opcional) -->
+    <div class="form-field">
+      <label class="field-label">Nombre del cliente <span class="field-hint">opcional</span></label>
+      <input
+        class="field-input"
+        type="text"
+        placeholder="Ej: Juan García"
+        [(ngModel)]="form.clientName"
+      />
+    </div>
+
+    <!-- Teléfono del cliente -->
+    <div class="form-field">
+      <label class="field-label">Teléfono del cliente <span class="field-hint">opcional</span></label>
+      <input
+        class="field-input"
+        type="tel"
+        inputmode="tel"
+        placeholder="Ej: +54 9 11 1234-5678"
+        [(ngModel)]="form.clientPhone"
+      />
+    </div>
+
+    <!-- Notas -->
+    <div class="form-field">
+      <label class="field-label">Notas <span class="field-hint">opcional</span></label>
+      <textarea
+        class="field-input field-textarea"
+        placeholder="Indicaciones, referencias..."
+        [(ngModel)]="form.notes"
+        rows="2"
+      ></textarea>
+    </div>
+
+    <!-- Botón guardar -->
+    <ion-button
+      expand="block"
+      color="primary"
+      [disabled]="!canSave || saving"
+      (click)="saveBooking()"
+      class="save-btn"
+    >
+      <ion-spinner *ngIf="saving" name="crescent" slot="start" style="width:16px;height:16px"></ion-spinner>
+      <ion-icon *ngIf="!saving" name="checkmark-outline" slot="start"></ion-icon>
+      {{ saving ? 'Guardando...' : 'Agendar turno' }}
+    </ion-button>
+
+  </div>
+</div>

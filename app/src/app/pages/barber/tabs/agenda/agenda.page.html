@@ -1,0 +1,177 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Mi Agenda</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="load()" [disabled]="isLoading">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <app-context-subtitle></app-context-subtitle>
+  <ion-toolbar color="primary" *ngIf="barberProfiles.length > 1" class="bs-toolbar">
+    <ion-select
+      [value]="selectedBarbershopId"
+      (ionChange)="onBarbershopChange($event)"
+      interface="action-sheet"
+      class="bs-select"
+    >
+      <ion-select-option *ngFor="let p of barberProfiles" [value]="p.barbershopId">
+        {{ p.barbershop?.name ?? p.barbershopId }}
+      </ion-select-option>
+    </ion-select>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-refresher slot="fixed" (ionRefresh)="load(); $event.target.complete()">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- Navegación de fechas -->
+  <div class="date-nav">
+    <ion-button fill="clear" (click)="prevDay()">
+      <ion-icon name="chevron-back-outline" slot="icon-only"></ion-icon>
+    </ion-button>
+
+    <div class="date-label" id="date-picker-trigger" (click)="showPicker = true">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <span>{{ formatDate() }}</span>
+    </div>
+
+    <ion-button fill="clear" (click)="nextDay()">
+      <ion-icon name="chevron-forward-outline" slot="icon-only"></ion-icon>
+    </ion-button>
+
+    <ion-popover
+      trigger="date-picker-trigger"
+      [isOpen]="showPicker"
+      (didDismiss)="showPicker = false"
+      [keepContentsMounted]="true"
+    >
+      <ng-template>
+        <ion-datetime
+          presentation="date"
+          [value]="selectedDate"
+          (ionChange)="onDatePick($event)"
+        ></ion-datetime>
+      </ng-template>
+    </ion-popover>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="ion-text-center ion-padding">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !isLoading" class="ion-text-center ion-padding">
+    <ion-icon name="alert-circle-outline" size="large" color="danger"></ion-icon>
+    <p>No se pudo cargar la agenda.</p>
+    <ion-button fill="outline" (click)="load()">Reintentar</ion-button>
+  </div>
+
+  <ng-container *ngIf="!isLoading && !error && agenda">
+
+    <!-- Sin horario configurado -->
+    <div *ngIf="!agenda.schedule" class="empty-state">
+      <ion-icon name="moon-outline"></ion-icon>
+      <p>No trabajás este día</p>
+    </div>
+
+    <!-- Con horario: info + chips + timeline -->
+    <ng-container *ngIf="agenda.schedule">
+
+      <!-- Info chips -->
+      <div class="agenda-info">
+        <ion-chip color="primary" outline>
+          <ion-icon name="time-outline"></ion-icon>
+          <ion-label>{{ agenda.schedule.openTime }} - {{ agenda.schedule.closeTime }}</ion-label>
+        </ion-chip>
+        <ion-chip color="secondary" outline>
+          <ion-icon name="calendar-outline"></ion-icon>
+          <ion-label>{{ agenda.bookings }} turno{{ agenda.bookings !== 1 ? 's' : '' }}</ion-label>
+        </ion-chip>
+        <ion-chip color="success" button (click)="startQuickBooking()">
+          <ion-icon name="add-circle-outline"></ion-icon>
+          <ion-label>Agregar turno</ion-label>
+        </ion-chip>
+      </div>
+
+      <!-- Empty state con agenda pero sin turnos -->
+      <div *ngIf="agenda.slots?.length === 0" class="empty-state">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <p>Sin turnos para este día</p>
+        <ion-button fill="solid" color="primary" (click)="startQuickBooking()">
+          <ion-icon name="add-outline" slot="start"></ion-icon>
+          Agregar turno
+        </ion-button>
+      </div>
+
+      <!-- Timeline de slots -->
+      <div class="agenda-timeline" *ngIf="agenda.slots?.length > 0">
+        <div
+          *ngFor="let slot of agenda.slots"
+          class="agenda-slot"
+          [class.booked]="slot.type === 'booking'"
+          [class.blocked]="slot.type === 'block'"
+          [class.free]="slot.type === 'free'"
+        >
+          <!-- Hora -->
+          <div class="slot-time">
+            <span class="time-start">{{ slot.time }}</span>
+            <span class="time-end">{{ slot.endTime }}</span>
+            <span class="time-dur">{{ slot.durationMin }}min</span>
+          </div>
+
+          <!-- Turno reservado -->
+          <div class="slot-content booking-content" *ngIf="slot.type === 'booking' && slot.booking"
+               [routerLink]="['/barber/tabs/booking', slot.booking.id]">
+            <div class="booking-top">
+              <ion-icon name="person-outline"></ion-icon>
+              <strong>{{ slot.booking.clientName }}</strong>
+              <ion-icon name="chevron-forward-outline" color="medium" style="margin-left:auto;font-size:14px"></ion-icon>
+            </div>
+            <p class="booking-service">
+              <ion-icon name="cut-outline"></ion-icon>
+              {{ slot.booking.serviceName }}
+              <span class="time-range">{{ slot.booking.startTime }} – {{ slot.booking.endTime }}</span>
+            </p>
+            <p class="booking-phone" *ngIf="slot.booking.clientPhone">
+              <ion-icon name="call-outline"></ion-icon>
+              {{ slot.booking.clientPhone }}
+            </p>
+            <p class="booking-notes" *ngIf="slot.booking.notes">
+              <ion-icon name="document-text-outline"></ion-icon>
+              {{ slot.booking.notes }}
+            </p>
+            <ion-chip size="small" [color]="getStatusColor(slot.booking.status)">
+              {{ getStatusLabel(slot.booking.status) }}
+            </ion-chip>
+          </div>
+
+          <!-- Bloqueado -->
+          <div class="slot-content block-content" *ngIf="slot.type === 'block'">
+            <ion-icon name="lock-closed-outline" color="danger"></ion-icon>
+            <div>
+              <strong>Bloqueado</strong>
+              <p *ngIf="slot.block?.reason">{{ slot.block.reason }}</p>
+            </div>
+          </div>
+
+          <!-- Libre -->
+          <div class="slot-content free-content" *ngIf="slot.type === 'free'" (click)="startQuickBooking(slot.time)">
+            <ion-icon name="checkmark-circle-outline" color="success"></ion-icon>
+            <span>Disponible</span>
+            <ion-icon name="add-outline" color="primary" class="add-icon"></ion-icon>
+          </div>
+        </div>
+      </div>
+
+    </ng-container>
+
+  </ng-container>
+
+  <div style="height: 80px;"></div>
+</ion-content>

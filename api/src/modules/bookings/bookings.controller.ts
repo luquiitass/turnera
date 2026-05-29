@@ -10,8 +10,8 @@ export class BookingsController {
   constructor(private bookingsService: BookingsService) {}
 
   @Post()
-  create(@CurrentUser('id') userId: string, @Body() dto: CreateBookingDto) {
-    return this.bookingsService.create(userId, dto);
+  create(@CurrentUser() user: any, @Body() dto: CreateBookingDto) {
+    return this.bookingsService.create(user.id, dto, user.roles);
   }
 
   @Get('my')
@@ -41,13 +41,12 @@ export class BookingsController {
   }
 
   @Put(':id/status')
-  @Roles(Role.ADMIN_BARBERSHOP, Role.SUB_ADMIN, Role.ADMIN_GENERAL)
   updateStatus(
     @Param('id') id: string,
     @Body('status') status: string,
     @CurrentUser() user: any,
   ) {
-    return this.bookingsService.updateStatus(id, status, user.id);
+    return this.bookingsService.updateStatus(id, status, user.id, user.roles);
   }
 
   @Post('recurring')

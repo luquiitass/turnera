@@ -48,9 +48,23 @@ export class AuthService {
 
   getDefaultRoute(): string {
     const roles = this.currentUser?.roles || [];
-    if (roles.includes('ADMIN_GENERAL')) return '/super_admin/tabs/home';
-    if (roles.includes('ADMIN_BARBERSHOP') || roles.includes('SUB_ADMIN')) return '/admin/tabs/home';
-    if (this.hasBarberProfile) return '/barber/tabs/home';
+    if (roles.includes('ADMIN_GENERAL')) {
+      this.setActiveRole('ADMIN_GENERAL');
+      return '/super_admin/tabs/home';
+    }
+    if (roles.includes('ADMIN_BARBERSHOP')) {
+      this.setActiveRole('ADMIN_BARBERSHOP');
+      return '/admin/tabs/home';
+    }
+    if (roles.includes('SUB_ADMIN')) {
+      this.setActiveRole('SUB_ADMIN');
+      return '/admin/tabs/home';
+    }
+    if (this.hasBarberProfile) {
+      this.setActiveRole('BARBERO');
+      return '/barber/tabs/home';
+    }
+    this.setActiveRole('USUARIO');
     return '/tabs/home';
   }
 
@@ -159,9 +173,11 @@ export class AuthService {
       // Validate token is still valid
       this.http.get<any>(`${environment.apiUrl}/auth/profile`).subscribe({
         next: (res) => {
-          // Update user data from server
           this.storage.setJson('currentUser', res.data);
           this.currentUserSubject.next(res.data);
+          // Re-emitir activeRole para que los tabs recalculen availableRoles
+          // (necesario cuando barberProfiles llega después del init)
+          this.activeRoleSubject.next(this.activeRoleSubject.value);
         },
         error: (err) => {
           // Solo limpiar sesión si el token es realmente inválido (401)

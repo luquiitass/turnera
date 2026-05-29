@@ -1,5 +1,6 @@
 import {
-  Injectable, Logger, NotFoundException, BadRequestException, ConflictException,
+  Injectable, Logger, NotFoundException, BadRequestException,
+  ConflictException, ForbiddenException,
 } from '@nestjs/common';
 import { DayOfWeek } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
@@ -17,7 +18,7 @@ export class BookingsService {
     private paymentsService: PaymentsService,
   ) {}
 
-  async create(userId: string, dto: CreateBookingDto) {
+  async create(userId: string, dto: CreateBookingDto, userRoles: string[] = []) {
     const service = await this.prisma.service.findUnique({ where: { id: dto.serviceId } });
     if (!service) throw new NotFoundException('Servicio no encontrado');
 
@@ -90,6 +91,23 @@ export class BookingsService {
 
     const price = bsService.price;
 
+    const bs = barber.barbershop as any;
+    const depositPrice = bs.depositType === 'PERCENTAGE'
+      ? Math.ceil(price * bs.depositAmount / 100)
+      : Math.ceil(bs.depositAmount ?? 0);
+
+    // Staff de la barbería (admin general, admin de barbería, sub-admin, o barbero
+    // del mismo local) confirman directo sin necesidad de seña
+    const isAdminRole = userRoles.some(r =>
+      ['ADMIN_GENERAL', 'ADMIN_BARBERSHOP', 'SUB_ADMIN'].includes(r),
+    );
+    const isBarberOfShop = !isAdminRole && await this.prisma.barber.findFirst({
+      where: { userId, barbershopId: barber.barbershopId, isActive: true },
+    }).then(b => !!b);
+
+    const isStaff = isAdminRole || isBarberOfShop;
+    const requiresDeposit = !isStaff && depositPrice > 0;
+
     const booking = await this.prisma.booking.create({
       data: {
         userId,
@@ -99,8 +117,8 @@ export class BookingsService {
         startTime: dto.startTime,
         endTime,
         totalPrice: price,
-        depositPrice: barber.barbershop.depositAmount,
-        status: 'CONFIRMADA',
+        depositPrice,
+        status: requiresDeposit ? 'PENDIENTE' : 'CONFIRMADA',
         notes: dto.notes,
       },
       include: {
@@ -237,10 +255,44 @@ export class BookingsService {
     return cancelled;
   }
 
-  async updateStatus(id: string, status: string, _userId: string) {
+  async updateStatus(id: string, status: string, userId: string, userRoles: string[]) {
     const allowed = ['CONFIRMADA', 'COMPLETADA', 'NO_SHOW', 'CANCELADA'];
     if (!allowed.includes(status)) throw new BadRequestException('Estado inválido');
+
     const booking = await this.findOne(id);
+
+    const isAdmin = userRoles.includes('ADMIN_GENERAL') ||
+      userRoles.includes('ADMIN_BARBERSHOP') ||
+      userRoles.includes('SUB_ADMIN');
+
+    if (!isAdmin) {
+      // Verificar que sea el barbero asignado a esta reserva
+      const barberProfile = await this.prisma.barber.findFirst({
+        where: { userId, id: booking.barberId },
+      });
+      if (!barberProfile) throw new ForbiddenException('No tenés permiso para cambiar el estado de esta reserva');
+
+      // Los barberos solo pueden marcar COMPLETADA o NO_SHOW
+      if (!['COMPLETADA', 'NO_SHOW'].includes(status)) {
+        throw new ForbiddenException('Los barberos solo pueden marcar como Completada o No Show');
+      }
+    }
+
+    // COMPLETADA solo desde CONFIRMADA
+    if (status === 'COMPLETADA' && booking.status !== 'CONFIRMADA') {
+      throw new BadRequestException('Solo se puede completar una reserva que esté confirmada (seña paga)');
+    }
+
+    // NO_SHOW solo desde CONFIRMADA o PENDIENTE
+    if (status === 'NO_SHOW' && !['CONFIRMADA', 'PENDIENTE'].includes(booking.status)) {
+      throw new BadRequestException('No se puede marcar No Show en este estado');
+    }
+
+    // No se puede cambiar si ya está COMPLETADA o CANCELADA
+    if (['COMPLETADA', 'CANCELADA'].includes(booking.status)) {
+      throw new BadRequestException(`La reserva ya está ${booking.status.toLowerCase()} y no puede modificarse`);
+    }
+
     const updated = await this.prisma.booking.update({ where: { id }, data: { status: status as any } });
 
     if (status === 'CONFIRMADA') {
@@ -252,7 +304,7 @@ export class BookingsService {
 
     // Al completar: crear movimiento SALDO pendiente automáticamente
     if (status === 'COMPLETADA') {
-      this.paymentsService.createPendingSaldo(id, _userId)
+      this.paymentsService.createPendingSaldo(id, userId)
         .catch(e => this.logger.error('Error creando saldo pendiente', e));
     }
 
@@ -297,6 +349,12 @@ export class BookingsService {
       if (dates.length >= 4) break;
     }
 
+    const barbershop = await this.prisma.barbershop.findUnique({ where: { id: barber.barbershopId } }) as any;
+    const recurringDepositPrice = barbershop?.depositType === 'PERCENTAGE'
+      ? Math.ceil(bsService.price * barbershop.depositAmount / 100)
+      : Math.ceil(barbershop?.depositAmount ?? 0);
+    const requiresDeposit = recurringDepositPrice > 0;
+
     for (const date of dates) {
       await this.prisma.booking.create({
         data: {
@@ -307,7 +365,8 @@ export class BookingsService {
           startTime: dto.startTime,
           endTime,
           totalPrice: bsService.price,
-          status: 'CONFIRMADA',
+          depositPrice: recurringDepositPrice,
+          status: requiresDeposit ? 'PENDIENTE' : 'CONFIRMADA',
           recurringBookingId: recurring.id,
           notes: dto.notes,
         },
