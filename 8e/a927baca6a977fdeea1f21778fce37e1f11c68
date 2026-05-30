@@ -1,0 +1,33 @@
+api/src/modules/barbershops/barbershops.service.ts
+  s_80a6d3e114fa2e::t_8f5017905fb9e0 179-187,191,193-213
+app/src/app/pages/client/register-barbershop/register-barbershop.page.html
+  s_80a6d3e114fa2e::t_6bf5e874068a39 44-45,51-76
+app/src/app/pages/client/register-barbershop/register-barbershop.page.scss
+  s_80a6d3e114fa2e::t_2ec5dadc5e554b 137-155
+api/src/modules/barbershops/barbershops.controller.ts
+  s_80a6d3e114fa2e::t_bd67455cb96938 60-64
+  s_80a6d3e114fa2e::t_53cd2c4d5c8b2e 88
+api/prisma/schema.prisma
+  s_80a6d3e114fa2e::t_cfb86a3e3ac0cd 70
+app/src/app/pages/client/register-barbershop/register-barbershop.page.ts
+  s_80a6d3e114fa2e::t_0b3b8d183ad059 32-37
+  s_80a6d3e114fa2e::t_c8ddd740984cba 103
+  s_80a6d3e114fa2e::t_fd8575b025fb3f 203-212
+  s_80a6d3e114fa2e::t_54d69b5ff18848 113-157
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "8ea927baca6a977fdeea1f21778fce37e1f11c68",
+  "prompts": {},
+  "sessions": {
+    "s_80a6d3e114fa2e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aaab432-f073-4933-9442-0c2cef976947",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
