@@ -1,0 +1,87 @@
+api/src/common/utils/deposit.util.ts
+  s_80a6d3e114fa2e::t_aca22c18715d42 1-23
+app/src/app/app-routing.module.ts
+  s_80a6d3e114fa2e::t_0f79c3049f68eb 32-34
+app/src/app/pages/client/booking-confirm/booking-confirm.page.ts
+  s_80a6d3e114fa2e::t_62c02eab63b2f7 70,76-79,83,100-106,113-116,128,133,140,143,149-150,153,161
+  s_80a6d3e114fa2e::t_872afca37adc6a 88
+  s_80a6d3e114fa2e::t_312351c9e96274 89-92,109-111
+  s_80a6d3e114fa2e::t_627bda796752ab 47-54,59-61,65-66
+  s_80a6d3e114fa2e::t_7eb5cd002952d8 108
+  s_80a6d3e114fa2e::t_842a82d9019732 1-46,55-58,62-64,67-69,71-73,80-82,84-86,93-99,117-127,129-132,134-139,141-142,144-148,151-152,154-160,162
+  s_80a6d3e114fa2e::t_27d5018373457f 74-75
+  s_80a6d3e114fa2e::t_50a07ffe7d674c 87,107,112
+app/src/app/pages/client/tabs/admin-barber-panel/admin-barber-panel.page.ts
+  s_80a6d3e114fa2e::t_8d5ae70807dd83 616-658
+  s_80a6d3e114fa2e::t_5dc4f7278a0ff2 143
+  s_80a6d3e114fa2e::t_8ffddace8c0af4 35-40
+  s_80a6d3e114fa2e::t_4bcc1f7b065717 77
+api/src/modules/bookings/dto/bookings.dto.ts
+  s_80a6d3e114fa2e::t_12db50f976eb85 8-9
+  s_80a6d3e114fa2e::t_6c12163df14afb 30-31
+app/src/app/pages/client/booking-confirm/booking-confirm.page.scss
+  s_80a6d3e114fa2e::t_f19f816a9d755b 2-5,7-8,10-11,19,30,36-38,40-46,48-56,63-64
+  s_80a6d3e114fa2e::t_be392e3c60028c 1,6,9,12-18,20-29,31-35,39,47,57-62,65
+app/src/app/pages/client/booking/booking.page.ts
+  s_80a6d3e114fa2e::t_d1bcd5c0a102a2 412
+  s_80a6d3e114fa2e::t_1c3838b15b69f9 424-427
+app/src/app/pages/client/booking-confirm/booking-confirm.module.ts
+  s_80a6d3e114fa2e::t_824a9a517cdd12 1-13
+app/src/app/pages/admin/platform-panel/platform-panel.page.html
+  s_80a6d3e114fa2e::t_6bfa5c8338ba9a 146-154
+app/src/app/pages/admin/platform-panel/platform-panel.page.ts
+  s_80a6d3e114fa2e::t_e7898a2da4b759 40-59
+api/src/modules/mercadopago/mercadopago.controller.ts
+  s_80a6d3e114fa2e::t_4ad4cadd9c725f 68-75
+app/src/app/pages/client/booking-confirm/booking-confirm.page.html
+  s_80a6d3e114fa2e::t_85e566729f48b1 20,27-36,38,43-62,64,67,74-78,83-84,90-93,108-109,112-117,125,128-129,142,155,161-168
+  s_80a6d3e114fa2e::t_70664da3d6700f 72-73
+  s_80a6d3e114fa2e::t_f581aeca1e2001 1-19,21-26,37,39-42,63,65-66,68-71,85-89,94-107,110-111,118-124,126-127,130-141,143-154,156-160,169-172
+  s_80a6d3e114fa2e::t_3c70356e24bc40 79-82
+api/src/modules/mercadopago/mercadopago.service.ts
+  s_80a6d3e114fa2e::t_aafabc67a0d78b 485-506,508-521
+  s_80a6d3e114fa2e::t_2b3017d9672b36 232-234,268-270
+  s_80a6d3e114fa2e::t_412cfc416345e5 202
+  s_80a6d3e114fa2e::t_5ab61c786adcdb 507
+  s_80a6d3e114fa2e::t_e56fe889ed15d5 187-200
+  s_80a6d3e114fa2e::t_76eb15970977b4 5
+api/src/modules/bookings/bookings.module.ts
+  s_80a6d3e114fa2e::t_db9679b61e4ffa 4,9
+app/src/app/pages/client/tabs/admin-barber-panel/admin-barber-panel.page.scss
+  s_80a6d3e114fa2e::t_fa63214c9983b0 102-182
+app/src/app/pages/client/tabs/admin-barber-panel/admin-barber-panel.page.html
+  s_80a6d3e114fa2e::t_fdf000529804d1 239-267,270-278,281-340
+  s_80a6d3e114fa2e::t_2a17f86397bcfb 268-269,279-280
+api/src/modules/bookings/bookings.service.ts
+  s_80a6d3e114fa2e::t_da726434c2545b 5
+  s_80a6d3e114fa2e::t_87557f7c9eab7b 319-328,331
+  s_80a6d3e114fa2e::t_70511a50be0e5d 364
+  s_80a6d3e114fa2e::t_1e5e43dd0185bf 26-36,40
+  s_80a6d3e114fa2e::t_51363ea1611e1e 101,109
+api/src/modules/barbershops/barbershops.service.ts
+  s_80a6d3e114fa2e::t_ab925a4a00b778 95-101
+  s_80a6d3e114fa2e::t_600cce853eb4fe 230-238
+  s_80a6d3e114fa2e::t_ce7574e992350a 239-242
+app/src/app/pages/client/register-barbershop/register-barbershop.page.ts
+  s_80a6d3e114fa2e::t_41cea79cf7cebd 161-174
+api/src/modules/bookings/bookings-cleanup.service.ts
+  s_80a6d3e114fa2e::t_c4922c4a4d94a9 1-31
+app/src/app/core/services/auth.service.ts
+  s_80a6d3e114fa2e::t_4d1eb457ccdc08 110-140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "316738bf37ad4ab35e0ff000ebd6f04c0e246336",
+  "prompts": {},
+  "sessions": {
+    "s_80a6d3e114fa2e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aaab432-f073-4933-9442-0c2cef976947",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
