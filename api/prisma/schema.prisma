@@ -67,7 +67,7 @@ model BarbershopImage {
 
 model Barbershop {
   id                   String                    @id @default(uuid())
-  name                 String                    @unique
+  name                 String
   slug                 String                    @unique @default("")
   description          String?
   address              String

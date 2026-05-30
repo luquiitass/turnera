@@ -41,9 +41,39 @@
 
       <div class="rb-field">
         <label class="rb-label">Nombre <span class="rb-required">*</span></label>
-        <input class="rb-input" formControlName="name" type="text" placeholder="Ej: Barber Alemán" />
+        <input class="rb-input" formControlName="name" type="text" placeholder="Ej: Barber Alemán"
+               (input)="onNameInput()" />
         <span class="rb-error" *ngIf="form.get('name')?.invalid && form.get('name')?.touched">
           El nombre es obligatorio (mín. 3 caracteres)
+        </span>
+      </div>
+
+      <!-- Slug / subdominio -->
+      <div class="rb-field">
+        <label class="rb-label">
+          Subdominio
+          <span class="rb-required">*</span>
+          <span class="rb-label-hint">— tu dirección web en Turnera</span>
+        </label>
+        <div class="rb-slug-wrap">
+          <input class="rb-input rb-slug-input" formControlName="slug" type="text"
+                 placeholder="barber-aleman" autocomplete="off" autocapitalize="none"
+                 (input)="onSlugInput()" />
+          <span class="rb-slug-spinner" *ngIf="slugChecking">
+            <ion-spinner name="crescent" style="width:14px;height:14px"></ion-spinner>
+          </span>
+          <ion-icon *ngIf="!slugChecking && slugAvailable === true"
+                    name="checkmark-circle" color="success" class="rb-slug-icon"></ion-icon>
+          <ion-icon *ngIf="!slugChecking && slugAvailable === false"
+                    name="close-circle" color="danger" class="rb-slug-icon"></ion-icon>
+        </div>
+        <p class="rb-slug-preview" *ngIf="form.value.slug">
+          <ion-icon name="globe-outline"></ion-icon>
+          {{ slugPreview }}
+        </p>
+        <span class="rb-error" *ngIf="slugAvailable === false">{{ slugError }}</span>
+        <span class="rb-error" *ngIf="form.get('slug')?.invalid && form.get('slug')?.touched && slugAvailable !== false">
+          Solo letras minúsculas, números y guiones (mín. 3 caracteres)
         </span>
       </div>
 

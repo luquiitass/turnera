@@ -57,6 +57,12 @@ export class BarbershopsController {
   }
 
   @Public()
+  @Get('check-slug/:slug')
+  checkSlug(@Param('slug') slug: string) {
+    return this.barbershopsService.checkSlugAvailability(slug);
+  }
+
+  @Public()
   @Get('by-slug/:slug')
   findBySlug(@Param('slug') slug: string) {
     return this.barbershopsService.findBySlug(slug);
@@ -79,7 +85,7 @@ export class BarbershopsController {
   selfRegister(
     @CurrentUser('id') userId: string,
     @CurrentUser('email') userEmail: string,
-    @Body() body: { name: string; address: string; phone?: string; description?: string; plan?: string },
+    @Body() body: { name: string; address: string; slug?: string; phone?: string; description?: string; plan?: string },
   ) {
     return this.barbershopsService.selfRegister(userId, userEmail, body);
   }

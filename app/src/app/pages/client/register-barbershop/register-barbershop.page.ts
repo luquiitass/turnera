@@ -29,6 +29,12 @@ export class RegisterBarbershopPage {
   success = false;
   newSlug = '';
 
+  // Slug
+  slugChecking = false;
+  slugAvailable: boolean | null = null;
+  slugError = '';
+  private slugTimer: ReturnType<typeof setTimeout> | null = null;
+
   readonly baseDomain = environment.baseDomains?.[0] ?? 'turnera.es';
 
   // Autocomplete de dirección
@@ -94,6 +100,7 @@ export class RegisterBarbershopPage {
   ) {
     this.form = this.fb.group({
       name:        ['', [Validators.required, Validators.minLength(3)]],
+      slug:        ['', [Validators.required, Validators.pattern(/^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/)]],
       address:     ['', Validators.required],
       lat:         [null],
       lng:         [null],
@@ -101,6 +108,51 @@ export class RegisterBarbershopPage {
       description: [''],
       plan:        ['GRATUITO', Validators.required],
     });
+  }
+
+  // ── Slug ──────────────────────────────────────────────────────────────────
+  onNameInput(): void {
+    const name: string = this.form.value.name ?? '';
+    const suggested = name.toLowerCase()
+      .normalize('NFD').replace(/[̀-ͯ]/g, '') // quitar acentos
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    if (suggested.length >= 3) {
+      this.form.patchValue({ slug: suggested });
+      this.checkSlug(suggested);
+    }
+  }
+
+  onSlugInput(): void {
+    const slug = this.form.value.slug ?? '';
+    const normalized = slug.toLowerCase().replace(/[^a-z0-9-]/g, '');
+    if (normalized !== slug) this.form.patchValue({ slug: normalized });
+    this.checkSlug(normalized);
+  }
+
+  private checkSlug(slug: string): void {
+    this.slugAvailable = null;
+    this.slugError = '';
+    if (!slug || slug.length < 3) return;
+
+    if (this.slugTimer) clearTimeout(this.slugTimer);
+    this.slugTimer = setTimeout(() => {
+      this.slugChecking = true;
+      this.http.get<any>(`${environment.apiUrl}/barbershops/check-slug/${slug}`).subscribe({
+        next: (res) => {
+          const data = res.data ?? res;
+          this.slugChecking = false;
+          this.slugAvailable = data.available;
+          if (!data.available) this.slugError = data.reason ?? 'El subdominio ya está en uso';
+        },
+        error: () => { this.slugChecking = false; },
+      });
+    }, 400);
+  }
+
+  get slugPreview(): string {
+    const slug = this.form.value.slug;
+    return slug ? `${slug}.${this.baseDomain}` : '';
   }
 
   // ── Autocomplete de dirección ─────────────────────────────────────────────
@@ -148,6 +200,16 @@ export class RegisterBarbershopPage {
 
   async onSubmit(): Promise<void> {
     if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.slugAvailable === false) {
+      const t = await this.toastCtrl.create({ message: 'El subdominio no está disponible', duration: 2500, color: 'danger', position: 'bottom' });
+      await t.present();
+      return;
+    }
+    if (this.slugAvailable === null) {
+      const t = await this.toastCtrl.create({ message: 'Esperá a que se verifique el subdominio', duration: 2500, color: 'warning', position: 'bottom' });
+      await t.present();
+      return;
+    }
 
     const loader = await this.loadingCtrl.create({ message: 'Registrando tu barbería...' });
     await loader.present();

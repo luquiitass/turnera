@@ -176,17 +176,41 @@ export class BarbershopsService {
     return barbershop;
   }
 
+  async checkSlugAvailability(slug: string) {
+    const normalized = slug.toLowerCase().trim();
+    const valid = /^[a-z0-9][a-z0-9-]{1,48}[a-z0-9]$/.test(normalized);
+    if (!valid) return { available: false, reason: 'Formato inválido (solo letras, números y guiones, mínimo 3 caracteres)' };
+
+    const existing = await this.prisma.barbershop.findUnique({ where: { slug: normalized } });
+    return { available: !existing, slug: normalized };
+  }
+
   async selfRegister(
     userId: string,
     _userEmail: string,
-    body: { name: string; address: string; phone?: string; description?: string; plan?: string },
+    body: { name: string; address: string; slug?: string; phone?: string; description?: string; plan?: string },
   ) {
-    const existing = await this.prisma.barbershop.findUnique({ where: { name: body.name } });
-    if (existing) throw new ConflictException('Ya existe una barbería con ese nombre');
+    // Validar duplicado: mismo nombre + misma dirección
+    const existing = await this.prisma.barbershop.findFirst({
+      where: {
+        name: { equals: body.name, mode: 'insensitive' },
+        address: { equals: body.address, mode: 'insensitive' },
+      },
+    });
+    if (existing) throw new ConflictException('Ya existe una barbería con ese nombre en esa dirección');
 
-    const slug = body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const slugExists = await this.prisma.barbershop.findUnique({ where: { slug } });
-    const finalSlug = slugExists ? `${slug}-${Date.now().toString(36)}` : slug;
+    // Usar el slug enviado por el cliente (ya validado en el frontend) o generar uno
+    let finalSlug: string;
+    if (body.slug) {
+      const normalized = body.slug.toLowerCase().trim();
+      const slugTaken = await this.prisma.barbershop.findUnique({ where: { slug: normalized } });
+      if (slugTaken) throw new ConflictException('El subdominio ya está en uso, elegí otro');
+      finalSlug = normalized;
+    } else {
+      const base = body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const slugTaken = await this.prisma.barbershop.findUnique({ where: { slug: base } });
+      finalSlug = slugTaken ? `${base}-${Date.now().toString(36)}` : base;
+    }
 
     const barbershop = await this.prisma.barbershop.create({
       data: {
