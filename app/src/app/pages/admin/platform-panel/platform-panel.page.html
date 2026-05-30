@@ -143,6 +143,15 @@
             <ion-badge [color]="getTransferColor(tx.transferStatus)" class="tx-transfer">
               {{ getTransferLabel(tx.transferStatus) }}
             </ion-badge>
+            <ion-button
+              *ngIf="tx.transferStatus === 'FAILED' || tx.transferStatus === 'PENDING'"
+              size="small" fill="outline" color="warning"
+              [disabled]="tx._retrying"
+              (click)="retryTransfer(tx)"
+              style="margin-top:4px">
+              <ion-spinner *ngIf="tx._retrying" name="crescent" style="width:14px;height:14px;margin-right:4px"></ion-spinner>
+              Reintentar
+            </ion-button>
           </div>
         </div>
       </ion-card-content>

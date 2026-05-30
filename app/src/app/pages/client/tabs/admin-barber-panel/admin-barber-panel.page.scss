@@ -99,3 +99,84 @@
 .img-preview { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .preview-img { width: 80px; height: 50px; object-fit: cover; border-radius: 8px; border: 1px solid var(--ion-color-light-shade); }
 .preview-logo{ width: 50px; height: 50px; border-radius: 50%; }
+
+// ── Deposit Manager ──────────────────────────────────────────────────────
+.deposit-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--ion-color-medium);
+  margin: 0 0 10px;
+}
+
+.deposit-type-options { display: flex; flex-direction: column; gap: 8px; }
+
+.deposit-type-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 2px solid var(--ion-color-light-shade);
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &.selected { border-color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), 0.05); }
+
+  ion-icon { font-size: 22px; flex-shrink: 0; }
+  div { flex: 1; }
+  .opt-title { font-size: 14px; font-weight: 600; margin: 0 0 2px; }
+  .opt-sub   { font-size: 12px; color: var(--ion-color-medium); margin: 0; }
+  ion-radio  { flex-shrink: 0; }
+}
+
+.deposit-locked-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(var(--ion-color-warning-rgb), 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 13px;
+  color: var(--ion-color-dark);
+  ion-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+}
+
+.deposit-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--ion-color-light-shade);
+  border-radius: 10px;
+  padding: 4px 12px;
+
+  .deposit-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 24px;
+    font-weight: 700;
+    background: transparent;
+    color: var(--ion-color-dark);
+    padding: 8px 0;
+    width: 100%;
+  }
+
+  .deposit-unit {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+  }
+}
+
+.deposit-preview {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ion-color-success);
+  margin: 8px 0 0;
+  ion-icon { font-size: 16px; }
+  &.deposit-none { color: var(--ion-color-medium); }
+}

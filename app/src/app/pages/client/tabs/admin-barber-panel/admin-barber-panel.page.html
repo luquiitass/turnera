@@ -236,4 +236,106 @@
     </ion-card>
   </div>
 
+
+  <!-- DEPOSIT MANAGER OVERLAY -->
+  <div class="overlay" *ngIf="showDepositManager">
+    <ion-card class="overlay-card">
+      <ion-card-header>
+        <div class="overlay-header-row">
+          <ion-card-title>
+            <ion-icon name="cash-outline"></ion-icon>
+            Seña
+          </ion-card-title>
+          <ion-button fill="clear" size="small" (click)="closeDepositManager()">
+            <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        </div>
+      </ion-card-header>
+      <ion-card-content>
+
+        <!-- PLAN SUSCRIPCION: control total -->
+        <ng-container *ngIf="isSuscripcionPlan">
+          <p class="deposit-section-title">Tipo de seña</p>
+          <div class="deposit-type-options">
+            <div class="deposit-type-option"
+                 [class.selected]="depositTypeLocal === 'FIXED'"
+                 (click)="depositTypeLocal = 'FIXED'">
+              <ion-icon name="cash-outline" [color]="depositTypeLocal === 'FIXED' ? 'primary' : 'medium'"></ion-icon>
+              <div>
+                <p class="opt-title">Monto fijo</p>
+                <p class="opt-sub">Siempre el mismo importe</p>
+              </div>
+              <ion-icon [name]="depositTypeLocal === 'FIXED' ? 'radio-button-on' : 'radio-button-off'"
+                        [color]="depositTypeLocal === 'FIXED' ? 'primary' : 'medium'"></ion-icon>
+            </div>
+            <div class="deposit-type-option"
+                 [class.selected]="depositTypeLocal === 'PERCENTAGE'"
+                 (click)="depositTypeLocal = 'PERCENTAGE'">
+              <ion-icon name="trending-up-outline" [color]="depositTypeLocal === 'PERCENTAGE' ? 'primary' : 'medium'"></ion-icon>
+              <div>
+                <p class="opt-title">Porcentaje</p>
+                <p class="opt-sub">% del precio del servicio</p>
+              </div>
+              <ion-icon [name]="depositTypeLocal === 'PERCENTAGE' ? 'radio-button-on' : 'radio-button-off'"
+                        [color]="depositTypeLocal === 'PERCENTAGE' ? 'primary' : 'medium'"></ion-icon>
+            </div>
+          </div>
+        </ng-container>
+
+        <!-- PLAN COMISION: tipo bloqueado a PERCENTAGE -->
+        <ng-container *ngIf="isComisionPlan">
+          <div class="deposit-locked-badge">
+            <ion-icon name="lock-closed-outline" color="warning"></ion-icon>
+            <span>Plan Comisión — la seña es porcentual y no puede cambiarse a monto fijo.</span>
+          </div>
+        </ng-container>
+
+        <!-- PLAN GRATUITO: sin control -->
+        <ng-container *ngIf="!isSuscripcionPlan && !isComisionPlan">
+          <div class="deposit-locked-badge">
+            <ion-icon name="information-circle-outline" color="medium"></ion-icon>
+            <span>Con plan gratuito la seña sigue la configuración por defecto del sistema.</span>
+          </div>
+        </ng-container>
+
+        <!-- Valor (SUSCRIPCION o COMISION pueden editar el valor) -->
+        <ng-container *ngIf="isSuscripcionPlan || isComisionPlan">
+          <p class="deposit-section-title" style="margin-top:16px">
+            {{ depositTypeLocal === 'PERCENTAGE' ? 'Porcentaje de la seña' : 'Monto de la seña' }}
+          </p>
+          <div class="deposit-input-row">
+            <input
+              type="number"
+              class="deposit-input"
+              [(ngModel)]="depositAmountLocal"
+              [placeholder]="depositTypeLocal === 'PERCENTAGE' ? 'Ej: 30' : 'Ej: 500'"
+              min="0"
+              [max]="depositTypeLocal === 'PERCENTAGE' ? 100 : 999999"
+            />
+            <span class="deposit-unit">{{ depositTypeLocal === 'PERCENTAGE' ? '%' : '$' }}</span>
+          </div>
+          <p class="deposit-preview" *ngIf="depositAmountLocal > 0">
+            <ion-icon name="eye-outline"></ion-icon>
+            {{ depositPreview() }}
+          </p>
+          <p class="deposit-preview deposit-none" *ngIf="!depositAmountLocal">
+            <ion-icon name="remove-circle-outline"></ion-icon>
+            Sin seña — las reservas se confirman directamente
+          </p>
+
+          <ion-button
+            expand="block"
+            color="primary"
+            [disabled]="depositSaving"
+            (click)="saveDeposit()"
+            style="margin-top:20px">
+            <ion-spinner *ngIf="depositSaving" name="crescent" style="margin-right:8px;width:16px;height:16px"></ion-spinner>
+            Guardar
+          </ion-button>
+        </ng-container>
+
+      </ion-card-content>
+    </ion-card>
+  </div>
+
 </ion-content>

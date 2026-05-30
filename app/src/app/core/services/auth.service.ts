@@ -107,6 +107,37 @@ export class AuthService {
       );
   }
 
+  /** Renueva el token y sincroniza el perfil actualizado (ej: nuevo rol tras registrar barbería). */
+  refreshAndSync(): Observable<void> {
+    return new Observable(observer => {
+      this.refresh().subscribe({
+        next: () => {
+          this.http.get<any>(`${environment.apiUrl}/auth/profile`).subscribe({
+            next: (res) => {
+              const user = res.data;
+              this.storage.setJson('currentUser', user);
+              this.currentUserSubject.next(user);
+              const bestRole = this.getDefaultRole(user.roles);
+              this.setActiveRole(bestRole);
+              observer.next();
+              observer.complete();
+            },
+            error: (e) => { observer.error(e); },
+          });
+        },
+        error: (e) => { observer.error(e); },
+      });
+    });
+  }
+
+  private getDefaultRole(roles: string[]): string {
+    if (roles.includes('ADMIN_GENERAL'))    return 'ADMIN_GENERAL';
+    if (roles.includes('ADMIN_BARBERSHOP')) return 'ADMIN_BARBERSHOP';
+    if (roles.includes('SUB_ADMIN'))        return 'SUB_ADMIN';
+    if (this.hasBarberProfile)              return 'BARBERO';
+    return 'USUARIO';
+  }
+
   forgotPassword(email: string): Observable<ApiResponse<{ message: string }>> {
     return this.http.post<ApiResponse<{ message: string }>>(
       `${environment.apiUrl}/auth/forgot-password`,

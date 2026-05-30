@@ -1,0 +1,172 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/bookings" text="Mis turnos"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Confirmación de turno</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="center-block">
+    <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <p>Cargando reserva...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !isLoading" class="center-block">
+    <ion-icon name="alert-circle-outline" color="danger" style="font-size:52px"></ion-icon>
+    <p>{{ error }}</p>
+    <ion-button fill="outline" (click)="goToBookings()">Ir a mis turnos</ion-button>
+  </div>
+
+  <ng-container *ngIf="booking && !isLoading">
+
+    <!-- ── CANCELADA ── -->
+    <div *ngIf="isCancelled" class="state-block">
+      <ion-icon name="close-circle" color="danger" style="font-size:64px"></ion-icon>
+      <h2>Reserva cancelada</h2>
+      <p>Esta reserva fue cancelada por falta de pago de la seña.</p>
+      <ion-button expand="block" color="primary" (click)="goToBookings()" style="margin-top:16px">
+        Ir a mis turnos
+      </ion-button>
+    </div>
+
+    <!-- ── ÉXITO ── -->
+    <div *ngIf="paymentDone && !isCancelled" class="state-block">
+      <ion-icon name="checkmark-circle" color="success" style="font-size:72px"></ion-icon>
+      <h2>¡Turno confirmado!</h2>
+      <p>Tu seña fue acreditada. Te esperamos en la barbería.</p>
+
+      <ion-card class="summary-card" style="margin-top:16px;width:100%">
+        <ion-card-content>
+          <div class="summary-row">
+            <ion-icon name="cut-outline" color="primary"></ion-icon>
+            <span><strong>{{ booking.service?.name }}</strong></span>
+          </div>
+          <div class="summary-row">
+            <ion-icon name="person-outline" color="primary"></ion-icon>
+            <span>{{ booking.barber?.firstName }} {{ booking.barber?.lastName }}</span>
+          </div>
+          <div class="summary-row">
+            <ion-icon name="calendar-outline" color="primary"></ion-icon>
+            <span>{{ formatDate(booking.date) }} · {{ booking.startTime }}</span>
+          </div>
+          <div class="summary-row" *ngIf="balance > 0">
+            <ion-icon name="cash-outline" color="medium"></ion-icon>
+            <span>Saldo a pagar en la barbería: <strong>{{ formatPrice(balance) }}</strong></span>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-button expand="block" color="primary" (click)="goToBookings()" style="margin-top:8px">
+        Ver mis turnos
+      </ion-button>
+      <ion-button expand="block" fill="outline" (click)="goToHome()" style="margin-top:4px">
+        Ir al inicio
+      </ion-button>
+    </div>
+
+    <!-- ── PENDIENTE o CONFIRMADA sin seña paga ── -->
+    <ng-container *ngIf="needsDeposit && !booking.depositPaid && !paymentDone && !isCancelled">
+
+      <!-- Banner de aviso -->
+      <div class="pending-banner">
+        <ion-icon name="time-outline" color="warning"></ion-icon>
+        <div>
+          <p class="pending-title">
+            {{ isPending ? 'Reserva en proceso de confirmación' : 'Seña pendiente de pago' }}
+          </p>
+          <p class="pending-sub">Abonando la seña tu turno queda confirmado.</p>
+        </div>
+      </div>
+
+      <!-- Resumen del turno -->
+      <ion-card class="summary-card">
+        <ion-card-content>
+          <div class="summary-row">
+            <ion-icon name="cut-outline" color="primary"></ion-icon>
+            <span><strong>{{ booking.service?.name }}</strong></span>
+          </div>
+          <div class="summary-row">
+            <ion-icon name="storefront-outline" color="primary"></ion-icon>
+            <span>{{ booking.barber?.barbershop?.name }}</span>
+          </div>
+          <div class="summary-row">
+            <ion-icon name="person-outline" color="primary"></ion-icon>
+            <span>{{ booking.barber?.firstName }} {{ booking.barber?.lastName }}</span>
+          </div>
+          <div class="summary-row">
+            <ion-icon name="calendar-outline" color="primary"></ion-icon>
+            <span>{{ formatDate(booking.date) }} · {{ booking.startTime }}</span>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- Seña -->
+      <ion-card class="deposit-card">
+        <ion-card-content>
+          <div class="deposit-amount-row">
+            <div>
+              <p class="deposit-label">Seña requerida</p>
+              <p class="deposit-sub" *ngIf="balance > 0">
+                Resto ({{ formatPrice(balance) }}) se abona en la barbería
+              </p>
+            </div>
+            <span class="deposit-value">{{ formatPrice(depositAmount) }}</span>
+          </div>
+
+          <!-- Pagar con MP -->
+          <ion-button
+            expand="block"
+            color="primary"
+            size="large"
+            [disabled]="preferenceLoading"
+            (click)="payWithMP()"
+            class="mp-btn">
+            <ion-spinner *ngIf="preferenceLoading" name="crescent" style="margin-right:8px;width:20px;height:20px"></ion-spinner>
+            <ion-icon name="card-outline" slot="start" *ngIf="!preferenceLoading"></ion-icon>
+            {{ preferenceLoading ? 'Preparando pago...' : 'Pagar seña con MercadoPago' }}
+          </ion-button>
+
+          <!-- Ya pagué -->
+          <ion-button
+            expand="block"
+            fill="outline"
+            color="medium"
+            [disabled]="verifying"
+            (click)="verifyPayment()"
+            style="margin-top:8px">
+            <ion-spinner *ngIf="verifying" name="crescent" style="margin-right:8px;width:16px;height:16px"></ion-spinner>
+            <ion-icon name="checkmark-circle-outline" slot="start" *ngIf="!verifying"></ion-icon>
+            {{ verifying ? 'Verificando...' : 'Ya pagué — verificar' }}
+          </ion-button>
+
+          <!-- Pagar en persona -->
+          <ion-button
+            expand="block"
+            fill="clear"
+            color="medium"
+            size="small"
+            (click)="skipPayment()"
+            style="margin-top:4px">
+            Pagar en persona
+          </ion-button>
+        </ion-card-content>
+      </ion-card>
+
+    </ng-container>
+
+    <!-- ── CONFIRMADA sin seña (no requería) ── -->
+    <div *ngIf="booking.status === 'CONFIRMADA' && !needsDeposit && !paymentDone" class="state-block">
+      <ion-icon name="checkmark-circle" color="success" style="font-size:64px"></ion-icon>
+      <h2>Turno reservado</h2>
+      <p>No se requiere seña para este servicio.</p>
+      <ion-button expand="block" color="primary" (click)="goToBookings()">Ver mis turnos</ion-button>
+    </div>
+
+  </ng-container>
+
+</ion-content>

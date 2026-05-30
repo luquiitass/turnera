@@ -1,0 +1,65 @@
+.center-block, .state-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 8px;
+  gap: 8px;
+  h2 { font-weight: 700; font-size: 22px; margin: 8px 0 4px; }
+  p  { color: var(--ion-color-medium); margin: 0; font-size: 14px; }
+}
+
+// Banner de aviso estado PENDIENTE
+.pending-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(var(--ion-color-warning-rgb), 0.12);
+  border: 1px solid rgba(var(--ion-color-warning-rgb), 0.3);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+
+  ion-icon { font-size: 28px; color: var(--ion-color-warning); flex-shrink: 0; margin-top: 2px; }
+
+  .pending-title {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ion-color-dark);
+    margin: 0 0 4px;
+  }
+  .pending-sub {
+    font-size: 13px;
+    color: var(--ion-color-medium);
+    margin: 0;
+  }
+}
+
+.summary-card, .deposit-card {
+  margin: 0 0 12px;
+  border-radius: 12px;
+}
+
+.summary-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  font-size: 14px;
+  border-bottom: 1px solid var(--ion-color-light-shade);
+  &:last-child { border-bottom: none; }
+  ion-icon { font-size: 18px; flex-shrink: 0; }
+}
+
+.deposit-amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 4px 0 16px;
+
+  .deposit-label { font-weight: 700; font-size: 15px; margin: 0 0 4px; }
+  .deposit-sub   { font-size: 12px; color: var(--ion-color-medium); margin: 0; }
+  .deposit-value { font-size: 28px; font-weight: 800; color: var(--ion-color-warning); white-space: nowrap; }
+}
+
+.mp-btn { margin-top: 0; --border-radius: 10px; height: 52px; font-size: 16px; }

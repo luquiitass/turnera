@@ -29,6 +29,11 @@ const routes: Routes = [
     loadChildren: () => import('./pages/client/booking/booking.module').then(m => m.BookingPageModule),
   },
   {
+    path: 'booking/confirm/:id',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./pages/client/booking-confirm/booking-confirm.module').then(m => m.BookingConfirmPageModule),
+  },
+  {
     path: 'barbershop/:id',
     loadChildren: () => import('./pages/barbershop-detail/barbershop-detail.module').then(m => m.BarbershopDetailPageModule),
   },

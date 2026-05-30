@@ -5,6 +5,9 @@ import { BookingStatus, DayOfWeek } from '@prisma/client';
 
 export class CreateBookingDto {
   @IsUUID()
+  barbershopId: string;
+
+  @IsUUID()
   barberId: string;
 
   @IsUUID()
@@ -23,6 +26,9 @@ export class CreateBookingDto {
 }
 
 export class CreateRecurringBookingDto {
+  @IsUUID()
+  barbershopId: string;
+
   @IsUUID()
   barberId: string;
 

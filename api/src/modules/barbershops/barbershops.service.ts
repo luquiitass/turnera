@@ -92,6 +92,13 @@ export class BarbershopsService {
       },
     });
     if (!barbershop || !barbershop.isActive) throw new NotFoundException('Barberia no encontrada');
+
+    // Invariante: plan COMISION siempre debe tener depositType PERCENTAGE
+    if (barbershop.businessModel === 'COMISION' && (barbershop as any).depositType !== 'PERCENTAGE') {
+      await this.prisma.barbershop.update({ where: { id }, data: { depositType: 'PERCENTAGE' } });
+      (barbershop as any).depositType = 'PERCENTAGE';
+    }
+
     return barbershop;
   }
 
@@ -220,8 +227,19 @@ export class BarbershopsService {
       });
     }
 
-    // Registrar subdominio en Cloudflare
-    this.cloudflare.registerSubdomain(finalSlug).catch(() => {});
+    // Invariante: plan COMISION siempre requiere depositType PERCENTAGE
+    if (plan === 'COMISION') {
+      const defaultPct = parseFloat(process.env['MP_MIN_DEPOSIT_RATE'] ?? '0.30') * 100;
+      await this.prisma.barbershop.update({
+        where: { id: barbershop.id },
+        data: { depositType: 'PERCENTAGE', depositAmount: defaultPct },
+      });
+    }
+
+    // Registrar subdominio en Cloudflare solo para plan mensual (SUSCRIPCION)
+    if (plan === 'SUSCRIPCION') {
+      this.cloudflare.registerSubdomain(finalSlug).catch(() => {});
+    }
 
     return { ...barbershop, slug: finalSlug };
   }

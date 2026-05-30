@@ -2,6 +2,7 @@ import {
   Injectable, Logger, NotFoundException, BadRequestException,
   ConflictException, ForbiddenException,
 } from '@nestjs/common';
+import { calcDeposit } from '../../common/utils/deposit.util.js';
 import { DayOfWeek } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { NotificationDispatcher } from '../notifications/notification-dispatcher.service.js';
@@ -22,15 +23,21 @@ export class BookingsService {
     const service = await this.prisma.service.findUnique({ where: { id: dto.serviceId } });
     if (!service) throw new NotFoundException('Servicio no encontrado');
 
-    const barber = await this.prisma.barber.findUnique({
-      where: { id: dto.barberId },
-      include: { barbershop: true },
-    });
-    if (!barber) throw new NotFoundException('Barbero no encontrado');
+    const [barber, barbershop] = await Promise.all([
+      this.prisma.barber.findUnique({ where: { id: dto.barberId } }),
+      this.prisma.barbershop.findUnique({ where: { id: dto.barbershopId } }),
+    ]);
+    if (!barber)     throw new NotFoundException('Barbero no encontrado');
+    if (!barbershop) throw new NotFoundException('Barbería no encontrada');
+
+    // Validar que el barbero pertenece a la barbería indicada
+    if (barber.barbershopId !== dto.barbershopId) {
+      throw new BadRequestException('El barbero no pertenece a esta barbería');
+    }
 
     // Get barbershop-specific price and duration
     const bsService = await this.prisma.barbershopService.findUnique({
-      where: { barbershopId_serviceId: { barbershopId: barber.barbershopId, serviceId: dto.serviceId } },
+      where: { barbershopId_serviceId: { barbershopId: dto.barbershopId, serviceId: dto.serviceId } },
     });
     if (!bsService) throw new BadRequestException('Esta barberia no ofrece ese servicio');
 
@@ -91,10 +98,7 @@ export class BookingsService {
 
     const price = bsService.price;
 
-    const bs = barber.barbershop as any;
-    const depositPrice = bs.depositType === 'PERCENTAGE'
-      ? Math.ceil(price * bs.depositAmount / 100)
-      : Math.ceil(bs.depositAmount ?? 0);
+    const depositPrice = calcDeposit((barbershop as any).depositType, barbershop.depositAmount, price);
 
     // Staff de la barbería (admin general, admin de barbería, sub-admin, o barbero
     // del mismo local) confirman directo sin necesidad de seña
@@ -102,7 +106,7 @@ export class BookingsService {
       ['ADMIN_GENERAL', 'ADMIN_BARBERSHOP', 'SUB_ADMIN'].includes(r),
     );
     const isBarberOfShop = !isAdminRole && await this.prisma.barber.findFirst({
-      where: { userId, barbershopId: barber.barbershopId, isActive: true },
+      where: { userId, barbershopId: dto.barbershopId, isActive: true },
     }).then(b => !!b);
 
     const isStaff = isAdminRole || isBarberOfShop;
@@ -312,11 +316,19 @@ export class BookingsService {
   }
 
   async createRecurring(userId: string, dto: CreateRecurringBookingDto) {
-    const barber = await this.prisma.barber.findUnique({ where: { id: dto.barberId } });
-    if (!barber) throw new NotFoundException('Barbero no encontrado');
+    const [barber, barbershop] = await Promise.all([
+      this.prisma.barber.findUnique({ where: { id: dto.barberId } }),
+      this.prisma.barbershop.findUnique({ where: { id: dto.barbershopId } }),
+    ]);
+    if (!barber)     throw new NotFoundException('Barbero no encontrado');
+    if (!barbershop) throw new NotFoundException('Barbería no encontrada');
+
+    if (barber.barbershopId !== dto.barbershopId) {
+      throw new BadRequestException('El barbero no pertenece a esta barbería');
+    }
 
     const bsService = await this.prisma.barbershopService.findUnique({
-      where: { barbershopId_serviceId: { barbershopId: barber.barbershopId, serviceId: dto.serviceId } },
+      where: { barbershopId_serviceId: { barbershopId: dto.barbershopId, serviceId: dto.serviceId } },
     });
     if (!bsService) throw new BadRequestException('Servicio no disponible en esta barberia');
 
@@ -349,10 +361,7 @@ export class BookingsService {
       if (dates.length >= 4) break;
     }
 
-    const barbershop = await this.prisma.barbershop.findUnique({ where: { id: barber.barbershopId } }) as any;
-    const recurringDepositPrice = barbershop?.depositType === 'PERCENTAGE'
-      ? Math.ceil(bsService.price * barbershop.depositAmount / 100)
-      : Math.ceil(barbershop?.depositAmount ?? 0);
+    const recurringDepositPrice = calcDeposit((barbershop as any).depositType, barbershop.depositAmount, bsService.price);
     const requiresDeposit = recurringDepositPrice > 0;
 
     for (const date of dates) {

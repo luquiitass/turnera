@@ -37,6 +37,26 @@ export class PlatformPanelPage implements OnInit {
     });
   }
 
+  retryTransfer(tx: any): void {
+    tx._retrying = true;
+    this.http.post<any>(`${environment.apiUrl}/mp/transactions/${tx.id}/retry-transfer`, {}).subscribe({
+      next: (res) => {
+        tx._retrying = false;
+        const s = res.data?.status ?? res.status;
+        if (s === 'completed') {
+          tx.transferStatus = 'COMPLETED';
+          tx.transferredAt = new Date().toISOString();
+        } else {
+          alert(res.data?.message ?? 'No se pudo reintentar');
+        }
+      },
+      error: (err) => {
+        tx._retrying = false;
+        alert(err?.error?.error?.message ?? 'Error al reintentar la transferencia');
+      },
+    });
+  }
+
   formatPrice(n: number): string { return '$' + Math.round(n ?? 0).toLocaleString('es-AR'); }
   formatDate(d: string): string { return new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: '2-digit' }); }
   getTransferColor(s: string): string {

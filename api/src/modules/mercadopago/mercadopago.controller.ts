@@ -65,6 +65,14 @@ export class MercadoPagoController {
     return this.mpService.disconnectOAuth(barbershopId);
   }
 
+    // ── Reintento de transferencia fallida ───────────────────────
+
+  @Post('transactions/:id/retry-transfer')
+  @Roles(Role.ADMIN_GENERAL)
+  retryTransfer(@Param('id') id: string) {
+    return this.mpService.retryTransfer(id);
+  }
+
   // ── Webhook (público — MP llama sin JWT) ──────────────────────
 
   @Public()

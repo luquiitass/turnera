@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import MercadoPagoConfig, { PreApproval, PreApprovalPlan, Preference, Payment } from 'mercadopago';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { BankAccountsService } from '../bank-accounts/bank-accounts.service.js';
+import { calcDeposit } from '../../common/utils/deposit.util.js';
 
 @Injectable()
 export class MercadoPagoService {
@@ -183,12 +184,22 @@ export class MercadoPagoService {
     const commissionRate = sub?.commissionRate ?? this.commissionRate;
     const isPlanComision = sub?.plan === 'COMISION';
 
-    // Cálculo unificado: monto fijo o porcentaje según depositType de la barbería
-    const depositAmount = (barbershop as any).depositType === 'PERCENTAGE'
-      ? Math.ceil(booking.totalPrice * (barbershop as any).depositAmount / 100)
-      : Math.ceil((barbershop as any).depositAmount ?? 0);
+    // Recalcular con la config actual de la barbería (fuente de verdad)
+    // Si difiere del valor guardado en la reserva (dato stale), actualizar en DB
+    const freshDeposit = calcDeposit(
+      (barbershop as any).depositType,
+      (barbershop as any).depositAmount,
+      booking.totalPrice,
+    );
+    if (freshDeposit !== booking.depositPrice) {
+      await this.prisma.booking.update({
+        where: { id: bookingId },
+        data: { depositPrice: freshDeposit },
+      });
+    }
+    const depositAmount = freshDeposit;
 
-    console.log('[MP] createBookingPreference — bookingId:', bookingId, 'tipo:', bankAccount.accountType, 'plan:', sub?.plan);
+    console.log('[MP] createBookingPreference — bookingId:', bookingId, 'depositAmount:', depositAmount, 'tipo:', bankAccount.accountType, 'plan:', sub?.plan);
 
     if (bankAccount.accountType === 'MP_OAUTH' && bankAccount.mpAccessToken && bankAccount.mpUserId) {
       return this.createMarketplacePreference(booking, barbershop, bankAccount, depositAmount, isPlanComision ? commissionRate : 0);
@@ -218,9 +229,9 @@ export class MercadoPagoService {
           payer: { email: booking.user?.email ?? '', name: booking.user?.firstName ?? '', surname: booking.user?.lastName ?? '' },
           marketplace_fee: marketplaceFee,
           back_urls: {
-            success: `${this.appUrl}/booking?status=success&bookingId=${booking.id}`,
-            failure: `${this.appUrl}/booking?status=failure&bookingId=${booking.id}`,
-            pending: `${this.appUrl}/booking?status=pending&bookingId=${booking.id}`,
+            success: `${this.appUrl}/booking/confirm/${booking.id}?status=success`,
+            failure: `${this.appUrl}/booking/confirm/${booking.id}?status=failure`,
+            pending: `${this.appUrl}/booking/confirm/${booking.id}?status=pending`,
           },
           notification_url: `${this.publicApiUrl}/api/mp/webhook`,
           external_reference: booking.id,
@@ -254,9 +265,9 @@ export class MercadoPagoService {
           }],
           payer: { email: booking.user?.email ?? '', name: booking.user?.firstName ?? '', surname: booking.user?.lastName ?? '' },
           back_urls: {
-            success: `${this.appUrl}/booking?status=success&bookingId=${booking.id}`,
-            failure: `${this.appUrl}/booking?status=failure&bookingId=${booking.id}`,
-            pending: `${this.appUrl}/booking?status=pending&bookingId=${booking.id}`,
+            success: `${this.appUrl}/booking/confirm/${booking.id}?status=success`,
+            failure: `${this.appUrl}/booking/confirm/${booking.id}?status=failure`,
+            pending: `${this.appUrl}/booking/confirm/${booking.id}?status=pending`,
           },
           notification_url: `${this.publicApiUrl}/api/mp/webhook`,
           external_reference: booking.id,
@@ -469,6 +480,43 @@ export class MercadoPagoService {
       barbershopNet,
       transferStatus: needsTransfer ? 'executed' : 'not_required',
     };
+  }
+
+  async retryTransfer(platformTransactionId: string) {
+    const tx = await this.prisma.platformTransaction.findUnique({
+      where: { id: platformTransactionId },
+      include: { bankAccount: true },
+    });
+
+    if (!tx) throw new NotFoundException('Transacción no encontrada');
+    if (tx.transferStatus === 'COMPLETED') {
+      return { status: 'already_completed', message: 'La transferencia ya fue completada' };
+    }
+    if (!['FAILED', 'PENDING'].includes(tx.transferStatus ?? '')) {
+      return { status: 'not_retryable', message: `Estado actual: ${tx.transferStatus}` };
+    }
+    if (!tx.bankAccount) throw new BadRequestException('Cuenta bancaria no encontrada');
+
+    await this.prisma.platformTransaction.update({
+      where: { id: platformTransactionId },
+      data: { transferStatus: 'PROCESSING' },
+    });
+
+    try {
+      const description = `Pago barbería — booking ${tx.bookingId ?? ''} — reintento`;
+      const transferId = await this.transferToBankAccount(tx.bankAccount, tx.barbershopNet ?? 0, description);
+      await this.prisma.platformTransaction.update({
+        where: { id: platformTransactionId },
+        data: { transferStatus: 'COMPLETED', transferredAt: new Date(), mpPaymentId: transferId },
+      });
+      return { status: 'completed', transferId, amount: tx.barbershopNet };
+    } catch (err: any) {
+      await this.prisma.platformTransaction.update({
+        where: { id: platformTransactionId },
+        data: { transferStatus: 'FAILED' },
+      });
+      throw new BadRequestException(`Reintento fallido: ${err.message}`);
+    }
   }
 
   private async handleSubscriptionPaymentWebhook(authorizedPaymentId: string) {

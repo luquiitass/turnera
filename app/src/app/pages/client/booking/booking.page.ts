@@ -409,6 +409,7 @@ export class BookingPage implements OnInit {
     this.confirmError = '';
 
     const payload = {
+      barbershopId: this.selectedBarbershop?.id ?? environment.barbershopId,
       serviceId: this.selectedService.id,
       barberId: this.selectedBarber.id,
       date: this.selectedDate,
@@ -420,16 +421,10 @@ export class BookingPage implements OnInit {
       next: (res) => {
         this.confirmLoading = false;
         const booking = res?.data ?? res;
-        this.bookingId = booking?.id ?? '';
+        const bookingId = booking?.id ?? '';
 
-        // Pago solo si plan COMISION y el usuario es cliente (no admin ni barbero)
-        const role = this.authService.activeRole;
-        const isStaff = ['ADMIN_GENERAL', 'ADMIN_BARBERSHOP', 'SUB_ADMIN'].includes(role);
-        if (this.barbershopPlan === 'COMISION' && !isStaff) {
-          this.loadPaymentPreference(this.bookingId);
-        } else {
-          this.showSuccess = true;
-        }
+        // Navegar a la página de confirmación standalone (maneja pago y estado)
+        this.router.navigateByUrl(`/booking/confirm/${bookingId}`, { replaceUrl: true });
       },
       error: (err) => {
         this.confirmLoading = false;

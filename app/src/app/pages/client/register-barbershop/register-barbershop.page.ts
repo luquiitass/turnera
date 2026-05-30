@@ -155,14 +155,23 @@ export class RegisterBarbershopPage {
 
     this.http.post<any>(`${environment.apiUrl}/barbershops/self-register`, this.form.value).subscribe({
       next: async (res) => {
-        await loader.dismiss();
-        this.submitting = false;
         const barbershop = res?.data ?? res;
         this.newSlug = barbershop.slug;
-        this.success = true;
 
-        // Actualizar token con el nuevo rol ADMIN_BARBERSHOP
-        this.auth.refresh().subscribe().add(() => {});
+        // Renovar token + sincronizar rol ADMIN_BARBERSHOP antes de mostrar éxito
+        this.auth.refreshAndSync().subscribe({
+          next: async () => {
+            await loader.dismiss();
+            this.submitting = false;
+            this.success = true;
+          },
+          error: async () => {
+            // Si el sync falla igual mostramos éxito — el usuario puede re-loguearse
+            await loader.dismiss();
+            this.submitting = false;
+            this.success = true;
+          },
+        });
       },
       error: async (err) => {
         await loader.dismiss();

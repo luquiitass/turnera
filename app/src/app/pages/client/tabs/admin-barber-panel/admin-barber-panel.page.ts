@@ -32,6 +32,12 @@ export class AdminBarberPanelPage implements OnInit {
   imageManagerType: 'PORTADA' | 'ICONO' | 'GALERIA' = 'PORTADA';
   uploadingImage = false;
 
+  // Deposit manager overlay
+  showDepositManager = false;
+  depositTypeLocal: 'FIXED' | 'PERCENTAGE' = 'FIXED';
+  depositAmountLocal = 0;
+  depositSaving = false;
+
   // Agenda
   showBarberAgenda: Record<string, boolean> = {};
   barberAgendaSlots: any[] = [];
@@ -68,6 +74,7 @@ export class AdminBarberPanelPage implements OnInit {
     { icon: 'settings-outline',    label: 'Configuración',     action: 'edit-settings' },
     { icon: 'stats-chart-outline', label: 'Estadísticas',      action: 'dashboard' },
     { icon: 'wallet-outline',      label: 'Pagos y deudas',    action: 'payments' },
+    { icon: 'cash-outline',        label: 'Seña',              action: 'manage-deposit' },
     { icon: 'globe-outline',       label: 'Subdominio',        action: 'manage-subdomain' },
   ];
 
@@ -133,6 +140,7 @@ export class AdminBarberPanelPage implements OnInit {
       case 'edit-settings':    return this.editSettings();
       case 'dashboard':        this.router.navigate(['/tabs/dashboard']); return;
       case 'payments':         this.router.navigate(['/tabs/payments']);  return;
+      case 'manage-deposit':   return this.openDepositManager();
       case 'manage-subdomain': return this.manageSubdomain();
     }
   }
@@ -603,6 +611,49 @@ export class AdminBarberPanelPage implements OnInit {
       },
       error: (e: any) => this.toast(e?.error?.error?.message ?? 'Error al actualizar subdominio', 'danger'),
     });
+  }
+
+  // ── Seña ──────────────────────────────────────────────────────────────
+  openDepositManager(): void {
+    this.depositTypeLocal   = this.barbershop?.depositType ?? 'FIXED';
+    this.depositAmountLocal = this.barbershop?.depositAmount ?? 0;
+    this.showDepositManager = true;
+  }
+
+  closeDepositManager(): void { this.showDepositManager = false; }
+
+  get isComisionPlan(): boolean  { return this.currentPlan === 'COMISION'; }
+  get isSuscripcionPlan(): boolean { return this.currentPlan === 'SUSCRIPCION'; }
+
+  saveDeposit(): void {
+    if (this.depositSaving) return;
+    this.depositSaving = true;
+    this.http.put<any>(`${this.apiUrl}/barbershops/${this.bsId}`, {
+      depositAmount: this.depositAmountLocal,
+      depositType:   this.depositTypeLocal,
+    }).subscribe({
+      next: () => {
+        this.depositSaving = false;
+        this.toast('Seña actualizada', 'success');
+        this.loadData();
+        this.closeDepositManager();
+      },
+      error: (e: any) => {
+        this.depositSaving = false;
+        this.toast(e?.error?.error?.message || 'Error al guardar', 'danger');
+      },
+    });
+  }
+
+  depositLabel(): string {
+    return this.depositTypeLocal === 'PERCENTAGE' ? '% del servicio (ej: 30)' : 'Monto fijo ($)';
+  }
+
+  depositPreview(): string {
+    if (!this.depositAmountLocal) return 'Sin seña';
+    return this.depositTypeLocal === 'PERCENTAGE'
+      ? `${this.depositAmountLocal}% del precio del servicio`
+      : `$${this.depositAmountLocal.toLocaleString('es-AR')} fijos`;
   }
 
   // ── Toast ─────────────────────────────────────────────────────────────
