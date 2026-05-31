@@ -1,26 +1,21 @@
 import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException, Body } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
-import { randomUUID } from 'crypto';
-import { mkdirSync } from 'fs';
+import { memoryStorage } from 'multer';
 import { ImageType } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service.js';
-
-const UPLOADS_DIR = join(process.cwd(), 'public', 'uploads');
-mkdirSync(UPLOADS_DIR, { recursive: true });
+import { R2Service } from './r2.service.js';
 
 @Controller('upload')
 export class UploadController {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private r2: R2Service,
+  ) {}
 
   @Post('image')
   @UseInterceptors(
     FileInterceptor('file', {
-      storage: diskStorage({
-        destination: UPLOADS_DIR,
-        filename: (_req, file, cb) => cb(null, `${randomUUID()}${extname(file.originalname)}`),
-      }),
+      storage: memoryStorage(), // buffer en memoria → lo subimos a R2
       fileFilter: (_req, file, cb) => {
         if (!file.mimetype.startsWith('image/')) {
           return cb(new BadRequestException('Solo se permiten imágenes'), false);
@@ -40,17 +35,16 @@ export class UploadController {
       throw new BadRequestException(`Tipo inválido. Valores: ${Object.values(ImageType).join(', ')}`);
     }
 
-    const baseUrl = process.env.API_URL || 'http://localhost:3000';
-    const url = `${baseUrl}/uploads/${file.filename}`;
+    const { key, url, size } = await this.r2.upload(file.buffer, file.originalname, file.mimetype);
 
     return this.prisma.image.create({
       data: {
-        path: file.path,
+        path:     key,
         url,
-        name: name || file.originalname,
-        type: type as ImageType,
-        mimeType: file.mimetype,
-        size: file.size,
+        name:     name || file.originalname,
+        type:     type as ImageType,
+        mimeType: 'image/webp',
+        size,
       },
     });
   }
