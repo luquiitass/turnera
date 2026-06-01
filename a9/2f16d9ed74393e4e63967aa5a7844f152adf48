@@ -1,0 +1,21 @@
+app/package-lock.json
+  ai_agent 2797,2836
+app/.npmrc
+  s_80a6d3e114fa2e::t_40b6a5df82eebb 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "a92f16d9ed74393e4e63967aa5a7844f152adf48",
+  "prompts": {},
+  "sessions": {
+    "s_80a6d3e114fa2e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aaab432-f073-4933-9442-0c2cef976947",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
