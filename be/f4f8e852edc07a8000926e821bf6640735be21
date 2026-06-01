@@ -1,0 +1,19 @@
+app/angular.json
+  s_80a6d3e114fa2e::t_a1e62a742ff26e 47-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "bef4f8e852edc07a8000926e821bf6640735be21",
+  "prompts": {},
+  "sessions": {
+    "s_80a6d3e114fa2e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aaab432-f073-4933-9442-0c2cef976947",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
