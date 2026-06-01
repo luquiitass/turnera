@@ -43,7 +43,9 @@ export class RegistrationService {
 
     // Check name unique
     const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    const existingName = await this.prisma.barbershop.findUnique({ where: { name: data.name } });
+    const existingName = await this.prisma.barbershop.findFirst({
+      where: { name: { equals: data.name, mode: 'insensitive' }, slug },
+    });
     if (existingName) throw new ConflictException('Ya existe una barberia con ese nombre');
     const existingSlug = await this.prisma.barbershop.findUnique({ where: { slug } });
     const finalSlug = existingSlug ? `${slug}-${Date.now().toString(36)}` : slug;

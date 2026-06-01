@@ -142,7 +142,9 @@ export class BarbershopsService {
     const adminUser = await this.prisma.user.findUnique({ where: { email: adminEmail } });
     if (!adminUser) throw new NotFoundException(`No existe un usuario con el email ${adminEmail}`);
 
-    const existing = await this.prisma.barbershop.findUnique({ where: { name: dto.name } });
+    const existing = await this.prisma.barbershop.findFirst({
+      where: { name: { equals: dto.name, mode: 'insensitive' } },
+    });
     if (existing) throw new ConflictException('Ya existe una barberia con ese nombre');
 
     // Generate slug

@@ -111,7 +111,7 @@ async function main() {
 
   // ==================== BARBERSHOPS ====================
   const barbershop1 = await prisma.barbershop.upsert({
-    where: { name: 'The Classic Cut' },
+    where: { slug: toSlug('The Classic Cut') },
     update: {},
     create: {
       name: 'The Classic Cut',
@@ -130,7 +130,7 @@ async function main() {
   });
 
   const barbershop2 = await prisma.barbershop.upsert({
-    where: { name: 'Urban Barber Studio' },
+    where: { slug: toSlug('Urban Barber Studio') },
     update: {},
     create: {
       name: 'Urban Barber Studio',
@@ -149,7 +149,7 @@ async function main() {
   });
 
   const barbershop3 = await prisma.barbershop.upsert({
-    where: { name: 'Don Bigote' },
+    where: { slug: toSlug('Don Bigote') },
     update: {},
     create: {
       name: 'Don Bigote',
