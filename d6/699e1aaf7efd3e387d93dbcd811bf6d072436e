@@ -1,0 +1,25 @@
+api/src/modules/registration/registration.service.ts
+  s_80a6d3e114fa2e::t_461ac1920ac7a0 46-48
+api/src/modules/barbershops/barbershops.service.ts
+  s_80a6d3e114fa2e::t_02b6e6334977dd 145-147
+api/prisma/seed.ts
+  s_80a6d3e114fa2e::t_3f5212b6c35f31 114
+  s_80a6d3e114fa2e::t_bb5ede555f2553 152
+  s_80a6d3e114fa2e::t_48fbdda3633e67 133
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d6699e1aaf7efd3e387d93dbcd811bf6d072436e",
+  "prompts": {},
+  "sessions": {
+    "s_80a6d3e114fa2e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aaab432-f073-4933-9442-0c2cef976947",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
