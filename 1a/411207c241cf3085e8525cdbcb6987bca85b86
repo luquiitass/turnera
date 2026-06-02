@@ -1,0 +1,21 @@
+api/src/prisma/prisma.service.ts
+  s_80a6d3e114fa2e::t_6d4e18d4b53a6e 10-14,17
+api/package.json
+  s_80a6d3e114fa2e::t_45545ebfeb359a 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1a411207c241cf3085e8525cdbcb6987bca85b86",
+  "prompts": {},
+  "sessions": {
+    "s_80a6d3e114fa2e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aaab432-f073-4933-9442-0c2cef976947",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
