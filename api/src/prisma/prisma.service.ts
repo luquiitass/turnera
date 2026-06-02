@@ -7,10 +7,14 @@ import pg from 'pg';
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor() {
     const connectionString = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/barber_db';
-    const isProduction = process.env.NODE_ENV === 'production';
+    // Railway internal network (.railway.internal) no requiere SSL
+    // External connections (render, supabase, etc.) sí requieren SSL
+    const needsSsl = connectionString.includes('.railway.internal')
+      ? false
+      : process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false;
     const pool = new pg.Pool({
       connectionString,
-      ssl: isProduction ? { rejectUnauthorized: false } : false,
+      ssl: needsSsl,
     });
     const adapter = new PrismaPg(pool);
     super({ adapter });
