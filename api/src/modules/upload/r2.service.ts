@@ -1,7 +1,6 @@
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
-import sharp from 'sharp';
 
 @Injectable()
 export class R2Service {
@@ -30,6 +29,8 @@ export class R2Service {
 
     let compressed: Buffer;
     try {
+      // Import dinámico para no crashear si el binding nativo no está disponible
+      const sharp = (await import('sharp')).default;
       const original = buffer.length;
       compressed = await sharp(buffer)
         .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
@@ -37,8 +38,7 @@ export class R2Service {
         .toBuffer();
       this.logger.log(`[R2] Comprimido: ${(original / 1024).toFixed(0)}KB → ${(compressed.length / 1024).toFixed(0)}KB`);
     } catch {
-      // Si sharp falla (formato raro), subir el original sin comprimir
-      this.logger.warn('[R2] sharp falló, subiendo original sin comprimir');
+      this.logger.warn('[R2] sharp no disponible, subiendo original sin comprimir');
       compressed = buffer;
     }
 
