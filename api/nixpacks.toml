@@ -1,5 +1,8 @@
+[phases.install]
+cmds = ["npm ci --include=dev"]
+
 [phases.build]
 cmds = ["npx prisma generate && npx nest build"]
 
 [start]
-cmd = "node dist/src/main.js"
+cmd = "npx prisma migrate deploy && node dist/src/main.js"
