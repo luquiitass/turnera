@@ -6,6 +6,20 @@ import { join } from 'path';
 import { mkdirSync } from 'fs';
 import express from 'express';
 
+// Capturar errores no manejados para verlos en logs de Railway
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] uncaughtException:', err);
+  process.exit(1);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] unhandledRejection:', reason);
+  process.exit(1);
+});
+
+console.log('[BOOT] Iniciando API...');
+console.log('[BOOT] NODE_ENV:', process.env.NODE_ENV);
+console.log('[BOOT] DB host:', process.env.DATABASE_URL?.split('@')[1]?.split('/')[0]);
+
 async function bootstrap() {
   const uploadsDir = join(process.cwd(), 'public', 'uploads');
   mkdirSync(uploadsDir, { recursive: true });
@@ -37,4 +51,7 @@ async function bootstrap() {
   await app.listen(port, '0.0.0.0');
   console.log(`API running on http://0.0.0.0:${port}/api`);
 }
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('[FATAL] bootstrap failed:', err);
+  process.exit(1);
+});
