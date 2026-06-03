@@ -1,0 +1,22 @@
+api/.nvmrc
+  s_80a6d3e114fa2e::t_e353b416861ea0 1
+api/package.json
+  s_80a6d3e114fa2e::t_0bc2575a4b97a6 8-10
+  s_80a6d3e114fa2e::t_133428802518b4 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0e39fd936e1192ab823a9c76f1dc0e25f3ee241f",
+  "prompts": {},
+  "sessions": {
+    "s_80a6d3e114fa2e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aaab432-f073-4933-9442-0c2cef976947",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
