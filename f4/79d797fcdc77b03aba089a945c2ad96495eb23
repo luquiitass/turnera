@@ -1,0 +1,30 @@
+api/nixpacks.toml
+  s_aebb0b474118cc::t_69ab4a22d12b80 8
+  s_80a6d3e114fa2e::t_a6be12fa205ac3 1-3
+api/prisma/schema.prisma
+  s_aebb0b474118cc::t_f24244c8b05aca 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f479d797fcdc77b03aba089a945c2ad96495eb23",
+  "prompts": {},
+  "sessions": {
+    "s_80a6d3e114fa2e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aaab432-f073-4933-9442-0c2cef976947",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    },
+    "s_aebb0b474118cc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0fce9444-ab50-4583-a801-cf6153091211",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
