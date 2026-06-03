@@ -33,8 +33,8 @@ export class R2Service {
       const sharp = (await import('sharp')).default;
       const original = buffer.length;
       compressed = await sharp(buffer)
-        .resize({ width: 1200, height: 1200, fit: 'inside', withoutEnlargement: true })
-        .webp({ quality: 82 })
+        .resize({ width: 1920, height: 1920, fit: 'inside', withoutEnlargement: true })
+        .webp({ quality: 92, effort: 4 })
         .toBuffer();
       this.logger.log(`[R2] Comprimido: ${(original / 1024).toFixed(0)}KB → ${(compressed.length / 1024).toFixed(0)}KB`);
     } catch {
