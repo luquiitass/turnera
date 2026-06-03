@@ -1,0 +1,19 @@
+app/src/environments/environment.prod.ts
+  s_aebb0b474118cc::t_54b2460b425094 5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0d0ef663a64cef2078f1a7afe0fcca782e829ff8",
+  "prompts": {},
+  "sessions": {
+    "s_aebb0b474118cc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0fce9444-ab50-4583-a801-cf6153091211",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
