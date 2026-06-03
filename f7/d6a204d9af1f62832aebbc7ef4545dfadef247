@@ -1,0 +1,20 @@
+api/src/main.ts
+  s_80a6d3e114fa2e::t_ba7acd3a11c9b6 9-22
+  s_80a6d3e114fa2e::t_b86d52ec1a4a4e 54-57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "f7d6a204d9af1f62832aebbc7ef4545dfadef247",
+  "prompts": {},
+  "sessions": {
+    "s_80a6d3e114fa2e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aaab432-f073-4933-9442-0c2cef976947",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
