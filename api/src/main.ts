@@ -15,6 +15,10 @@ async function bootstrap() {
   app.use('/uploads', express.static(join(process.cwd(), 'public', 'uploads')));
   app.setGlobalPrefix('api');
 
+  // Health check para Railway
+  const httpAdapter = app.getHttpAdapter();
+  httpAdapter.get('/api/health', (_req: any, res: any) => res.json({ status: 'ok' }));
+
   app.enableCors({
     origin: true,
     credentials: true,
