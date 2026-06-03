@@ -1,0 +1,21 @@
+api/railway.json
+  s_80a6d3e114fa2e::t_00f3727bcb413a 1-13
+api/src/main.ts
+  s_80a6d3e114fa2e::t_b26c55e3aa6195 18-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "1f5a0dfa67fa6943927cd75b71af6094e17b010c",
+  "prompts": {},
+  "sessions": {
+    "s_80a6d3e114fa2e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9aaab432-f073-4933-9442-0c2cef976947",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Lucas Larrea <lucas.larrea@mercadolibre.com>"
+    }
+  }
+}
